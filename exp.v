@@ -49,20 +49,28 @@ Local Notation ulp := (ulp beta fexp).
 
 Inductive dwfloat := DWFloat (xh : float) (xl : float).
 
+Coercion F2R : float >-> R.
+
 Definition emult (a b : float) : dwfloat := 
-  let h := RNF(F2R a * F2R b) in 
-  let l := RNF(F2R a * F2R b - F2R h) in 
+  let h := RNF (a * b) in 
+  let l := RNF(a * b - h) in 
   DWFloat h l.
 
 Check emult.
 
-Definition fastTwoSum (a b : float) := 
- let s := RNF (F2R a + F2R b) in
- let z := RNF (F2R s - F2R a) in
- DWFloat s (RNF (F2R b - F2R z)).
+Definition fastTwoSum (a b : float) :=
+  let s := RNF (a + b) in
+  let z := RNF (s - a) in
+  DWFloat s (RNF (b - z)).
 
 Check fastTwoSum.
 
+Definition twoSum (a : float) (b : dwfloat) :=  
+  let: DWFloat bh bl := b in 
+  let: DWFloat h t := fastTwoSum a bh in 
+  let: l := RNF (t + bl) in DWFloat h l.
+
+Check twoSum.
 
 End Exp.
 
