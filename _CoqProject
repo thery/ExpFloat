@@ -1,1 +1,7 @@
+-I .
+-R . exp
+Nmore.v
+Rmore.v
+Fmore.v
+Rstruct.v
 exp.v
