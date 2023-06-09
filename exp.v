@@ -74,20 +74,58 @@ Definition twoSum (a : float) (b : dwfloat) :=
 Check twoSum.
 
 Definition P3 :=
-  0.33333333333333348136306995002087205648422241210937.
-Definition P4 := 0.25000000000000016653345369377348106354475021362305.
-Definition P5 := 0.199999999956995161420891804482380393892526626586914.
-Definition P6 := 0.166666666622622750004723002348328009247779846191406.
-Definition P7 := 0.142861026799963208855359653171035461127758026123047.
-Definition P8 := 0.12500370131039634236103097464365419000387191772461.
+  0.333333333333333481363069950020872056484222412109375.
+Definition P4 := - 0.250000000000000166533453693773481063544750213623046875.
+Definition P5 :=   0.1999999999569951614208918044823803938925266265869140625.
+Definition P6 := - 0.16666666662262275000472300234832800924777984619140625.
+Definition P7 :=   0.142861026799963208855359653171035461127758026123046875.
+Definition P8 := - 0.125003701310396342361030974643654190003871917724609375.
+
+Definition Pf3 : float := 
+  Float _ 6004799503160664 (-54).
+Definition Pf4 : float := 
+  Float _ (-4503599627370499) (-54).
+Definition Pf5 : float := 
+  Float _ (7205759402243381) (-55).
+Definition Pf6 : float := 
+  Float _ (-6004799501573812) (-55).
+Definition Pf7 : float := 
+  Float _ (5147110936496646) (-55).
+Definition Pf8 : float := 
+  Float _ (-4503732981131470) (-55).
+
+Fact Pf3E : F2R Pf3 = P3.
+Proof.
+by rewrite /P3 /F2R /Q2R /= /Z.pow_pos /=; field.
+Qed.
+Fact Pf4E : F2R Pf4 = P4.
+Proof.
+by rewrite /P4 /F2R /Q2R /= /Z.pow_pos /=; field.
+Qed.
+Fact Pf5E : F2R Pf5 = P5.
+Proof.
+by rewrite /P5 /F2R /Q2R /= /Z.pow_pos /=; field.
+Qed.
+Fact Pf6E : F2R Pf6 = P6.
+Proof.
+by rewrite /P6 /F2R /Q2R /= /Z.pow_pos /=; field.
+Qed.
+Fact Pf7E : F2R Pf7 = P7.
+Proof.
+by rewrite /P7 /F2R /Q2R /= /Z.pow_pos /=; field.
+Qed.
+Fact Pf8E : F2R Pf8 = P8.
+Proof.
+by rewrite /P8 /F2R /Q2R /= /Z.pow_pos /=; field.
+Qed.
 
 Definition P z :=
     z - z ^ 2 / 2 + P3 * z ^ 3 
-  - P4 * z ^ 4 + P5 * z ^ 5 - P6 * z ^ 6 + P7 * z ^ 7 - P8 * z ^ 8. 
+    + P4 * z ^ 4 + P5 * z ^ 5 + P6 * z ^ 6 + P7 * z ^ 7 + P8 * z ^ 8. 
 
 Definition Pz z :=
     1 - z / 2 + P3 * z ^ 2 
-  - P4 * z ^ 3 + P5 * z ^ 4 - P6 * z ^ 5 + P7 * z ^ 6 - P8 * z ^ 7. 
+  + P4 * z ^ 3 + P5 * z ^ 4 + P6 * z ^ 5 + P7 * z ^ 6 + P8 * z ^ 7. 
 
 Lemma PzE z : P z = z * Pz z.
 Proof. by rewrite /Pz /P; lra. Qed.
@@ -105,13 +143,6 @@ Proof.
 move=> *; rewrite /P /P3 /P4 /P5 /P6 /P7 /P8.
 interval with (i_prec 90, i_bisect z, i_taylor z, i_degree 8).
 Qed.
-
-Definition p1 := ltac:(plot  (fun z => 
-  (ln(1 + z) - (1 + Rpower 10 (- 4)) * z))
-   (0.00)
-   0.0001).
-
-Plot p1.
 
 Lemma derive_ln_1px x : 
   -1 < x -> is_derive (fun x => ln (1 + x)) x (1 / (1 + x)).
@@ -131,6 +162,24 @@ suff: / (1 + e) <= / (1 + c) <= / (1 - e) by nra.
 split; apply: Rinv_le_contravar; split_Rabs; nra.
 Qed.
 
+Lemma Pz_bound_pos e x : 
+  0 < e < 33 * (Rpower 2 (-13)) -> 0 < x < e -> 
+  Pz x * (1 - e) <= P x / ln (1 + x) <=  Pz x * (1 + e).
+Proof.
+move=> Be Bx.
+have pow_gt1 : 33 * (Rpower 2 (-13)) < 1 by interval.
+have Pz_ge0 : 0 <= Pz x by apply: Pz_pos; split_Rabs; lra.
+suff: (1 - e) <= x / ln (1 + x) <= (1 + e) by rewrite PzE; nra.
+have Hf : 1 / (1 + e) * x <= ln (1 + x) <=  x * (1 / (1 - e)).
+  by apply: ln_bound_pos; lra.
+have ln_gt0 : 0 < ln (1 + x) by rewrite -ln_1; apply: ln_increasing; lra.
+split.
+  apply/Rle_div_r => //.
+  by rewrite Rmult_comm; apply/Rle_div_r; lra.
+apply/Rle_div_l => //.
+by rewrite Rmult_comm; apply/Rle_div_l; lra.
+Qed.
+
 Lemma ln_bound_neg e x : 
   0 < e < 1 -> -e < x <= 0 -> 
   1 / (1 - e) * x <= ln (1 + x) <=  x * (1 / (1 + e)).
@@ -145,100 +194,187 @@ suff: / (1 + e) <= / (1 + c) <= / (1 - e) by nra.
 split; apply: Rinv_le_contravar; split_Rabs; nra.
 Qed.
 
-
-
- => [Hc Hv].
-Search (ln 1).
-lra.
-auto_derive; try lra.
+Lemma Pz_bound_neg e x : 
+  0 < e < 33 * (Rpower 2 (-13)) -> -e < x < 0 -> 
+  Pz x * (1 - e) <= P x / ln (1 + x) <=  Pz x * (1 + e).
+Proof.
+move=> Be Bx.
+have pow_gt1 : 33 * (Rpower 2 (-13)) < 1 by interval.
+have Pz_ge0 : 0 <= Pz x by apply: Pz_pos; split_Rabs; lra.
+suff: (1 - e) <= x / ln (1 + x) <= (1 + e) by rewrite PzE; nra.
+have Hf : 1 / (1 - e) * x <= ln (1 + x) <=  x * (1 / (1 + e)).
+  by apply: ln_bound_neg; lra.
+have ln_gt0 : ln (1 + x) < 0 by rewrite -ln_1; apply: ln_increasing; lra.
+have-> : x / ln (1 + x) = (- x) / (- ln (1 + x)) by field; lra.
+split.
+  apply/Rle_div_r; try lra.
+  by rewrite Rmult_comm; apply/Rle_div_r; lra.
+apply/Rle_div_l; try lra.
+by rewrite Rmult_comm; apply/Rle_div_l; lra.
 Qed.
 
-Search derive_pt Derive.
-Check MVT.
-Search "MVT".
-Check MVT_cor4.
-Lemma foo x : (Rpower 10 (-100)) <= x <= (Rpower 10 (-4)) ->
-  0 <= (x - ln(1 + x)).
-intros.
-interval with (i_prec 420, i_bisect x, i_taylor x, i_degree 40).
+Lemma PPz1_bound_pos x : 
+let e := Rpower 2 (-80) in 
+   0 < x < e ->  - (Rpower 2 (-(72.423))) <  1 - Pz x * (1 + e).
+Proof.
+move=> e *; rewrite /e /Pz /P3 /P4 /P5 /P6 /P7 /P8.
+interval with (i_prec 80).
+Qed.
+
+Lemma PPz2_bound_pos x : 
+let e := Rpower 2 (-80) in 
+   0 < x < e ->  1 - Pz x * (1 + e) < (Rpower 2 (-(72.423))).
+Proof.
+move=> e *; rewrite /e /Pz /P3 /P4 /P5 /P6 /P7 /P8.
+interval with (i_prec 80).
+Qed.
+
+Lemma PPz3_bound_pos x : 
+let e := Rpower 2 (-80) in 
+   0 < x < e ->  1 - Pz x * (1 - e) < (Rpower 2 (-(72.423))).
+Proof.
+move=> e *; rewrite /e /Pz /P3 /P4 /P5 /P6 /P7 /P8.
+interval with (i_prec 80).
+Qed.
+
+Lemma PPz4_bound_pos x : 
+let e := Rpower 2 (-80) in 
+   0 < x < e ->  - (Rpower 2 (-(72.423))) <  1 - Pz x * (1 - e).
+Proof.
+move=> e *; rewrite /e /Pz /P3 /P4 /P5 /P6 /P7 /P8.
+interval with (i_prec 80).
+Qed.
+
+Lemma PPz1_bound_neg x : 
+let e := Rpower 2 (-80) in 
+   -e < x < 0 ->  - (Rpower 2 (-(72.423))) <  1 - Pz x * (1 + e).
+Proof.
+move=> e *; rewrite /e /Pz /P3 /P4 /P5 /P6 /P7 /P8.
+interval with (i_prec 80).
+Qed.
+
+Lemma PPz2_bound_neg x : 
+let e := Rpower 2 (-80) in 
+   -e < x < 0 ->  1 - Pz x * (1 + e) < (Rpower 2 (-(72.423))).
+Proof.
+move=> e *; rewrite /e /Pz /P3 /P4 /P5 /P6 /P7 /P8.
+interval with (i_prec 80).
+Qed.
+
+Lemma PPz3_bound_neg x : 
+let e := Rpower 2 (-80) in 
+   -e < x < 0 ->  1 - Pz x * (1 - e) < (Rpower 2 (-(72.423))).
+Proof.
+move=> e *; rewrite /e /Pz /P3 /P4 /P5 /P6 /P7 /P8.
+interval with (i_prec 80).
+Qed.
+
+Lemma PPz4_bound_neg x : 
+let e := Rpower 2 (-80) in 
+   -e < x < 0 ->  - (Rpower 2 (-(72.423))) <  1 - Pz x * (1 - e).
+Proof.
+move=> e *; rewrite /e /Pz /P3 /P4 /P5 /P6 /P7 /P8.
+interval with (i_prec 80).
 Qed.
 
 
+Lemma PPz_bound_pos x : 
+let e := Rpower 2 (-80) in 
+   0 < x < e ->  
+   Rabs (1 - P x / ln (1 + x)) < Rpower 2 (-(72.423)).
+Proof.
+move=>e He.
+have Pz_ge0 : 0 <= Pz x.
+  apply: Pz_pos.
+  by rewrite /e in He; interval.
+have H1e : 0 < 1 - e
+  by rewrite /e in He; interval.
+have :  Pz x * (1 - e) <= P x / ln (1 + x) <=  Pz x * (1 + e).
+  apply: Pz_bound_pos => //.
+  by rewrite /e; split; interval.
+have := PPz1_bound_pos He.
+have := PPz2_bound_pos He.
+have := PPz3_bound_pos He.
+have := PPz4_bound_pos He.
+by rewrite /e; split_Rabs; lra.
+Qed.
 
+Lemma PPz_bound_neg x : 
+let e := Rpower 2 (-80) in 
+   -e < x < 0 ->  
+   Rabs (1 - P x / ln (1 + x)) < Rpower 2 (-(72.423)).
+Proof.
+move=>e He.
+have Pz_ge0 : 0 <= Pz x.
+  apply: Pz_pos.
+  by rewrite /e in He; interval.
+have H1e : 0 < 1 - e
+  by rewrite /e in He; interval.
+have :  Pz x * (1 - e) <= P x / ln (1 + x) <=  Pz x * (1 + e).
+  apply: Pz_bound_neg => //.
+  by rewrite /e; split; interval.
+have := PPz1_bound_neg He.
+have := PPz2_bound_neg He.
+have := PPz3_bound_neg He.
+have := PPz4_bound_neg He.
+by rewrite /e; split_Rabs; lra.
+Qed.
 
-Definition p1 := ltac:(plot  (fun z => 
-  (1 -
-   (z - z ^ 2 / 2 +
-    0.33333333333333348136306995002087205648422241210937 * z ^ 3 -
-    0.25000000000000016653345369377348106354475021362305 * z ^ 4 +
-    0.199999999956995161420891804482380393892526626586914 * z ^ 5 -
-    0.166666666622622750004723002348328009247779846191406 * z ^ 6 +
-    0.142861026799963208855359653171035461127758026123047 * z ^ 7 -
-    0.12500370131039634236103097464365419000387191772461 * z ^ 8) / 
-    (ln (1 + z))))
-   (0.000000005)
-   0.0005
-   (- Rpower 2 (-(72.423)))
-   (Rpower 2 (-(72.423)))
-    with  (i_prec 400, i_degree 50)).
+Lemma PPz_bound x : 
+   Rabs x < Rpower 2 (-80) ->  
+   Rabs ((ln(1 + x) - P x) / ln (1 + x)) < Rpower 2 (-(72.423)).
+Proof.
+move=> He.
+have [H1 | [->|H1]] : 
+  0 < x < Rpower 2 (-80) \/ x = 0 \/ - Rpower 2 (-80) < x < 0.
+- by split_Rabs; lra.
+- have-> : (ln (1 + x) - P x) / ln (1 + x) = 1 - P x / ln (1 + x).
+    field.
+    suff : 0 < ln (1 + x) by lra.
+    by rewrite -ln_1; apply: ln_increasing; lra.
+  by apply: PPz_bound_pos.
+- rewrite !(ln_1, Rsimp01); interval.
+have-> : (ln (1 + x) - P x) / ln (1 + x) = 1 - P x / ln (1 + x).
+  field.
+  suff : ln (1 + x) < 0 by lra.
+  rewrite -ln_1; apply: ln_increasing; try lra.
+  interval.
+by apply: PPz_bound_neg.
+Qed.
 
-Plot p1.
-
-
-
-
-(*
-Lemma P_abs_error z :
-  Rabs z < 33 * Rpower 2 (-13) ->
-  Rabs (ln (1 + z) -
-   (z - z ^ 2 / 2 +
-    0.33333333333333348136306995002087205648422241210937 * z ^ 3 -
-    0.25000000000000016653345369377348106354475021362305 * z ^ 4 +
-    0.199999999956995161420891804482380393892526626586914 * z ^ 5 -
-    0.166666666622622750004723002348328009247779846191406 * z ^ 6 +
-    0.142861026799963208855359653171035461127758026123047 * z ^ 7 -
-    0.12500370131039634236103097464365419000387191772461 * z ^ 8)) 
-     <= Rpower 2 (- (81.63)).
+Lemma P_rel_error_pos z :
+  Rpower 2 (-80) <= z <  33 * Rpower 2 (-33) ->
+  Rabs ((ln (1 + z) - P z) /
+   (ln (1 + z))) < Rpower 2 (-(72.423)).
 Proof.
 intros.
-interval with (i_prec 120, i_bisect z, i_taylor z, i_degree 10).
+interval with (i_prec 200,
+   i_bisect z, i_taylor z, i_degree 20).
+Qed.
+
+Lemma P_rel_error_neg z :
+  - 33 * Rpower 2 (-33) < z <= - Rpower 2 (-80) ->
+  Rabs ((ln (1 + z) - P z) /
+   (ln (1 + z))) < Rpower 2 (-(72.423)).
+Proof.
+intros.
+interval with (i_prec 200,
+   i_bisect z, i_taylor z, i_degree 20).
 Qed.
 
 Lemma P_rel_error z :
-  Rabs z < 33 * Rpower 2 (-13) ->
-  Rabs ((ln (1 + z) -
-   (z - z ^ 2 / 2 +
-    0.33333333333333348136306995002087205648422241210937 * z ^ 3 -
-    0.25000000000000016653345369377348106354475021362305 * z ^ 4 +
-    0.199999999956995161420891804482380393892526626586914 * z ^ 5 -
-    0.166666666622622750004723002348328009247779846191406 * z ^ 6 +
-    0.142861026799963208855359653171035461127758026123047 * z ^ 7 -
-    0.12500370131039634236103097464365419000387191772461 * z ^ 8)) / 
-    (ln (1 + z))) <= Rpower 2 (-(72.423)).
+  Rabs z < 33 * Rpower 2 (-33)  ->
+  Rabs ((ln (1 + z) - P z) /
+   (ln (1 + z))) < Rpower 2 (-(72.423)).
 Proof.
-intros.
-Fail interval with (i_prec 120, i_bisect z, i_taylor z, i_degree 10).
-Admitted.
-
-Definition p1 := ltac:(plot  (fun z => 
-  (1 -
-   (z - z ^ 2 / 2 +
-    0.33333333333333348136306995002087205648422241210937 * z ^ 3 -
-    0.25000000000000016653345369377348106354475021362305 * z ^ 4 +
-    0.199999999956995161420891804482380393892526626586914 * z ^ 5 -
-    0.166666666622622750004723002348328009247779846191406 * z ^ 6 +
-    0.142861026799963208855359653171035461127758026123047 * z ^ 7 -
-    0.12500370131039634236103097464365419000387191772461 * z ^ 8) / 
-    (ln (1 + z))))
-   (0.0005)
-   ( 33 * (Rpower 2 (-13)))
-   (- Rpower 2 (-(72.423)))
-   (Rpower 2 (-(72.423)))
-    with  (i_prec 120, i_degree 10)).
-
-Plot p1.
-
-
+move=> H.
+have [H1 | H1 ]: Rpower 2 (-80) <= Rabs z \/ Rabs z < Rpower 2 (-80) 
+  by lra.
+  rewrite /Rabs in H H1.
+  move: H H1; case: Rcase_abs => H2 H H1.
+    by apply: P_rel_error_neg; lra.
+  by apply: P_rel_error_pos; lra.
+by apply: PPz_bound.
+Qed.
 
 End Exp.
-
