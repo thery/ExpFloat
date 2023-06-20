@@ -18,6 +18,8 @@ Let p := 53%Z.
 Let emax := 1024%Z.
 Let emin := (3 - emax - p)%Z.
 
+Compute emin.
+
 Let beta := radix2.
 
 Hypothesis Hp2: Z.lt 1 p.
@@ -41,6 +43,138 @@ Local Notation format := (generic_format radix2 fexp).
 Local Notation cexp := (cexp beta fexp).
 Local Notation mant := (scaled_mantissa beta fexp).
 Local Notation RN := (round beta fexp (Znearest choice)).
+
+(* Some sanity check *)
+Let alpha := pow (- 1074).
+Let alphaF : float := Float _ 1 emin.
+
+Lemma alphaFE : F2R alphaF = alpha.
+Proof.
+by rewrite /alpha /alphaF /F2R /Q2R /= /Z.pow_pos /=; lra.
+Qed.
+
+Lemma format_alpha : format alpha.
+Proof.
+rewrite -alphaFE.
+apply: generic_format_FLT.
+apply: FLT_spec (refl_equal _) _ _ => /=; lia.
+Qed.
+
+Lemma alpha_gt_0 : 0 < alpha.
+Proof.
+rewrite /alpha !bpow_powerRZ !powerRZ_Rpower.
+  by rewrite -[IZR beta]/2; interval with (i_prec 54).
+by apply: IZR_lt.
+Qed.
+
+Lemma alpha_LB x : format x -> 0 < x -> alpha <= x.
+Proof.
+move=> fX xP.
+have [f xE H1f H2f] : FLT_format beta emin p x by apply: FLT_format_generic.
+rewrite xE -alphaFE.
+rewrite /F2R -[bpow radix2 _]/(pow _).
+rewrite -[Fexp alphaF]/emin -[Fnum alphaF]/1%Z.
+apply: Rmult_le_compat; [lra| apply: bpow_ge_0 | idtac | apply: bpow_le] => //.
+apply: IZR_le.
+rewrite xE /F2R in xP.
+have F1 : 0 < pow (Fexp f) by apply: bpow_gt_0.
+have F2 : 0 < IZR (Fnum f) by nra.
+suff: (0 < Fnum f)%Z by lia.
+by apply: lt_IZR.
+Qed.
+
+Let omega := (1 - pow (-p)) * pow emax.
+Let omegaF : float := Float _ (2 ^ p - 1) (emax - p).
+
+Lemma omegaFE : F2R omegaF = omega.
+Proof.
+by rewrite /omega /omegaF /F2R /Q2R /= /Z.pow_pos /=; lra.
+Qed.
+
+Lemma omega_gt_alpha : alpha < omega.
+Proof.
+rewrite /omega /alpha !bpow_powerRZ !powerRZ_Rpower; try by apply: IZR_lt.
+rewrite -[IZR beta]/2 -[IZR (- p)]/(-53) -[IZR emax]/1024.
+interval with (i_prec 54).
+Qed.
+
+Lemma omega_gt_0 : 0 < omega.
+Proof. by apply: Rlt_trans alpha_gt_0 omega_gt_alpha. Qed.
+
+Lemma format_omega : format omega.
+Proof.
+rewrite -omegaFE.
+apply: generic_format_FLT.
+apply: FLT_spec (refl_equal _) _ _ => /=; lia.
+Qed.
+
+Lemma format1 : format 1.
+Proof.
+have -> : 1 = F2R (Float radix2 1 0) by rewrite /F2R /=; lra.
+apply: generic_format_FLT.
+apply: FLT_spec (refl_equal _) _ _ => /=; lia.
+Qed.
+
+Lemma ln_pow1022_le x : 
+  format x -> 1 < x <= omega -> pow (- 1022) <= ln x <= omega.
+Proof.
+move=> Fx [x_gt_1 x_le_omega] ; split; last first.
+  apply: Rle_trans (_ : ln omega <= _).
+    by apply: ln_le; lra.
+  rewrite /omega !bpow_powerRZ !powerRZ_Rpower.
+  - rewrite -[IZR beta]/2 -[IZR (- p)]/(-53) -[IZR emax]/1024.
+    interval with (i_prec 54).
+  - by apply: IZR_lt.
+  by apply: IZR_lt.
+have sE : succ radix2 fexp 1 = 1 + Rpower 2 (-52).
+  rewrite /succ /=.
+  (case: Rle_bool_spec; try lra) => _.
+  rewrite ulp_neq_0 //= /Generic_fmt.cexp mag_1 /fexp.
+  rewrite -[Z.max _ _]/(-52)%Z.
+  by rewrite bpow_powerRZ powerRZ_Rpower; last by apply: IZR_lt.
+apply: Rle_trans (_ : ln (succ radix2 fexp 1) <= _).
+  rewrite sE.
+  by interval with (i_prec 54).
+apply: ln_le; last by apply: succ_le_lt => //; apply: format1.
+suff : 0 < Rpower 2 (- 52) by rewrite sE; lra.
+rewrite -powerRZ_Rpower; last by lra.
+apply: powerRZ_lt; lra.
+Qed.
+
+Lemma ln_pow1022_ge x : 
+  format x -> alpha <= x < 1 -> - omega <= ln x <= - pow (- 1022).
+Proof.
+move=> Fx [x_ge_alpha x_lt_1] ; split.
+  apply: Rle_trans (_ : ln alpha <= _); last first.
+    apply: ln_le => //.
+    by apply: alpha_gt_0.
+  rewrite /alpha /omega !bpow_powerRZ !powerRZ_Rpower; try by apply: IZR_lt.
+  rewrite -[IZR beta]/2 -[IZR (- p)]/(-53) -[IZR emax]/1024.
+  interval with (i_prec 54).
+have sE : pred radix2 fexp 1 = 1 - Rpower 2 (-53).
+  rewrite /pred /= /succ.
+  (case: Rle_bool_spec; try lra) => _.
+  have -> : (- - (1) = 1)%R by lra.
+  rewrite /pred_pos mag_1 /=.
+  (case: Req_bool_spec; try lra) => _.
+  rewrite /Z.pow_pos /=.
+  rewrite -powerRZ_Rpower; last by apply: IZR_lt.
+  by rewrite /powerRZ /=; lra.
+apply: Rle_trans (_ : ln (pred radix2 fexp 1) <= _); last first.
+  rewrite sE.
+  rewrite bpow_powerRZ powerRZ_Rpower; last by apply: IZR_lt.
+  rewrite -[IZR beta]/2.
+  by interval with (i_prec 54).
+apply: ln_le.
+ by apply: Rlt_le_trans alpha_gt_0 x_ge_alpha.
+rewrite -[x](@succ_pred_pos radix2 fexp) //; last first.
+  by apply: Rlt_le_trans alpha_gt_0 _.
+apply: succ_le_lt.
+- by apply: generic_format_pred.
+- by apply/generic_format_pred/format1.
+apply: pred_lt => //.
+by apply: format1.
+Qed.
 
 Definition RNF x : float :=
     {|
