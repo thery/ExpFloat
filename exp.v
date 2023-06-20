@@ -1,4 +1,4 @@
-Require Import Reals  Psatz.
+Require Import ZArith Reals  Psatz.
 From mathcomp Require Import all_ssreflect all_algebra.
 From Flocq Require Import Core Relative Sterbenz Operations Mult_error.
 From Coquelicot Require Import Coquelicot.
@@ -6,6 +6,7 @@ From Interval Require Import Plot Tactic.
 Require Import Nmore Rmore Fmore Rstruct.
 
 Delimit Scope R_scope with R.
+Delimit Scope Z_scope with Z.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -13,7 +14,10 @@ Unset Printing Implicit Defensive.
 
 Section Exp.
 
-Variable p : Z.
+Let p := 53%Z.
+Let emax := 1024%Z.
+Let emin := (3 - emax - p)%Z.
+
 Let beta := radix2.
 
 Hypothesis Hp2: Z.lt 1 p.
@@ -32,11 +36,12 @@ Variable choice : Z -> bool.
 Hypothesis choice_sym: forall x, choice x  = negb (choice (- (x + 1))).
 
 Local Notation float := (float radix2).
-Local Notation fexp := (FLX_exp p).
-Local Notation format := (generic_format beta fexp).
+Local Notation fexp := (FLT_exp emin p).
+Local Notation format := (generic_format radix2 fexp).
 Local Notation cexp := (cexp beta fexp).
 Local Notation mant := (scaled_mantissa beta fexp).
 Local Notation RN := (round beta fexp (Znearest choice)).
+
 Definition RNF x : float :=
     {|
 	Fnum := Znearest choice (scaled_mantissa beta fexp x);
@@ -83,6 +88,7 @@ Definition P8 := - 0.125003701310396342361030974643654190003871917724609375.
 
 Definition Pf3 : float := 
   Float _ 6004799503160664 (-54).
+
 Definition Pf4 : float := 
   Float _ (-4503599627370499) (-54).
 Definition Pf5 : float := 
@@ -98,25 +104,72 @@ Fact Pf3E : F2R Pf3 = P3.
 Proof.
 by rewrite /P3 /F2R /Q2R /= /Z.pow_pos /=; field.
 Qed.
+
+Lemma format_P3 : format P3.
+Proof.
+rewrite -Pf3E.
+apply: generic_format_FLT.
+apply: FLT_spec (refl_equal _) _ _ => /=; lia.
+Qed.
+
 Fact Pf4E : F2R Pf4 = P4.
 Proof.
 by rewrite /P4 /F2R /Q2R /= /Z.pow_pos /=; field.
 Qed.
+
+Lemma format_P4 : format P4.
+Proof.
+rewrite -Pf4E.
+apply: generic_format_FLT.
+apply: FLT_spec (refl_equal _) _ _ => /=; lia.
+Qed.
+
 Fact Pf5E : F2R Pf5 = P5.
 Proof.
 by rewrite /P5 /F2R /Q2R /= /Z.pow_pos /=; field.
 Qed.
+
+Lemma format_P5 : format P5.
+Proof.
+rewrite -Pf5E.
+apply: generic_format_FLT.
+apply: FLT_spec (refl_equal _) _ _ => /=; lia.
+Qed.
+
 Fact Pf6E : F2R Pf6 = P6.
 Proof.
 by rewrite /P6 /F2R /Q2R /= /Z.pow_pos /=; field.
 Qed.
+
+Lemma format_P6 : format P6.
+Proof.
+rewrite -Pf6E.
+apply: generic_format_FLT.
+apply: FLT_spec (refl_equal _) _ _ => /=; lia.
+Qed.
+
 Fact Pf7E : F2R Pf7 = P7.
 Proof.
 by rewrite /P7 /F2R /Q2R /= /Z.pow_pos /=; field.
 Qed.
+
+Lemma format_P7 : format P7.
+Proof.
+rewrite -Pf7E.
+apply: generic_format_FLT.
+apply: FLT_spec (refl_equal _) _ _ => /=; lia.
+Qed.
+
 Fact Pf8E : F2R Pf8 = P8.
 Proof.
 by rewrite /P8 /F2R /Q2R /= /Z.pow_pos /=; field.
+Qed.
+
+Lemma format_P8 : format P8.
+Proof.
+rewrite -Pf8E.
+apply: generic_format_FLT.
+apply: FLT_spec (refl_equal _) _ _ => /=; lia.
 Qed.
 
 Definition P z :=
@@ -376,5 +429,19 @@ have [H1 | H1 ]: Rpower 2 (-80) <= Rabs z \/ Rabs z < Rpower 2 (-80)
   by apply: P_rel_error_pos; lra.
 by apply: PPz_bound.
 Qed.
+
+(* L'algo p_1 *)
+
+Definition p1 (z : float) :=
+  let: DWFloat wh wl := exactMul z z in 
+  let: t := RNF (Pf8 * z + Pf7) in
+  let: u := RNF (Pf6 * z + Pf5) in
+  let: v := RNF (Pf4 * z + Pf3) in
+  let: u := RNF (t * wh + u) in 
+  let: v := RNF (u * wh + v) in 
+  let: u := RNF (v * wh) in 
+  DWFloat (RNF (- 0.5 * wh))
+          (RNF (u * z - 0.5 * wl)).
+
 
 End Exp.
