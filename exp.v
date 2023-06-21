@@ -195,92 +195,7 @@ Definition exactMul (a b : float) : dwfloat :=
   let h := RNF (a * b) in 
   let l := RNF(a * b - h) in 
   DWFloat h l.
-
-Check exactMul.
-
-Definition is_imul x y := exists z : Z, x = IZR z * y.
-
-Lemma exacMul (a b : float) :
-  let: DWFloat ph pl := exactMul a b in
-  format a -> format b ->
-  is_imul (a * b) alpha -> a * b = ph + pl.
-Proof.
-rewrite /exactMul -!RNFE => [] Fa Fb [z zE].
-have [->|ab_neq0] := Req_dec (a * b) 0; first by rewrite !(round_0, Rsimp01).
-rewrite -alphaFE /alphaF in zE.
-have [pLab|pGab] := Rle_lt_dec (pow (emin + 2 * p - 1)) (Rabs (a * b)).
-  rewrite [X in _ = _ + X]round_generic; first by lra.
-  rewrite -Ropp_minus_distr.
-  by apply/generic_format_opp/mult_error_FLT.
-have F1 : Ulp.ulp radix2 fexp (pow (emin + 2 * p - 1)) = pow (emin + p).
-  rewrite ulp_bpow; congr (pow _).
-have F2 : Rabs (a * b - RN (a * b)) <= pow (emin + p).
-  rewrite -F1  -Ropp_minus_distr Rabs_Ropp.
-  apply: Rle_trans (error_le_ulp _ _ _ _) _.
-  apply: ulp_le.
-  rewrite [X in _ <= X]Rabs_pos_eq //; first by lra.
-  apply: bpow_ge_0.
-have [zr Hzr] : 
-     exists zr, RN (a * b) =  ({| Fnum := zr; Fexp := emin |} : float).
-  have : format (RN (a * b)) by apply: generic_format_round.
-  rewrite /generic_format [X in _ = X -> _]/F2R /=.
-  set m := Ztrunc _; set e := cexp _ => H.
-  exists (m * (2 ^ (e - emin)))%Z.
-  rewrite H.
-  rewrite -[X in _ = X]/(IZR (m * 2 ^ (e - emin)) * pow emin).
-  rewrite mult_IZR (IZR_Zpower radix2).
-    by rewrite Rmult_assoc -bpow_plus; congr (_ * bpow _ _); lia.
-  by rewrite /e /cexp /fexp; lia.
-have FF : a * b - RN (a * b) = ({| Fnum := z - zr; Fexp := emin |} : float).
-  rewrite Hzr zE /F2R /= minus_IZR; lra.
-rewrite [X in _ + X]round_generic; first by lra.
-have [C1 | C2] : Rabs (a * b - RN (a * b)) < pow (emin + p) \/
-       Rabs (a * b - RN (a * b)) = pow (emin + p) by lra.
-  have F : Rabs (IZR (z - zr)) < pow p.
-    rewrite bpow_plus [_ * pow p]Rmult_comm in C1.
-    rewrite FF /F2R /= Rabs_mult in C1.
-    have -> : pow p = IZR (Z.pow_pos 2 53) by [].
-    set xx := / IZR _ in C1.
-    suff : 0 < xx by split_Rabs; nra.
-    apply: Rinv_0_lt_compat.
-    by apply: IZR_lt.
-  apply: generic_format_FLT.
-  apply: FLT_spec FF _ _ => /=; last by lia.
-  apply/lt_IZR.
-  rewrite abs_IZR.
-  by rewrite -(IZR_Zpower radix2) in F.
-apply: generic_format_abs_inv.
-rewrite C2.
-apply: generic_format_FLT.
-apply: FLT_format_bpow; lia.
-Qed.
-
-apply: generic_format_FLT.
   
-    Search generic_format "FLT".
-    Search (0 < / _).
-
-
-
-
-move: F2.
-
-
-  Search IZR bpow.
-  rewrite H /F2R /=.
-Search generic_format "FLT" Rmult Rabs.
-
-
-  Search "error" Ulp.ulp.
-
-  Search Ulp.ulp bpow Rlt.
-
-
-  Search Ulp.ulp  bpow.
-
-Check mult_error_FLT.
-Admitted.
-
 Definition fastTwoSum (a b : float) :=
   let s := RNF (a + b) in
   let z := RNF (s - a) in
@@ -613,27 +528,27 @@ by apply: PPz_bound_neg.
 Qed.
 
 Lemma P_rel_error_pos z :
-  Rpower 2 (-80) <= z <  33 * Rpower 2 (-33) ->
+  Rpower 2 (-80) <= z <  33 * Rpower 2 (-13) ->
   Rabs ((ln (1 + z) - P z) /
    (ln (1 + z))) < Rpower 2 (-(72.423)).
 Proof.
 intros.
-interval with (i_prec 200,
+interval with (i_prec 200, i_depth 50,
    i_bisect z, i_taylor z, i_degree 20).
 Qed.
 
 Lemma P_rel_error_neg z :
-  - 33 * Rpower 2 (-33) < z <= - Rpower 2 (-80) ->
+  - 33 * Rpower 2 (-13) < z <= - Rpower 2 (-80) ->
   Rabs ((ln (1 + z) - P z) /
    (ln (1 + z))) < Rpower 2 (-(72.423)).
 Proof.
 intros.
-interval with (i_prec 200,
+interval with (i_prec 200, i_depth 50,
    i_bisect z, i_taylor z, i_degree 20).
 Qed.
 
 Lemma P_rel_error z :
-  Rabs z < 33 * Rpower 2 (-33)  ->
+  Rabs z < 33 * Rpower 2 (-13)  ->
   Rabs ((ln (1 + z) - P z) /
    (ln (1 + z))) < Rpower 2 (-(72.423)).
 Proof.
@@ -659,113 +574,5 @@ Definition p1 (z : float) :=
   let: u := RNF (v * wh) in 
   DWFloat (RNF (- 0.5 * wh))
           (RNF (u * z - 0.5 * wl)).
-
-Check mult_error_FLX_aux.
-
-Lemma mult_error_FLT_aux:
-  forall x y,
-  format x -> format y ->
-  (RN (x * y) - (x * y) <> 0)%R ->
-  exists f:float,
-    (F2R f = RN (x * y) - (x * y))%R
-    /\ (cexp (F2R f) <= Fexp f)%Z
-    /\ (Fexp f = cexp x + cexp y)%Z.
-Proof with auto with typeclass_instances.
-intros x y Hx Hy Hz.
-set (f := RN (x * y)).
-destruct (Req_dec (x * y) 0) as [Hxy0|Hxy0].
-contradict Hz.
-rewrite Hxy0.
-rewrite round_0...
-ring.
-destruct (mag beta (x * y)) as (exy, Hexy).
-specialize (Hexy Hxy0).
-destruct (mag beta (f - x * y)) as (er, Her).
-specialize (Her Hz).
-destruct (mag beta x) as (ex, Hex).
-assert (Hx0: (x <> 0)%R).
-contradict Hxy0.
-now rewrite Hxy0 Rmult_0_l.
-specialize (Hex Hx0).
-destruct (mag beta y) as (ey, Hey).
-assert (Hy0: (y <> 0)%R).
-contradict Hxy0.
-now rewrite Hxy0 Rmult_0_r.
-specialize (Hey Hy0).
-(* *)
-assert (Hc1: (cexp (x * y)%R - p <= cexp x + cexp y)%Z).
-Search generic_format.
-unfold cexp, FLT_exp.
-rewrite (mag_unique _ _ _ Hex).
-rewrite (mag_unique _ _ _ Hey).
-rewrite (mag_unique _ _ _ Hexy).
-cut (exy - 1 < ex + ey)%Z. 
-Search fexp.
-admit.
-apply (lt_bpow beta).
-apply Rle_lt_trans with (1 := proj1 Hexy).
-rewrite Rabs_mult.
-rewrite bpow_plus.
-apply Rmult_le_0_lt_compat.
-apply Rabs_pos.
-apply Rabs_pos.
-apply Hex.
-apply Hey.
-(* *)
-
-Search Rmult generic_format "error".
-Locate .
-
-Theorem mult_error_FLT :
-  forall x y,
-  format x -> format y ->
-  (x * y <> 0 -> pow (emin + 2 * p - 1) <= Rabs (x * y))%R ->
-  format (RN (x * y) - (x * y))%R.
-Proof with auto with typeclass_instances.
-intros x y Hx Hy Hxy.
-set (f := RN (x * y)).
-destruct (Req_dec (f - x * y) 0) as [Hr0|Hr0].
-rewrite Hr0.
-apply generic_format_0.
-destruct (Req_dec (x * y) 0) as [Hxy'|Hxy'].
-unfold f.
-rewrite Hxy'.
-rewrite round_0...
-ring_simplify (0 - 0)%R.
-apply generic_format_0.
-specialize (Hxy Hxy').
-Check Generic_fmt.cexp beta.
-destruct (mult_error_FLX_aux beta p rnd x y) as ((m,e),(H1,(H2,H3))).
-now apply generic_format_FLX_FLT with emin.
-now apply generic_format_FLX_FLT with emin.
-rewrite <- (round_FLT_FLX beta emin).
-assumption.
-apply Rle_trans with (2:=Hxy).
-apply bpow_le.
-generalize (prec_gt_0 p).
-clear ; lia.
-rewrite <- (round_FLT_FLX beta emin) in H1.
-2:apply Rle_trans with (2:=Hxy).
-2:apply bpow_le ; generalize (prec_gt_0 p) ; clear ; lia.
-unfold f; rewrite <- H1.
-apply generic_format_F2R.
-intros _.
-simpl in H2, H3.
-unfold cexp, FLT_exp.
-case (Zmax_spec (mag beta (F2R (Float beta m e)) - p) emin);
-  intros (M1,M2); rewrite M2.
-Print scaled_mantissa.
-Search Generic_fmt.cexp.
-apply Z.le_trans with (2:=H2).
-unfold cexp, FLX_exp.
-apply Z.le_refl.
-rewrite H3.
-unfold cexp, FLX_exp.
-assert (Hxy0:(x*y <> 0)%R).
-contradict Hr0.
-unfold f.
-rewrite Hr0.
-rewrite round_0...
-
 
 End Exp.
