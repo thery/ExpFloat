@@ -34,7 +34,7 @@ Local Notation RN := (round beta fexp rnd).
 
 Definition is_imul x y := exists z : Z, x = IZR z * y.
 
-Lemma exacMul (a b : R) :
+Lemma exactMul (a b : R) :
   format a -> format b -> is_imul (a * b) (pow emin) ->
   format (RN (a * b) - a * b).
 Proof.
