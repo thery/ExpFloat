@@ -34,10 +34,62 @@ Local Notation RN := (round beta fexp rnd).
 
 Definition is_imul x y := exists z : Z, x = IZR z * y.
 
+Lemma is_imul_add x1 x2 y : 
+  is_imul x1 y -> is_imul x2 y -> is_imul (x1 + x2) y.
+Proof.
+move=> [z1 ->] [z2 ->]; exists (z1 + z2)%Z.
+by rewrite plus_IZR; lra.
+Qed.
+
+Lemma is_imul_minus x1 x2 y : 
+  is_imul x1 y -> is_imul x2 y -> is_imul (x1 - x2) y.
+Proof.
+move=> [z1 ->] [z2 ->]; exists (z1 - z2)%Z.
+by rewrite minus_IZR; lra.
+Qed.
+
+Lemma is_imul_pow_mag x y : x <> 0 -> is_imul x (pow y) -> (y <= (mag beta x) - 1)%Z.
+Proof.
+move=> x_neq_0 [k kE].
+rewrite kE in x_neq_0 *.
+have k_neq_0 : k <> 0%Z.
+  move=> k_eq_0; case: x_neq_0.
+  by rewrite k_eq_0; lra.
+rewrite mag_mult_bpow; last by apply: not_0_IZR.
+suff : (1 <= (mag beta (IZR k)))%Z by lia.
+apply: mag_ge_bpow.
+rewrite pow0E -abs_IZR.
+apply: IZR_le; lia.
+Qed.
+
+Lemma is_imul_format_mag_pow x y : 
+  format x -> (y <= fexp (mag beta x))%Z -> is_imul x (pow y).
+Proof.
+move=> Fx My.
+have [-> | x_neq0] := Req_dec x 0; first by exists 0%Z; lra.
+rewrite /generic_format /F2R /= in Fx.
+rewrite Fx /cexp.
+set m := Ztrunc _.
+exists (m * (beta ^ (fexp (mag beta x) - y)))%Z.
+rewrite mult_IZR IZR_Zpower; last by lia.
+by rewrite Rmult_assoc -bpow_plus; congr (_ * pow _); lia.
+Qed.
+
+Lemma is_imul_pow_round x y : is_imul x (pow y) -> is_imul (RN x) (pow y).
+Proof.
+move=> Mxy.
+have [->|RNx_neq_0] := Req_dec (RN x) 0.
+  by exists 0%Z; lra.
+have [->|x_neq_0] := Req_dec x 0.
+  by rewrite round_0; exists 0%Z; lra.
+apply: is_imul_format_mag_pow; first by apply: generic_format_round.
+apply: Z.le_trans (is_imul_pow_mag x_neq_0 Mxy) _.
+apply: Z.le_trans (_ : fexp (mag beta x) <= _)%Z.
+Admitted.
+
 Lemma exactMul (a b : R) :
   format a -> format b -> is_imul (a * b) (pow emin) ->
   format (RN (a * b) - a * b).
-Proof.
 move=> Fa Fb [z zE].
 have [->|ab_neq0] := Req_dec (a * b) 0.
   by rewrite !(round_0, Rsimp01); apply: generic_format_0.

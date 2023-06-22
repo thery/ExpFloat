@@ -3,7 +3,7 @@ From mathcomp Require Import all_ssreflect all_algebra.
 From Flocq Require Import Core Relative Sterbenz Operations Mult_error.
 From Coquelicot Require Import Coquelicot.
 From Interval Require Import Plot Tactic.
-Require Import Nmore Rmore Fmore Rstruct.
+Require Import Nmore Rmore Fmore Rstruct MULTmore.
 
 Delimit Scope R_scope with R.
 Delimit Scope Z_scope with Z.
@@ -191,17 +191,34 @@ Inductive dwfloat := DWFloat (xh : float) (xl : float).
 
 Coercion F2R : float >-> R.
 
+Definition wellFormed d :=
+  let: DWFloat xh xl := d in RN(xh + xl) = xh.
+
 Definition exactMul (a b : float) : dwfloat := 
   let h := RNF (a * b) in 
   let l := RNF(a * b - h) in 
   DWFloat h l.
   
+Lemma exactMul_correct (a b : float) :
+  format a -> format b -> is_imul (a * b) (pow emin) ->
+  let: DWFloat h l := exactMul a b in 
+  h + l = a * b.
+Proof.
+move=> Fa Fb Mab /=.
+rewrite -!RNFE -Ropp_minus_distr round_opp.
+rewrite [X in -X]round_generic //; first by lra.
+by apply: MULTmore.exactMul.
+Qed.
+
+Lemma exactMul_wf (a b : float) : 
+  format a -> format b -> is_imul (a * b) (pow emin) ->
+  wellFormed (exactMul a b).
+Proof. by move=> Fa Fb Mab /=; rewrite /= -!RNFE exactMul_correct. Qed.
+
 Definition fastTwoSum (a b : float) :=
   let s := RNF (a + b) in
   let z := RNF (s - a) in
   DWFloat s (RNF (b - z)).
-
-Check fastTwoSum.
 
 Definition twoSum (a : float) (b : dwfloat) :=  
   let: DWFloat bh bl := b in 
@@ -562,6 +579,11 @@ have [H1 | H1 ]: Rpower 2 (-80) <= Rabs z \/ Rabs z < Rpower 2 (-80)
 by apply: PPz_bound.
 Qed.
 
+Lemma pow_Rpower z : pow z = Rpower 2 (IZR z).
+Proof.
+by rewrite bpow_powerRZ powerRZ_Rpower //; apply: IZR_lt.
+Qed.
+
 (* L'algo p_1 *)
 
 Definition p1 (z : float) :=
@@ -574,5 +596,77 @@ Definition p1 (z : float) :=
   let: u := RNF (v * wh) in 
   DWFloat (RNF (- 0.5 * wh))
           (RNF (u * z - 0.5 * wl)).
+
+Lemma absolute_error_p1 (z : float) :
+  format z -> 
+  Rabs z <= 33 * Rpower 2 (-13) ->
+  is_imul z (Rpower 2 (-61)) ->
+  let: DWFloat ph pl := p1 z in 
+  Rabs((ph + pl) - (ln (1 + z) - z)) < Rpower 2 (-75.492) /\ 
+  Rabs ph < Rpower 2 (-16.9) /\
+  Rabs pl < Rpower 2 (-25.446).
+Proof.
+move=> Fz zB Mz /=.
+rewrite -!RNFE.
+set wh := RN (z * z).
+set wl := RN (z * z - wh).
+set t := RN (Pf8 * z + Pf7).
+set u := RN (Pf6 * z + Pf5).
+set v := RN (Pf4 * z + Pf3).
+set u' := RN (t * wh + u).
+set v' := RN (u' * wh + v).
+set u'' := RN (v' * wh).
+set ph := RN (-0.5 * wh).
+set pl := RN (u'' * z - 0.5 * wl).
+have F1 : wh + wl = z * z.
+  apply: exactMul_correct => //.
+  have [k ->] := Mz.
+  exists (k * k * 2 ^ 952)%Z.
+  rewrite 2!mult_IZR.
+  suff : Rpower 2 (-61) * Rpower 2 (-61) = IZR (2 ^ 952) * pow emin by nra.
+  rewrite -Rpower_plus (IZR_Zpower beta) // !pow_Rpower -Rpower_plus.
+  by congr (Rpower _ _); rewrite /emin /=; lra.
+have F2 : z ^ 2 <= 33 ^ 2 * Rpower 2 (-26).
+  have -> : Rpower 2 (-26) = (Rpower 2 (-13)) ^ 2.
+    by rewrite pow2_mult -Rpower_plus; congr (Rpower _ _); lra.
+  rewrite -Rpow_mult_distr.
+  by apply: pow_maj_Rabs.
+have F3 : z ^ 2 < Rpower 2 (- 15.91).
+  by apply: Rle_lt_trans F2 _; interval.
+have F4 : ulp(z ^ 2) <= Rpower 2 (-68).
+  apply: Rle_trans (_ : ulp (33 ^ 2 * Rpower 2 (-26)) <= _).
+    apply: ulp_le => //.
+    by rewrite !Rabs_pos_eq //; nra.
+  rewrite ulp_neq_0 /cexp /fexp; last first.
+    interval.
+  have -> : (mag beta (33 ^ 2 * Rpower 2 (-26)) = (-15) :> Z)%Z.
+    apply: mag_unique_pos.
+    by rewrite !pow_Rpower /=; split; interval.
+  by rewrite pow_Rpower /emin /Z.max /=; lra.
+have F5 : Rabs wh <= Rpower 2 (-15.91) + Rpower 2 (-68).
+  apply: Rle_trans (_ : z ^ 2 + ulp (z ^2) <= _); last by lra.
+  rewrite Rabs_pos_eq; last first.
+    rewrite -(round_0 beta fexp).
+    by apply: round_le; nra.
+  suff : Rabs (RN (z ^ 2) - z ^ 2) <= ulp(z ^ 2).
+    by rewrite /wh -pow2_mult; split_Rabs; lra.
+  by apply: error_le_ulp.
+have F6 : Rabs wl <= Rpower 2 (-68).
+  apply: Rle_trans F4.
+  have -> : wl = - (wh - z ^ 2) by lra.
+  rewrite Rabs_Ropp.
+  rewrite /wh -pow2_mult.
+  by apply: error_le_ulp.
+have F7 : is_imul wh (pow (- 122)).
+  rewrite /wh -pow2_mult.
+  have [k ->] : is_imul (z ^ 2) (pow (- 122)).
+    have [k ->] := Mz.
+    exists (k ^ 2)%Z.
+    rewrite !mult_IZR.
+    rewrite pow_Rpower pow2_mult.
+    suff : Rpower 2 (-122) = Rpower 2 (-61) * Rpower 2 (-61) by nra.
+    by rewrite -Rpower_plus; congr (Rpower _ _); lra.
+have F8 : is_imul wl (- 122).
+Admitted.
 
 End Exp.
