@@ -77,15 +77,24 @@ Qed.
 
 Lemma is_imul_pow_round x y : is_imul x (pow y) -> is_imul (RN x) (pow y).
 Proof.
-move=> Mxy.
-have [->|RNx_neq_0] := Req_dec (RN x) 0.
-  by exists 0%Z; lra.
-have [->|x_neq_0] := Req_dec x 0.
-  by rewrite round_0; exists 0%Z; lra.
-apply: is_imul_format_mag_pow; first by apply: generic_format_round.
-apply: Z.le_trans (is_imul_pow_mag x_neq_0 Mxy) _.
-apply: Z.le_trans (_ : fexp (mag beta x) <= _)%Z.
-Admitted.
+move=> [k ->].
+rewrite /round /mant /F2R /=.
+set e1 := cexp _; set m1 := rnd _.
+have [e1L|yLe1] := Zle_or_lt e1 y.
+  exists k.
+  rewrite /m1.
+  have -> : IZR k * pow y * pow (- e1) = IZR (k * beta ^ (y - e1)).
+    rewrite Rmult_assoc -bpow_plus -IZR_Zpower; last by lia.
+    by rewrite -mult_IZR.
+  rewrite Zrnd_IZR.
+  rewrite mult_IZR IZR_Zpower; last by lia.
+  by rewrite Rmult_assoc -bpow_plus; congr (_ * pow _); lia.
+exists ((rnd (IZR k * pow (y - e1))%R) * beta ^ (e1 - y))%Z.
+rewrite mult_IZR IZR_Zpower; try lia.
+rewrite /m1 Rmult_assoc -bpow_plus.
+rewrite  Rmult_assoc -bpow_plus.
+congr (_ * pow _); lia.
+Qed.
 
 Lemma exactMul (a b : R) :
   format a -> format b -> is_imul (a * b) (pow emin) ->
