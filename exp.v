@@ -658,15 +658,23 @@ have F6 : Rabs wl <= Rpower 2 (-68).
   rewrite /wh -pow2_mult.
   by apply: error_le_ulp.
 have F7 : is_imul wh (pow (- 122)).
-  rewrite /wh -pow2_mult.
-  have [k ->] : is_imul (z ^ 2) (pow (- 122)).
-    have [k ->] := Mz.
-    exists (k ^ 2)%Z.
-    rewrite !mult_IZR.
-    rewrite pow_Rpower pow2_mult.
-    suff : Rpower 2 (-122) = Rpower 2 (-61) * Rpower 2 (-61) by nra.
-    by rewrite -Rpower_plus; congr (Rpower _ _); lra.
-have F8 : is_imul wl (- 122).
+  apply: is_imul_pow_round.
+  have -> : pow (-122) = pow (-61) * pow (-61) by rewrite -bpow_plus.
+  by apply: is_imul_mul; rewrite pow_Rpower.
+have F8 : is_imul wl (pow (- 122)).
+  have -> : wl = z * z - wh by lra.
+  apply: is_imul_minus => //.
+  have -> : pow (-122) = pow (-61) * pow (-61) by rewrite -bpow_plus.
+  by apply: is_imul_mul; rewrite pow_Rpower.
+have F9 : ph = -0.5 * wh.
+  rewrite /ph round_generic //.
+  have [k ->] : is_imul (-0.5 * wh) (pow (- 123)).
+    have -> : (-0.5) = - pow (-1) by rewrite /= /Z.pow_pos /=; lra.
+    rewrite -Ropp_mult_distr_l; apply: is_imul_opp.
+    have-> : pow (-123) = pow (-1) * pow (-122).
+      rewrite -bpow_plus; congr (pow _); lia.
+    by apply: is_imul_mul => //; exists 1%Z; lra.
+  apply:  mult_bpow_exact_FLT.
 Admitted.
 
 End Exp.
