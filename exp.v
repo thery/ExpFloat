@@ -748,7 +748,27 @@ have [F15_1 F15_2 F15_3] :
       by apply: ulp_le; split_Rabs; lra.
     rewrite /t Pf8E Pf7E.
     by apply: error_le_ulp.
-
+  have G4 : t < Rpower 2 (- 2.802).
+    apply: Rle_lt_trans (_ : Rpower 2 (- 2.8022) + Rpower 2 (-55) < _).
+      apply: Rle_trans (_ : Rabs e1 + P8 * z + P7 <= _).
+        by rewrite /e1; split_Rabs; lra.
+      by rewrite pow_Rpower in G3; lra.
+    by interval. 
+  have G5 : is_imul (P8 * z + P7) (pow (-116)).
+    apply: is_imul_add.
+      have -> : pow (-116) = pow (-55) * pow (-61).
+        by rewrite -bpow_plus; congr (pow _); lia.
+      apply: is_imul_mul => //.
+        exists (-4503732981131470)%Z.
+        by rewrite /P8 /= /Z.pow_pos /=; lra.
+      by rewrite pow_Rpower.
+    exists (11868429770568140608450203318484992)%Z.
+    by rewrite /P7 /= /Z.pow_pos /=; lra.
+  have G6 : is_imul t (pow (-116)).
+    by apply: is_imul_pow_round; rewrite Pf8E Pf7E.
+  suff G7 : 0 < t by [].
+  admit.
+ 
 Qed.
 
 End Exp.
