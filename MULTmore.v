@@ -41,11 +41,25 @@ move=> [z1 ->] [z2 ->]; exists (z1 + z2)%Z.
 by rewrite plus_IZR; lra.
 Qed.
 
+Lemma is_imul_opp x y : 
+  is_imul x y -> is_imul (- x) y.
+Proof.
+move=> [z ->]; exists (-z)%Z.
+by rewrite opp_IZR; lra.
+Qed.
+
 Lemma is_imul_minus x1 x2 y : 
   is_imul x1 y -> is_imul x2 y -> is_imul (x1 - x2) y.
 Proof.
 move=> [z1 ->] [z2 ->]; exists (z1 - z2)%Z.
 by rewrite minus_IZR; lra.
+Qed.
+
+Lemma is_imul_mul x1 x2 y1 y2 : 
+  is_imul x1 y1 -> is_imul x2 y2 -> is_imul (x1 * x2) (y1 * y2).
+Proof.
+move=> [z1 ->] [z2 ->]; exists (z1 * z2)%Z.
+rewrite mult_IZR; lra.
 Qed.
 
 Lemma is_imul_pow_mag x y : x <> 0 -> is_imul x (pow y) -> (y <= (mag beta x) - 1)%Z.
@@ -73,6 +87,15 @@ set m := Ztrunc _.
 exists (m * (beta ^ (fexp (mag beta x) - y)))%Z.
 rewrite mult_IZR IZR_Zpower; last by lia.
 by rewrite Rmult_assoc -bpow_plus; congr (_ * pow _); lia.
+Qed.
+
+Lemma is_imul_pow_le x y1 y2 : 
+  is_imul x (pow y1) -> (y2 <= y1)%Z -> is_imul x (pow y2).
+Proof.
+move=> [z ->] y2Ly1.
+exists (z * beta ^ (y1 - y2))%Z.
+rewrite mult_IZR IZR_Zpower; last by lia.
+rewrite Rmult_assoc -bpow_plus; congr (_ * pow _); lia.
 Qed.
 
 Lemma is_imul_pow_round x y : is_imul x (pow y) -> is_imul (RN x) (pow y).
