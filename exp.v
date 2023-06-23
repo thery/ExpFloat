@@ -2,7 +2,7 @@ Require Import ZArith Reals  Psatz.
 From mathcomp Require Import all_ssreflect all_algebra.
 From Flocq Require Import Core Relative Sterbenz Operations Mult_error.
 From Coquelicot Require Import Coquelicot.
-From Interval Require Import Plot Tactic.
+From Interval Require Import  Tactic.
 Require Import Nmore Rmore Fmore Rstruct MULTmore.
 
 Delimit Scope R_scope with R.
@@ -674,13 +674,16 @@ have F8 : is_imul wl (pow (- 122)).
   by apply: is_imul_mul; rewrite pow_Rpower.
 have F9 : ph = -0.5 * wh.
   rewrite /ph round_generic //.
-  have [k ->] : is_imul (-0.5 * wh) (pow (- 123)).
-    have -> : (-0.5) = - pow (-1) by rewrite /= /Z.pow_pos /=; lra.
-    rewrite -Ropp_mult_distr_l; apply: is_imul_opp.
-    have-> : pow (-123) = pow (-1) * pow (-122).
-      rewrite -bpow_plus; congr (pow _); lia.
-    by apply: is_imul_mul => //; exists 1%Z; lra.
-  apply:  mult_bpow_exact_FLT.
+  case:(Req_dec wh 0)=> [->| whn0].
+    by rewrite Rmult_0_r;apply/generic_format_0.
+  have ->: -0.5 * wh = - (wh * (pow (-1))).
+    rewrite Rmult_comm.
+    have -> : -0.5 = -(pow (-1)).
+      by rewrite /= /Z.pow_pos /=; lra.
+    lra.
+  apply/generic_format_opp/mult_bpow_exact_FLT.
+    apply/generic_format_round.
+  by move:(is_imul_pow_mag whn0 F7);lia.
 Admitted.
 
 End Exp.
