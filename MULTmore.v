@@ -102,31 +102,26 @@ Lemma exactMul (a b : R) :
 move=> Fa Fb [z zE].
 have [rz rE]:( is_imul (RN (a*b)) (pow emin)).
    by apply/is_imul_pow_round;exists z.
-have eE: (RN (a * b) - a * b) = IZR (rz -z) * pow emin.
-  by rewrite  rE zE minus_IZR; lra.
+have eE: (RN (a * b) - a * b) = IZR (rz -z) * pow emin by rewrite  minus_IZR; lra.
 have [pLab|pGab] := Rle_lt_dec (pow (emin + 2 * p - 1)) (Rabs (a * b)).
   by apply: mult_error_FLT.
 have F1 : Ulp.ulp beta fexp (pow (emin + 2 * p - 1)) = pow (emin + p).
-  rewrite ulp_bpow; congr (pow _).
-  by rewrite /fexp Z.max_l; lia.
-have hu: Rabs (RN (a * b) - a * b) <= pow (emin + p).
-  apply/(Rle_trans _ (ulp beta fexp (a * b))); first by apply/error_le_ulp.
-  rewrite -F1; apply/ulp_le; rewrite (Rabs_pos_eq (pow _)); 
-    last by apply/bpow_ge_0.
-  lra.
-case :hu =>[ hu | ]; last first.
-  rewrite -(Rabs_pos_eq (pow _)); last by apply/bpow_ge_0.
-  by case/Rabs_eq_Rabs => ->; last apply/generic_format_opp;
-    apply/generic_format_FLT_bpow; lia.
-apply/generic_format_FLT.
+  by rewrite ulp_bpow; congr (pow _); rewrite /fexp ; lia.
+have [hut | hue] : Rabs (RN (a * b) - a * b) <= pow (emin + p).
+    apply/(Rle_trans _ (ulp beta fexp (a * b))); first by apply/error_le_ulp.
+    by rewrite -F1; apply/ulp_le; rewrite (Rabs_pos_eq (pow _)); try lra;
+      apply/bpow_ge_0.
+  apply/generic_format_FLT.
   apply/(FLT_spec _ _ _ _ ({| Fnum := rz - z; Fexp := emin |} : float)); 
      rewrite /F2R //=; last lia.
-apply/lt_IZR; move:hu; rewrite {1}eE.
-rewrite Rabs_mult abs_IZR IZR_Zpower; last lia.
-rewrite (Rabs_pos_eq (pow _)); last by apply/bpow_ge_0.
-by rewrite bpow_plus; move:(bpow_gt_0 beta emin); nra.
+  apply/lt_IZR; move:hut; rewrite {1}eE.
+  rewrite Rabs_mult abs_IZR IZR_Zpower; last lia.
+  rewrite (Rabs_pos_eq (pow _)); last by apply/bpow_ge_0.
+  by rewrite bpow_plus; move:(bpow_gt_0 beta emin); nra.
+move: hue; rewrite -(Rabs_pos_eq (pow _)); last by apply/bpow_ge_0.
+  by case/Rabs_eq_Rabs => ->; last apply/generic_format_opp;
+    apply/generic_format_FLT_bpow; lia.
 Qed.
-
 
 End Mult.
 
