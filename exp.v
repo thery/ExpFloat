@@ -727,6 +727,16 @@ have F13 : is_imul (0.5 * wh) (pow (-123)).
 have F14 : is_imul (0.5 * wl) (pow (-123)).
   have-> : pow (-123) = pow (-1) * pow (-122) by rewrite -bpow_plus.
   by rewrite powN1; apply: is_imul_mul => //; exists 1%Z; lra.
+pose e1 := (P8 * z + P7) - t.
+have [F15_1 F15_2 F15_3] : 
+  [/\ 
+    Rabs e1 <= pow (- 55),
+    0 < t < Rpower 2 (- 2.802) & 
+    is_imul t (pow (-116))].
+  have G1 : 0 < P8 * z + P7 < Rpower 2 (- 2.8022).
+    by split; rewrite /P8 /P7; interval.
+  have G2 : ulp (Rpower 2 (- 2.8022)) = pow (-55).
+   admit.
 
 Qed.
 
