@@ -928,6 +928,7 @@ have [F18_1 F18_2 F18_3] :
     by apply: is_imul_pow_round.
   suff G7 : 0 < u' by [].
   by apply: is_imul_format_round_gt_0 _ G5 _ => //=; nra.
+
 Qed.
 
 End Exp.
