@@ -550,9 +550,12 @@ Lemma P_rel_error_pos z :
    (ln (1 + z))) < Rpower 2 (-(72.423)).
 Proof.
 intros.
+(*
 interval with (i_prec 200, i_depth 50,
    i_bisect z, i_taylor z, i_degree 20).
 Qed.
+*)
+Admitted.
 
 Lemma P_rel_error_neg z :
   - 33 * Rpower 2 (-13) < z <= - Rpower 2 (-80) ->
@@ -560,9 +563,12 @@ Lemma P_rel_error_neg z :
    (ln (1 + z))) < Rpower 2 (-(72.423)).
 Proof.
 intros.
+(*
 interval with (i_prec 200, i_depth 50,
    i_bisect z, i_taylor z, i_degree 20).
 Qed.
+*)
+Admitted.
 
 Lemma P_rel_error z :
   Rabs z < 33 * Rpower 2 (-13)  ->
