@@ -736,7 +736,11 @@ have [F15_1 F15_2 F15_3] :
   have G1 : 0 < P8 * z + P7 < Rpower 2 (- 2.8022).
     by split; rewrite /P8 /P7; interval.
   have G2 : ulp (Rpower 2 (- 2.8022)) = pow (-55).
-   admit.
+    rewrite ulp_neq_0 /cexp /fexp ?(mag_unique_pos _ _ (-55 +p)%Z); try lra.
+       rewrite Z.max_l; try lia.
+       congr bpow; lia.
+    by rewrite !pow_Rpower /p/=;split; [apply/Rle_Rpower|apply/Rpower_lt]; lra.
+
 
 Qed.
 
