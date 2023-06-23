@@ -727,7 +727,8 @@ have F13 : is_imul (0.5 * wh) (pow (-123)).
 have F14 : is_imul (0.5 * wl) (pow (-123)).
   have-> : pow (-123) = pow (-1) * pow (-122) by rewrite -bpow_plus.
   by rewrite powN1; apply: is_imul_mul => //; exists 1%Z; lra.
-pose e1 := (P8 * z + P7) - t.
+pose e1 := t - (P8 * z + P7).
+have e1E : t = P8 * z + P7 + e1 by rewrite /e1;lra.
 have [F15_1 F15_2 F15_3] : 
   [/\ 
     Rabs e1 <= pow (- 55),
@@ -736,11 +737,17 @@ have [F15_1 F15_2 F15_3] :
   have G1 : 0 < P8 * z + P7 < Rpower 2 (- 2.8022).
     by split; rewrite /P8 /P7; interval.
   have G2 : ulp (Rpower 2 (- 2.8022)) = pow (-55).
-    rewrite ulp_neq_0 /cexp /fexp ?(mag_unique_pos _ _ (-55 +p)%Z); try lra.
-       rewrite Z.max_l; try lia.
-       congr bpow; lia.
-    by rewrite !pow_Rpower /p/=;split; [apply/Rle_Rpower|apply/Rpower_lt]; lra.
-
+    rewrite ulp_neq_0 /cexp /fexp  ?(mag_unique_pos _ _ (-55 + p)%Z); try lra.
+      rewrite Z.max_l; last by lia.
+      congr bpow; lia.
+    by rewrite !pow_Rpower /p/=;split; [apply: Rle_Rpower|apply: Rpower_lt];
+       lra.
+  have G3 : Rabs e1 <= pow (- 55).
+    rewrite -G2 /e1.
+    apply: Rle_trans (_ : ulp (P8 * z + P7) <= _); last first.
+      by apply: ulp_le; split_Rabs; lra.
+    rewrite /t Pf8E Pf7E.
+    by apply: error_le_ulp.
 
 Qed.
 
