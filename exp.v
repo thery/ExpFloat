@@ -714,6 +714,20 @@ have F9 : ph = -0.5 * wh.
   rewrite -!Ropp_mult_distr_l.
   apply: generic_format_opp.
   by apply: is_imul_format_half Fwh F7 _; lia.
+have F10 : is_imul (z ^ 2) (pow (-122)).
+  have -> : pow (-122) = pow (-61) * pow (-61) by rewrite -bpow_plus.
+  by rewrite pow2_mult; apply: is_imul_mul; rewrite pow_Rpower.
+have F11 : is_imul (z ^ 2) (pow (-123)).
+  by apply: is_imul_pow_le F10 _; lia.
+have F12 : is_imul (z ^ 2 - wh) (pow (-123)).
+  by apply: is_imul_pow_le (is_imul_minus F10 F7) _; lia.
+have F13 : is_imul (0.5 * wh) (pow (-123)).
+  have-> : pow (-123) = pow (-1) * pow (-122) by rewrite -bpow_plus.
+  by rewrite powN1; apply: is_imul_mul => //; exists 1%Z; lra.
+have F14 : is_imul (0.5 * wl) (pow (-123)).
+  have-> : pow (-123) = pow (-1) * pow (-122) by rewrite -bpow_plus.
+  by rewrite powN1; apply: is_imul_mul => //; exists 1%Z; lra.
+
 Qed.
 
 End Exp.
