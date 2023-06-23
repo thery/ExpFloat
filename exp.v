@@ -603,6 +603,41 @@ Definition p1 (z : float) :=
   DWFloat (RNF (- 0.5 * wh))
           (RNF (u * z - 0.5 * wl)).
 
+Lemma is_imul_pow_round x y : is_imul x (pow y) -> is_imul (RN x) (pow y).
+Proof.
+move=> [k ->].
+rewrite /round /mant /F2R /=.
+set e1 := cexp _; set m1 := rnd _.
+have [e1L|yLe1] := Zle_or_lt e1 y.
+  exists k.
+  rewrite /m1.
+  have -> : IZR k * pow y * pow (- e1) = IZR (k * beta ^ (y - e1)).
+    rewrite Rmult_assoc -bpow_plus -IZR_Zpower; last by lia.
+    by rewrite -mult_IZR.
+  rewrite Zrnd_IZR.
+  rewrite mult_IZR IZR_Zpower; last by lia.
+  by rewrite Rmult_assoc -bpow_plus; congr (_ * pow _); lia.
+exists ((rnd (IZR k * pow (y - e1))%R) * beta ^ (e1 - y))%Z.
+rewrite mult_IZR IZR_Zpower; try lia.
+rewrite /m1 Rmult_assoc -bpow_plus.
+rewrite  Rmult_assoc -bpow_plus.
+congr (_ * pow _); lia.
+Qed.
+
+Lemma powN1 : pow (-1) = 0.5.
+Proof. by rewrite /= /Z.pow_pos /=; lra. Qed.
+
+Lemma is_imul_format_half x y : 
+  format x -> is_imul x (pow y) -> (emin + p <= y)%Z -> format (0.5 * x).
+Proof.
+move=> Fx Mxy eminLy.
+case:(Req_dec x 0)=> [->| xn0].
+  by rewrite Rmult_0_r;apply/generic_format_0.
+have ->: 0.5 * x = (x * (pow (-1))) by rewrite Rmult_comm powN1.
+apply: mult_bpow_exact_FLT => //.
+have := is_imul_pow_mag xn0 Mxy; rewrite /beta; lia.
+Qed.
+
 Lemma absolute_error_p1 (z : float) :
   format z -> 
   Rabs z <= 33 * Rpower 2 (-13) ->
@@ -624,6 +659,7 @@ set v' := RN (u' * wh + v).
 set u'' := RN (v' * wh).
 set ph := RN (-0.5 * wh).
 set pl := RN (u'' * z - 0.5 * wl).
+have Fwh : format wh by apply: generic_format_round.
 have F1 : wh + wl = z * z.
   apply: exactMul_correct => //.
   have [k ->] := Mz.
@@ -674,16 +710,10 @@ have F8 : is_imul wl (pow (- 122)).
   by apply: is_imul_mul; rewrite pow_Rpower.
 have F9 : ph = -0.5 * wh.
   rewrite /ph round_generic //.
-  case:(Req_dec wh 0)=> [->| whn0].
-    by rewrite Rmult_0_r;apply/generic_format_0.
-  have ->: -0.5 * wh = - (wh * (pow (-1))).
-    rewrite Rmult_comm.
-    have -> : -0.5 = -(pow (-1)).
-      by rewrite /= /Z.pow_pos /=; lra.
-    lra.
-  apply/generic_format_opp/mult_bpow_exact_FLT.
-    apply/generic_format_round.
-  by move:(is_imul_pow_mag whn0 F7);lia.
-Admitted.
+  have-> : -0.5 = -(0.5) by lra.
+  rewrite -!Ropp_mult_distr_l.
+  apply: generic_format_opp.
+  by apply: is_imul_format_half Fwh F7 _; lia.
+Qed.
 
 End Exp.
