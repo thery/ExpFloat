@@ -339,8 +339,8 @@ by move=> *; rewrite /Pz /P3 /P4 /P5 /P6 /P7 /P8; interval.
 Qed.
 
 Lemma P_abs_error z :
-  Rabs z < 33 * (Rpower 2 (-13)) ->
-  Rabs (ln (1 + z) - P z) <= Rpower 2 (- (81.63)).
+  Rabs z <= 33 * (Rpower 2 (-13)) ->
+  Rabs (ln (1 + z) - P z) <= Rpower 2 (- 81.63).
 Proof.
 move=> *; rewrite /P /P3 /P4 /P5 /P6 /P7 /P8.
 interval with (i_prec 90, i_bisect z, i_taylor z, i_degree 8).
@@ -416,8 +416,8 @@ by rewrite Rmult_comm; apply/Rle_div_l; lra.
 Qed.
 
 Lemma PPz1_bound_pos x : 
-let e := Rpower 2 (-80) in 
-   0 < x < e ->  - (Rpower 2 (-(72.423))) <  1 - Pz x * (1 + e).
+let e := Rpower 2 (- 80) in 
+   0 < x < e ->  - (Rpower 2 (- 72.423)) <  1 - Pz x * (1 + e).
 Proof.
 move=> e *; rewrite /e /Pz /P3 /P4 /P5 /P6 /P7 /P8.
 interval with (i_prec 80).
@@ -425,7 +425,7 @@ Qed.
 
 Lemma PPz2_bound_pos x : 
 let e := Rpower 2 (-80) in 
-   0 < x < e ->  1 - Pz x * (1 + e) < (Rpower 2 (-(72.423))).
+   0 < x < e ->  1 - Pz x * (1 + e) < (Rpower 2 (- 72.423)).
 Proof.
 move=> e *; rewrite /e /Pz /P3 /P4 /P5 /P6 /P7 /P8.
 interval with (i_prec 80).
@@ -433,7 +433,7 @@ Qed.
 
 Lemma PPz3_bound_pos x : 
 let e := Rpower 2 (-80) in 
-   0 < x < e ->  1 - Pz x * (1 - e) < (Rpower 2 (-(72.423))).
+   0 < x < e ->  1 - Pz x * (1 - e) < (Rpower 2 (- 72.423)).
 Proof.
 move=> e *; rewrite /e /Pz /P3 /P4 /P5 /P6 /P7 /P8.
 interval with (i_prec 80).
@@ -441,7 +441,7 @@ Qed.
 
 Lemma PPz4_bound_pos x : 
 let e := Rpower 2 (-80) in 
-   0 < x < e ->  - (Rpower 2 (-(72.423))) <  1 - Pz x * (1 - e).
+   0 < x < e ->  - (Rpower 2 (- 72.423)) <  1 - Pz x * (1 - e).
 Proof.
 move=> e *; rewrite /e /Pz /P3 /P4 /P5 /P6 /P7 /P8.
 interval with (i_prec 80).
@@ -449,7 +449,7 @@ Qed.
 
 Lemma PPz1_bound_neg x : 
 let e := Rpower 2 (-80) in 
-   -e < x < 0 ->  - (Rpower 2 (-(72.423))) <  1 - Pz x * (1 + e).
+   -e < x < 0 ->  - (Rpower 2 (- 72.423)) <  1 - Pz x * (1 + e).
 Proof.
 move=> e *; rewrite /e /Pz /P3 /P4 /P5 /P6 /P7 /P8.
 interval with (i_prec 80).
@@ -457,7 +457,7 @@ Qed.
 
 Lemma PPz2_bound_neg x : 
 let e := Rpower 2 (-80) in 
-   -e < x < 0 ->  1 - Pz x * (1 + e) < (Rpower 2 (-(72.423))).
+   -e < x < 0 ->  1 - Pz x * (1 + e) < (Rpower 2 (- 72.423)).
 Proof.
 move=> e *; rewrite /e /Pz /P3 /P4 /P5 /P6 /P7 /P8.
 interval with (i_prec 80).
@@ -465,7 +465,7 @@ Qed.
 
 Lemma PPz3_bound_neg x : 
 let e := Rpower 2 (-80) in 
-   -e < x < 0 ->  1 - Pz x * (1 - e) < (Rpower 2 (-(72.423))).
+   -e < x < 0 ->  1 - Pz x * (1 - e) < (Rpower 2 (- 72.423)).
 Proof.
 move=> e *; rewrite /e /Pz /P3 /P4 /P5 /P6 /P7 /P8.
 interval with (i_prec 80).
@@ -473,7 +473,7 @@ Qed.
 
 Lemma PPz4_bound_neg x : 
 let e := Rpower 2 (-80) in 
-   -e < x < 0 ->  - (Rpower 2 (-(72.423))) <  1 - Pz x * (1 - e).
+   -e < x < 0 ->  - (Rpower 2 (- 72.423)) <  1 - Pz x * (1 - e).
 Proof.
 move=> e *; rewrite /e /Pz /P3 /P4 /P5 /P6 /P7 /P8.
 interval with (i_prec 80).
@@ -483,7 +483,7 @@ Qed.
 Lemma PPz_bound_pos x : 
 let e := Rpower 2 (-80) in 
    0 < x < e ->  
-   Rabs (1 - P x / ln (1 + x)) < Rpower 2 (-(72.423)).
+   Rabs (1 - P x / ln (1 + x)) < Rpower 2 (- 72.423).
 Proof.
 move=>e He.
 have Pz_ge0 : 0 <= Pz x.
@@ -504,7 +504,7 @@ Qed.
 Lemma PPz_bound_neg x : 
 let e := Rpower 2 (-80) in 
    -e < x < 0 ->  
-   Rabs (1 - P x / ln (1 + x)) < Rpower 2 (-(72.423)).
+   Rabs (1 - P x / ln (1 + x)) < Rpower 2 (- 72.423).
 Proof.
 move=>e He.
 have Pz_ge0 : 0 <= Pz x.
@@ -524,7 +524,7 @@ Qed.
 
 Lemma PPz_bound x : 
    Rabs x < Rpower 2 (-80) ->  
-   Rabs ((ln(1 + x) - P x) / ln (1 + x)) < Rpower 2 (-(72.423)).
+   Rabs ((ln(1 + x) - P x) / ln (1 + x)) < Rpower 2 (- 72.423).
 Proof.
 move=> He.
 have [H1 | [->|H1]] : 
@@ -545,12 +545,12 @@ by apply: PPz_bound_neg.
 Qed.
 
 Lemma P_rel_error_pos z :
-  Rpower 2 (-80) <= z <  33 * Rpower 2 (-13) ->
+  Rpower 2 (-80) <= z <=  33 * Rpower 2 (-13) ->
   Rabs ((ln (1 + z) - P z) /
-   (ln (1 + z))) < Rpower 2 (-(72.423)).
+   (ln (1 + z))) < Rpower 2 (- 72.423).
 Proof.
-intros.
 (*
+intros.
 interval with (i_prec 200, i_depth 50,
    i_bisect z, i_taylor z, i_degree 20).
 Qed.
@@ -558,12 +558,12 @@ Qed.
 Admitted.
 
 Lemma P_rel_error_neg z :
-  - 33 * Rpower 2 (-13) < z <= - Rpower 2 (-80) ->
+  - 33 * Rpower 2 (-13) <= z <= - Rpower 2 (-80) ->
   Rabs ((ln (1 + z) - P z) /
-   (ln (1 + z))) < Rpower 2 (-(72.423)).
+   (ln (1 + z))) < Rpower 2 (- 72.423).
 Proof.
-intros.
 (*
+intros.
 interval with (i_prec 200, i_depth 50,
    i_bisect z, i_taylor z, i_degree 20).
 Qed.
@@ -571,9 +571,9 @@ Qed.
 Admitted.
 
 Lemma P_rel_error z :
-  Rabs z < 33 * Rpower 2 (-13)  ->
+  Rabs z <= 33 * Rpower 2 (-13)  ->
   Rabs ((ln (1 + z) - P z) /
-   (ln (1 + z))) < Rpower 2 (-(72.423)).
+   (ln (1 + z))) < Rpower 2 (- 72.423).
 Proof.
 move=> H.
 have [H1 | H1 ]: Rpower 2 (-80) <= Rabs z \/ Rabs z < Rpower 2 (-80) 
@@ -1203,6 +1203,29 @@ have F27 : E <= Rpower 2 (- 75.513).
       by apply: Rabs_pos.
     by apply: G1.
   by interval.
+repeat split => //.
+  apply: Rle_lt_trans (_ : E + Rabs (ln (1 + z) - P z) < _).
+    rewrite /E.
+    rewrite {zB F6 F15_1 F16_1 F17_1 F18_1 F19_1 F20_1 F21_1 F21_2 F22 F23 }//.
+    by split_Rabs; nra.
+  apply: Rle_lt_trans (_ : Rpower 2 (- 75.513) + Rpower 2 (- 81.63) < _); 
+       last by interval.
+  apply: Rplus_le_compat => //. 
+  by apply: P_abs_error.
+rewrite F9 Rabs_mult Rabs_left; try lra.
+apply: Rle_lt_trans (_ : 0.5 * (33 ^ 2 * pow (-13) ^ 2) < _); last by interval.
+pose f := Float beta (33 ^ 2) (- 26).
+have Ff : format (33 ^ 2 * (pow (-13)) ^ 2).
+  apply: generic_format_FLT.
+  apply: FLT_spec (_ : _ = F2R f) _ _; try by rewrite /=; lia.
+  by rewrite /F2R /= /Z.pow_pos /=; lra.
+have : wh <= RN (33 ^ 2 * pow (-13) ^ 2).
+  apply: round_le.
+  rewrite -pow2_mult -Rpow_mult_distr.
+  apply: pow_maj_Rabs.
+  by rewrite pow_Rpower.
+rewrite round_generic // Rabs_pos_eq; last by lra.
+lra.
 Qed.
 
 End Exp.
