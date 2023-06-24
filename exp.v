@@ -1068,6 +1068,77 @@ have [F21_1 F21_2 F21_3] :
   have G6 : is_imul pl (pow (- 543)).
     by apply: is_imul_pow_round.
   by [].
+set E := Rabs (ph + pl - (P z - z)).
+pose Q := P3 + P4 * z + P5 * z ^ 2 + P6 * z ^ 3 +
+         P7 * z ^ 4 + P8 * z ^ 5.
+have PzE : P z - z = - 0.5 * z ^ 2 + z ^ 3 * Q by rewrite /P /Q; lra.
+pose tR := P5 + P6 * z + P7 * z ^ 2 + P8 * z ^ 3.
+have QE : Q = P3 + P4 * z + tR * z ^ 2 by rewrite /Q /tR; lra.
+have F22 : E = Rabs (u'' * z + e7 - z ^ 3 * Q).
+  congr (Rabs _); rewrite PzE.
+  suff : ph + pl + 0.5 * z ^ 2 = u'' * z + e7 by lra.
+  by rewrite pow2_mult -F1 e7E F9; lra.
+pose E1 := Rabs (u'' - z ^ 2 * Q); pose tE0 := Rabs e7.
+have F23 : E <= E1 * Rabs z + tE0.
+  rewrite /tE0 /E1 F22.
+  rewrite {zB F6 F15_1 F16_1 F17_1 F18_1 F19_1 F20_1 F21_1 F21_2 }//.
+  by split_Rabs; nra.
+pose E3 := Rabs (v' - Q); pose tE1 := Rabs (- v' * wl + e6).
+have F24 : E1 <= E3 * z ^ 2 + tE1.
+  rewrite /tE1 /E1 /E3.
+  have -> : u'' = v' * z ^ 2 - v' * wl + e6 by rewrite e6E pow2_mult -F1; lra.
+  rewrite {zB F6 F15_1 F16_1 F17_1 F18_1 F19_1 F20_1 F21_1 F21_2 F22 F23 }//.
+  by split_Rabs; nra.
+pose E5 := Rabs (u' - tR); pose tE3 := Rabs (- u' * wl + e3 + e5).
+have F25 : E3 <= E5 * z ^ 2 + tE3.
+  rewrite /E3 /E5 /tE3.
+  have -> : v' - Q = (u' - tR) * z ^ 2  - u' * wl + e3 + e5.
+    have -> : v' = u' * (z ^ 2 - wl) + (P4 * z + P3 + e3 ) + e5.
+      by rewrite pow2_mult -F1; lra.
+    by lra.
+  rewrite {zB F6 F15_1 F16_1 F17_1 F18_1 F19_1 F20_1 F21_1 F21_2 F22 F23 }//.
+  by split_Rabs; nra.
+pose tE7 := Rabs e1; pose tE5 := Rabs (- t * wl + e2 + e4).
+have F26 : E5 <= tE7 * z ^2 + tE5.
+  rewrite /E5 /tE7 /tE5.
+  have-> : u' - tR = e1 * z ^ 2 - t * wl + e2 + e4 by rewrite /tR; nra.
+  rewrite {zB F6 F15_1 F16_1 F17_1 F18_1 F19_1 F20_1 F21_1 F21_2 F22 F23 }//.
+  by split_Rabs; nra.
+have F27 : E <= Rpower 2 (- 75.513).
+  apply: Rle_trans 
+      (_ : tE0 + tE1 * Rabs z + tE3 * Rabs z ^ 3 + 
+                 tE5 * Rabs z ^ 5 + tE7 * Rabs z ^ 7 <= _).
+    apply: Rle_trans F23 _.
+    suff : E1 <= tE1 + tE3 * Rabs z ^ 2 + tE5 * Rabs z ^ 4 + tE7 * Rabs z ^ 6.
+      have : 0 <= Rabs z by apply: Rabs_pos.
+      by nra.
+    rewrite pow2_abs.
+    have -> : Rabs z ^ 4 = z ^ 4.
+      have-> : (Rabs z) ^ 4 = (Rabs z ^ 2) ^ 2 by lra.
+      rewrite pow2_abs; lra.
+    have -> : Rabs z ^ 6 = z ^ 6.
+      have-> : (Rabs z) ^ 6 = (Rabs z ^ 2) ^ 3 by lra.
+      rewrite pow2_abs; lra.
+    apply: Rle_trans F24 _.
+    suff : E3 <= tE3 + tE5 * z ^ 2 + tE7 * z ^ 4.
+      by nra.
+    by nra.
+  have G1 : tE0 <= pow (- 78) by rewrite /tE0; lra.
+  have G2 : tE1 < Rpower 2 (- 68.775).
+    apply: Rle_lt_trans 
+      (_ : (Rpower 2 (- 1.58058) + pow (-54)) * pow (-68) + pow (-70) < _);
+        last first.
+      by rewrite !pow_Rpower; interval.
+    apply: Rle_trans (_ : Rabs v' * Rabs wl + Rabs e6 <= _).
+      rewrite /tE1.
+      rewrite {zB F6 F15_1 F16_1 F17_1 F18_1 F19_1 F20_1 F21_1 F21_2 F22 F23 }//.
+      by split_Rabs; nra.
+    have-> : Rabs v' = v' by rewrite Rabs_pos_eq; lra.
+    apply: Rplus_le_compat => //.
+    apply: Rmult_le_compat; first by lra.
+    - by apply: Rabs_pos; lra.
+    - by rewrite pow_Rpower.
+    by rewrite pow_Rpower.
 Qed.
 
 End Exp.
