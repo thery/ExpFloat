@@ -1372,10 +1372,25 @@ have u''zd7E  : u'' * z * (1 + d7) = z ^ 3 * Q + t8 * A * z ^ 7 +
                                      t7' * B * z ^ 5 + t5 * C * z ^ 3.
   rewrite /Q u''E /t8 /t7 /t7' /t6 /t5 /t4 /A /B /C.
   by lra.
-have : ph + pl = P z - z + 0.5 * d0 * d7 * z ^ 2 + t5 * C * z ^ 3 +
-                t7' * B * z ^ 5 + t8 * A * z ^ 7.
+have phplE' : ph + pl = P z - z + 0.5 * d0 * d7 * z ^ 2 + t5 * C * z ^ 3 +
+                        t7' * B * z ^ 5 + t8 * A * z ^ 7.
   rewrite phplE /P u''E /t8 /t7 /t7' /t6 /t5 /t4 /A /B /C.
   by lra.
+have Q_pos : 0 < 1 - 0.5 * z + z ^ 2 * Q.
+  by rewrite /Q /P3 /P4 /P5 /P6 /P7 /P8; interval.
+pose nphi := 0.5 * d0 * d7 * z + t5 * C * z ^ 2 + t7' * B * z ^ 4 + 
+                  t8 * A * z ^ 6.
+pose dphi := 1 - 0.5 * z + z ^ 2 * Q.
+pose phi := Rabs nphi / dphi.
+have Herr : phi = Rabs (z + ph + pl - P z) / Rabs (P z).
+  have -> : z + ph + pl - P z = z * nphi.
+    by rewrite /nphi Rplus_assoc phplE'; lra.
+  have -> : P z = z * dphi by rewrite /dphi /P /Q; lra.
+  rewrite ![Rabs (z * _)]Rabs_mult [Rabs dphi]Rabs_pos_eq; last first.
+    by rewrite /dphi /Q /P3 /P4 /P5 /P6 /P7 /P8; interval.
+  rewrite /phi; field; split.
+    by rewrite /dphi /Q /P3 /P4 /P5 /P6 /P7 /P8; interval.
+  by apply: Rabs_no_R0; lra.
 Qed.
 
 End Exp.
