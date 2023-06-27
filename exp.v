@@ -695,7 +695,7 @@ Lemma absolute_rel_error_p1 (z : float) :
    Rabs ph < Rpower 2 (-16.9) /\
    Rabs pl < Rpower 2 (-25.446)) /\ 
   (F2R z <> 0%R ->   Rabs z < 32 * Rpower 2 (-13) ->
-    Rabs (z + ph + pl - ln (1 + z)) < Rpower 2 (- 67.441) * ln (1 + z)).
+    Rabs ((z + ph + pl) / ln (1 + z) -1) < Rpower 2 (- 67.441)).
 Proof.
 move=> Fz zB Mz /=.
 rewrite -!RNFE.
@@ -1428,8 +1428,8 @@ have Herr : phi = Rabs (z + ph + pl - P z) / Rabs (P z).
   rewrite /phi; field; split.
     by rewrite /dphi /Q /P3 /P4 /P5 /P6 /P7 /P8; interval.
   by apply: Rabs_no_R0; lra.
-have d0d7B : Rabs (0.5 * d0 * d7) < Rpower 2 (- 105).
-  rewrite 2!Rabs_mult.
+have d0d7B : Rabs (0.5 * d0 * d7) < pow (- 105).
+  rewrite pow_Rpower 2!Rabs_mult.
   have -> : Rpower 2 (-105) = 0.5 * (2 * u_) * (2 * u_).
     have <- : pow (- 1) = 0.5 by rewrite (bpow_opp _ 1) bpow_1 /=; lra.
     rewrite pow_Rpower.
@@ -1443,6 +1443,286 @@ have d0d7B : Rabs (0.5 * d0 * d7) < Rpower 2 (- 105).
   rewrite [X in X < _]Rmult_assoc [X in _ < X]Rmult_assoc.
    apply: Rmult_lt_compat_l; first by lra.
   by apply: Rmult_lt_compat => //; apply: Rabs_pos.
+pose B1 := pow (- 105).
+pose B2 := Rpower 2 (- 51.413).
+pose B3 := Rpower 2 (- 51.828).
+pose B4 := Rpower 2 (- 51.735).
+pose B5 := Rpower 2 (- 51.998).
+pose B6 := Rpower 2 (- 51.947).
+pose B7 := Rpower 2 (- 52.139).
+pose Bz z := B1 * Rabs z +       B2 * (Rabs z) ^ 2 + B3 * (Rabs z) ^ 3 + 
+           B4 * (Rabs z) ^ 4 + B5 * (Rabs z) ^ 5 + B6 * (Rabs z) ^ 6 + 
+           B7 * (Rabs z) ^ 7.
+have u_E : u_ = pow (- 53).
+  by rewrite [u_]/(Fmore.u _ _) /= /Z.pow_pos /=; lra.
+have V1 : 1 - 2 * pow (- 53) < 1 + d0 < 1 + 2 * pow (- 53).
+  by clear -d0L2u u_E; split_Rabs; lra.
+have V2 : 1 - 1.255 * pow (- 53) < 1 + d2 < 1 + 1.255 * pow (- 53).
+  by clear -d2B u_E; split_Rabs; lra.
+have V3 : 1 - 1.505 * pow (- 53) < 1 + d3 < 1 + 1.505 * pow (- 53).
+  by clear -d3B u_E; split_Rabs; lra.
+have V4 : 1 - 1.255 * pow (- 53) < 1 + d4 < 1 + 1.255 * pow (- 53).
+  by clear -d4B u_E; split_Rabs; lra.
+have V5 : 1 - 1.505 * pow (- 53) < 1 + d5 < 1 + 1.505 * pow (- 53).
+  by clear -d5B u_E; split_Rabs; lra.
+have V6 : 1 - 2 * pow (- 53) < 1 + d6 < 1 + 2 * pow (- 53).
+  by clear -d6B u_E; split_Rabs; lra.
+have V7 : 1 - 2 * pow (- 53) < 1 + d7 < 1 + 2 * pow (- 53).
+  by clear -d7B u_E; split_Rabs; lra.
+have K1 : Rabs (0.5 * d0 * d7) < B1.
+  by apply: d0d7B.
+have K2 : Rabs (t5 * P3) <= B2.
+  rewrite /B2 /P3 /t5 /t4.
+  interval with (i_prec 65).
+have K3 : Rabs (t5 * P4) <= B3.
+  rewrite /B3 /P4 /t5 /t4.
+  interval with (i_prec 65).
+have K4 : Rabs (t7' * P5) <= B4.
+  rewrite /t7' /t6 /P5 /B4.
+  interval with (i_prec 100).
+have K5 : Rabs (t7' * P6) <= B5.
+  rewrite /t7' /t6 /P6 /B5.
+  interval with (i_prec 100).
+have K6 : Rabs (t8 * P7) <= B6.
+  rewrite /t8 /t7 /P7 /B6.
+  interval with (i_prec 100).
+have K7 : Rabs (t8 * P8) <= B7.
+  rewrite /t8 /t7 /P8 /B7.
+  interval with (i_prec 100).
+have K8 : Rabs nphi <= Bz z.
+  rewrite /nphi /Bz /A /B /C.
+  clear - K1 K2 K3 K4 K5 K6 K7.
+  rewrite [in X in _ <= X]Rplus_assoc.
+  apply: Rle_trans (Rabs_triang _ _) _.
+    apply: Rplus_le_compat; last first.
+    rewrite Rplus_comm Rmult_plus_distr_l Rmult_plus_distr_r.
+    apply: Rle_trans (Rabs_triang _ _) _.
+      apply: Rplus_le_compat.
+      rewrite Rabs_mult RPow_abs.
+      by apply: Rmult_le_compat_r => //; apply: Rabs_pos.
+    rewrite 2!Rmult_assoc -[in X in Rabs (_ * (_ * (X * _)))  <= _](pow_1 z).
+    rewrite -pow_add -Rmult_assoc.
+    rewrite Rabs_mult RPow_abs.
+    by apply: Rmult_le_compat_r => //; apply: Rabs_pos.
+  rewrite [in X in _ <= X]Rplus_assoc.
+  apply: Rle_trans (Rabs_triang _ _) _.
+    apply: Rplus_le_compat; last first.
+    rewrite Rplus_comm Rmult_plus_distr_l Rmult_plus_distr_r.
+    apply: Rle_trans (Rabs_triang _ _) _.
+      apply: Rplus_le_compat.
+      rewrite Rabs_mult RPow_abs.
+      by apply: Rmult_le_compat_r => //; apply: Rabs_pos.
+    rewrite 2!Rmult_assoc -[in X in Rabs (_ * (_ * (X * _)))  <= _](pow_1 z).
+    rewrite -pow_add -Rmult_assoc.
+    rewrite Rabs_mult RPow_abs.
+    by apply: Rmult_le_compat_r => //; apply: Rabs_pos.
+  rewrite [in X in _ <= X]Rplus_assoc.
+  apply: Rle_trans (Rabs_triang _ _) _.
+    apply: Rplus_le_compat; last first.
+    rewrite Rplus_comm Rmult_plus_distr_l Rmult_plus_distr_r.
+    apply: Rle_trans (Rabs_triang _ _) _.
+      apply: Rplus_le_compat.
+      rewrite Rabs_mult RPow_abs.
+      by apply: Rmult_le_compat_r => //; apply: Rabs_pos.
+    rewrite 2!Rmult_assoc -[in X in Rabs (_ * (_ * (X * _)))  <= _](pow_1 z).
+    rewrite -pow_add -Rmult_assoc.
+    rewrite Rabs_mult RPow_abs.
+    by apply: Rmult_le_compat_r => //; apply: Rabs_pos.
+  rewrite Rabs_mult.
+  apply: Rmult_le_compat_r => //; first by apply: Rabs_pos.
+  by lra.
+pose Cz z := 1 - 0.5 * Rabs z + Rabs z ^ 2 *
+          (P3 + P4 * Rabs z + P5 * Rabs z ^ 2 + P6 * 
+          Rabs z ^ 3 + P7 * Rabs z ^ 4 + P8 * Rabs z ^ 5).
+have CzLdphi : Cz z <= dphi.
+  rewrite /Cz /dphi.
+  apply: Rplus_le_compat.
+    by clear - K8; split_Rabs;lra.
+  rewrite {1}RPow_abs Rabs_pos_eq; last by clear - K8; nra.
+  apply: Rmult_le_compat_l; first by clear - K8; nra.
+  rewrite /Q.
+  do !apply: Rplus_le_compat; try lra.
+  - by rewrite /P4; clear; split_Rabs; lra.
+  - by clear; rewrite RPow_abs Rabs_pos_eq; nra.
+  -  by rewrite /P6; clear; split_Rabs; nra.
+  - by clear; rewrite RPow_abs Rabs_pos_eq; nra.
+  rewrite /P8; clear; split_Rabs; last by nra.
+  suff : z ^ 5 <= 0 by nra.
+  suff : z ^ 3 <= 0 by nra.
+  by nra.
+have phiB : phi < Rpower 2 (- 67.31693).
+  apply: Rle_lt_trans 
+     (_ :  Bz (33 * pow (-13)) / Cz (33 * pow (-13)) < _); last first.
+    rewrite /Bz /Cz /B1 /B2 /B3 /B4 /B5 /B6 /B7 /P3 /P4 /P5 /P6 /P7 /P8.
+    by interval.
+  rewrite /phi.
+  have CzB : 0 < Cz (33 * pow (-13)) <= Cz z.
+    rewrite /Bz /Cz /B1 /B2 /B3 /B4 /B5 /B6 /B7 /P3 /P4 /P5 /P6 /P7 /P8.
+    split; interval.
+  apply: Rle_trans (_ : Bz z / Cz z <= _).
+    apply: Rmult_le_compat; first apply: Rabs_pos.
+    - by apply: Rinv_0_le_compat; lra.
+    - by lra.
+    by apply: Rinv_le_contravar; lra.
+  apply: Rmult_le_compat.
+    rewrite /Bz /B1 /B2 /B3 /B4 /B5 /B6 /B7.
+    by interval with (i_prec 100).
+  - by apply: Rinv_0_le_compat; lra.
+  - rewrite /Bz /Cz /B1 /B2 /B3 /B4 /B5 /B6 /B7 /P3 /P4 /P5 /P6 /P7 /P8.
+    interval.
+  by apply: Rinv_le_contravar; lra.
+rewrite Herr in phiB.
+have ln1zB : Rabs ((ln (1 + z) - P z) / ln (1 + z)) < Rpower 2 (-72.423).
+  apply: P_rel_error; lra.
+have HB1 : Rabs ((z + ph + pl) / ln (1 + z) -1) <= Rpower 2 (67.2756).
+  apply: Rle_trans (_ : (1 + Rpower 2 (- 67.31693 )) * (1 + Rpower 2 (- 72.423)) 
+                        - 1 <= _); last by interval.
+  pose P1 z := 
+       1 - z / 2 + P3 * z ^ 2 + P4 * z ^ 3 + P5 * z ^ 4 + 
+       P6 * z ^ 5 + P7 * z ^ 6 + P8 * z ^ 7.
+  have P1E : P z = z * P1 z by rewrite /P /P1; lra.
+  have P1_gt_0 : 0 < P1 z.
+    by rewrite /P1 /P3 /P4 /P5 /P6 /P7 /P8; interval.
+  have Pz_neq_0 : P z <> 0.
+    by rewrite P1E; clear -P1_gt_0 z_neq0; nra.
+  have -> :  (z + ph + pl) / ln (1 + z) = 
+               ((z + ph + pl) / P z) *  (P z / ln (1 + z)).
+    field; split => //.
+    apply: ln_neq_0; first by lra.
+    by interval.
+  have HB : Rabs ((z + ph + pl) / P z - 1) <= (Rpower 2 (-67.31693)) /\ 
+         Rabs (P z / ln (1 + z) - 1) <= (Rpower 2 (-72.423)).
+    split.
+      rewrite /Rdiv -Rabs_inv -Rabs_mult in phiB.
+      have <- : (z + ph + pl - P z) * / P z = (z + ph + pl) / P z  - 1.
+        by field.
+      by lra.
+      have <- : - ((ln (1 + z) - P z) / ln (1 + z)) = P z / ln (1 + z) - 1.
+        field.
+        apply: ln_neq_0; first by lra.
+        by interval.
+      by rewrite Rabs_Ropp; lra.
+  clear -HB.
+  by split_Rabs; nra.
+suff d0d6B : Rabs d0 + Rabs d6 <= 3.505 * u_.
+  pose B2' := Rpower 2 (- 51.4949).
+  pose B3'  := Rpower 2 (- 51.9099).
+  pose Bz' z := B1 * Rabs z +       B2' * (Rabs z) ^ 2 + B3' * (Rabs z) ^ 3 + 
+           B4 * (Rabs z) ^ 4 + B5 * (Rabs z) ^ 5 + B6 * (Rabs z) ^ 6 + 
+           B7 * (Rabs z) ^ 7.
+  pose d0d6 := (1 + d0) * (1 + d6).
+  have Vd0d6 : 1 - 3.505 * u_ - 4 * u_ ^ 2  <= d0d6 <= 
+                 1 + 3.505 * u_ + 4 * u_ ^ 2 . 
+      rewrite /d0d6 .
+      clear -V1 V6 d0d6B u_E.
+      rewrite u_E in d0d6B *.
+      by split_Rabs; nra.
+  have K2' : Rabs (t5 * P3) <= B2'.
+    rewrite /B2' /P3 /t5 /t4.
+    have -> : (1 + d0) * (1 + d3) * (1 + d5) * (1 + d6) = 
+         (d0d6) * (1 + d3) * (1 + d5) by rewrite /d0d6; lra.
+    by interval with (i_prec 100).
+  have K3' : Rabs (t5 * P4) <= B3'.
+    rewrite /B3' /P4 /t5 /t4.
+    have -> : (1 + d0) * (1 + d3) * (1 + d5) * (1 + d6) = 
+         (d0d6) * (1 + d3) * (1 + d5) by rewrite /d0d6; lra.
+    by interval with (i_prec 100).
+  have K8' : Rabs nphi <= Bz' z.
+    rewrite /nphi /Bz' /A /B /C.
+    clear - K1 K2' K3' K4 K5 K6 K7.
+    rewrite [in X in _ <= X]Rplus_assoc.
+    apply: Rle_trans (Rabs_triang _ _) _.
+      apply: Rplus_le_compat; last first.
+      rewrite Rplus_comm Rmult_plus_distr_l Rmult_plus_distr_r.
+      apply: Rle_trans (Rabs_triang _ _) _.
+        apply: Rplus_le_compat.
+        rewrite Rabs_mult RPow_abs.
+        by apply: Rmult_le_compat_r => //; apply: Rabs_pos.
+      rewrite 2!Rmult_assoc -[in X in Rabs (_ * (_ * (X * _)))  <= _](pow_1 z).
+      rewrite -pow_add -Rmult_assoc.
+      rewrite Rabs_mult RPow_abs.
+      by apply: Rmult_le_compat_r => //; apply: Rabs_pos.
+    rewrite [in X in _ <= X]Rplus_assoc.
+    apply: Rle_trans (Rabs_triang _ _) _.
+      apply: Rplus_le_compat; last first.
+      rewrite Rplus_comm Rmult_plus_distr_l Rmult_plus_distr_r.
+      apply: Rle_trans (Rabs_triang _ _) _.
+        apply: Rplus_le_compat.
+        rewrite Rabs_mult RPow_abs.
+        by apply: Rmult_le_compat_r => //; apply: Rabs_pos.
+      rewrite 2!Rmult_assoc -[in X in Rabs (_ * (_ * (X * _)))  <= _](pow_1 z).
+      rewrite -pow_add -Rmult_assoc.
+      rewrite Rabs_mult RPow_abs.
+      by apply: Rmult_le_compat_r => //; apply: Rabs_pos.
+    rewrite [in X in _ <= X]Rplus_assoc.
+    apply: Rle_trans (Rabs_triang _ _) _.
+      apply: Rplus_le_compat; last first.
+      rewrite Rplus_comm Rmult_plus_distr_l Rmult_plus_distr_r.
+      apply: Rle_trans (Rabs_triang _ _) _.
+        apply: Rplus_le_compat.
+        rewrite Rabs_mult RPow_abs.
+        by apply: Rmult_le_compat_r => //; apply: Rabs_pos.
+      rewrite 2!Rmult_assoc -[in X in Rabs (_ * (_ * (X * _)))  <= _](pow_1 z).
+      rewrite -pow_add -Rmult_assoc.
+      rewrite Rabs_mult RPow_abs.
+      by apply: Rmult_le_compat_r => //; apply: Rabs_pos.
+    rewrite Rabs_mult.
+    apply: Rmult_le_compat_r => //; first by apply: Rabs_pos.
+    by lra.
+  have phiB' : phi < Rpower 2 (- 67.4878).
+    apply: Rle_lt_trans 
+       (_ :  Bz' (32.0001 * pow (-13)) / Cz (32.1 * pow (-13)) < _); last first.
+      rewrite /Bz' /Cz /B1 /B2' /B3' /B4 /B5 /B6 /B7 /P3 /P4 /P5 /P6 /P7 /P8.
+      by interval with (i_prec 100).
+    rewrite /phi.
+    have CzB : 0 < Cz (32.1 * pow (-13)) <= Cz z.
+      rewrite /Cz /P3 /P4 /P5 /P6 /P7 /P8.
+      by split; interval with (i_prec 100).
+    apply: Rle_trans (_ : Bz' z / Cz z <= _).
+      apply: Rmult_le_compat; first apply: Rabs_pos.
+      - by apply: Rinv_0_le_compat; lra.
+      - by lra.
+      by apply: Rinv_le_contravar; lra.
+    apply: Rmult_le_compat.
+    - rewrite /Bz' /B1 /B2' /B3' /B4 /B5 /B6 /B7.
+      by interval with (i_prec 100).
+    - by apply: Rinv_0_le_compat; lra.
+    - rewrite /Bz' /Cz /B1 /B2' /B3' /B4 /B5 /B6 /B7 /P3 /P4 /P5 /P6 /P7 /P8.
+      clear -zB1.
+      interval with (i_prec 100).
+    by apply: Rinv_le_contravar; lra.
+  rewrite Herr in phiB'.
+  have HB1' : Rabs ((z + ph + pl) / ln (1 + z) -1) < Rpower 2 (-67.441).
+    apply: Rle_lt_trans (_ : (1 + Rpower 2 (- 67.4878)) * (1 + Rpower 2 (- 72.423)) 
+                        - 1 < _); last by interval with (i_prec 100).
+    pose P1 z := 
+         1 - z / 2 + P3 * z ^ 2 + P4 * z ^ 3 + P5 * z ^ 4 + 
+         P6 * z ^ 5 + P7 * z ^ 6 + P8 * z ^ 7.
+    have P1E : P z = z * P1 z by rewrite /P /P1; lra.
+    have P1_gt_0 : 0 < P1 z.
+      by rewrite /P1 /P3 /P4 /P5 /P6 /P7 /P8; interval.
+    have Pz_neq_0 : P z <> 0.
+      by rewrite P1E; clear -P1_gt_0 z_neq0; nra.
+    have -> :  (z + ph + pl) / ln (1 + z) = 
+               ((z + ph + pl) / P z) *  (P z / ln (1 + z)).
+      field; split => //.
+      apply: ln_neq_0; first by lra.
+      by interval.
+    have HB' : Rabs ((z + ph + pl) / P z - 1) <= (Rpower 2 (- 67.4878)) /\ 
+         Rabs (P z / ln (1 + z) - 1) <= (Rpower 2 (-72.423)).
+      split.
+        rewrite /Rdiv -Rabs_inv -Rabs_mult in phiB'.
+        have <- : (z + ph + pl - P z) * / P z = (z + ph + pl) / P z  - 1.
+          by field.
+        by lra.
+        have <- : - ((ln (1 + z) - P z) / ln (1 + z)) = P z / ln (1 + z) - 1.
+          field.
+          apply: ln_neq_0; first by lra.
+          by interval.
+        by rewrite Rabs_Ropp; lra.
+    clear -HB'.
+    by split_Rabs; nra.
+  by [].
 Qed.
 
 End Exp.
