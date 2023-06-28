@@ -1844,45 +1844,42 @@ have Faz1 : format (Rabs z1).
 have f2 : format 2.
   rewrite -(pow1E beta).
   by apply: generic_format_FLT_bpow; rewrite /emin; lia.
-have : wh1 <> 4.
-  have T2M2uE : 2 - 2 * u_ = F2R (Float beta (2 ^ p - 1) (1 - p)).
-    rewrite /F2R /= /u_ /Exp.u /Z.pow_pos /= /Z.pow_pos /=.
-    by lra.
+have f4 : format 4.
+  rewrite -[4]/(pow 2).
+  by apply: generic_format_FLT_bpow; rewrite /emin; lia.
+have wh1L4 : wh1 < 4.
+  have pred2E : pred beta fexp 2 = 2 - 2 * u_.
+    rewrite -[in LHS](pow1E beta) pred_bpow pow1E.
+    by rewrite /u_ /Exp.u /fexp /= /Z.pow_pos /=; lra.
   have F2M2 : format (2 - 2 * u_).
-    apply: generic_format_FLT.
-    apply: FLT_spec T2M2uE _ _ => /=.
-      by rewrite /Z.pow_pos /=; lia.
-    by rewrite /emin; lia.
+    by rewrite -pred2E; apply: generic_format_pred.
   have z1R2M2u : Rabs z1 <= 2 - 2 * u_.
-    have L0 : succ beta fexp (2 - 2 * u_) = 2.
-      rewrite succ_eq_pos.
-        rewrite ulp_neq_0.
-          rewrite /cexp /fexp (mag_unique_pos beta _ 1).
-            rewrite -[Z.max _ _]/(1 - p)%Z.
-            by rewrite /u_ /Exp.u; lra.
-          by rewrite pow1E /u_ /Exp.u /= /Z.pow_pos /=; lra.
-        by rewrite /u_ /Exp.u /= /Z.pow_pos /=; lra.
-      by rewrite /u_ /Exp.u /= /Z.pow_pos /=; lra.
-    have L1 : pred beta fexp 2 = 2 - 2 * u_.
-      by rewrite -[in LHS]L0 pred_succ.
     have L2 : Rabs z1 <= pred beta fexp 2.
       by apply: pred_ge_gt => //; lra.
     by lra.
-  have z12B' : z1 ^ 2 < 4 - 4 * u_.
-    apply: Rle_lt_trans (_ : 4 - 8 * u_ + 4 * u_^2 < _); last first.
+  have z12B' : z1 ^ 2 <= 4 - 4 * u_.
+    have pred4E : pred beta fexp 4 = 4 - 4 * u_.
+      rewrite -{1}[4]/(pow 2) pred_bpow [pow 2]/(4).
+      rewrite /u_ /Exp.u /fexp /= /Z.pow_pos /IPR /=.
+      by lra.
+    have F4M4 : format (4 - 4 * u_).
+      by rewrite -pred4E; apply: generic_format_pred.
+    apply: Rle_trans (_ : 4 - 8 * u_ + 4 * u_^2 <= _); last first.
       by rewrite /u_ /Exp.u /= /Z.pow_pos /=; lra.
     have -> : z1 ^ 2 = (Rabs z1) ^ 2 by rewrite pow2_abs.
     have : 0 <= Rabs z1 by apply: Rabs_pos.
     by clear -z1R2M2u; nra.
-  have U4 : ulp (4 - 4 * u_) = 4 * u_.
-    rewrite ulp_neq_0 /cexp /fexp /=; last by rewrite /u_ /Exp.u /=; lra.
-    rewrite (mag_unique_pos beta _ 2).
-      by rewrite /= /u_ /Exp.u /Z.pow_pos /= /Z.pow_pos /=; lra.
-    by rewrite /= /u_ /Exp.u /Z.pow_pos /= /Z.pow_pos /=; lra.
-  have Lsucc : succ beta fexp (4  - 4 * u_) = 4.
-    rewrite succ_eq_pos.
-      rewrite U4; lra.
-    by rewrite /u_ /Exp.u /= /Z.pow_pos /=; lra.
+  have pred4E : pred beta fexp 4 = 4 - 4 * u_.
+    rewrite -{1}[4]/(pow 2)  pred_bpow.
+    by rewrite /u_ /Exp.u /fexp /= /Z.pow_pos /=; lra.
+  have F4M4 : format (4 - 4 * u_).
+    by rewrite -pred4E; apply: generic_format_pred.
+  apply: Rle_lt_trans (@pred_lt_id beta fexp _ _); last by lra.
+  rewrite -(@round_generic beta fexp _ _ (pred beta fexp 4)) //.
+    rewrite wh1E.
+    apply: round_le.
+    by rewrite pred4E; lra.
+  by apply: generic_format_pred.
 Qed.
 
 End Exp.
