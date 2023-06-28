@@ -630,6 +630,18 @@ Qed.
 Lemma powN1 : pow (-1) = 0.5.
 Proof. by rewrite /= /Z.pow_pos /=; lra. Qed.
 
+Theorem round_bpow_flt  x e (emin_le: (emin <= Z.min (mag beta x + e - p)
+    (mag beta x - p))%Z) :
+    RN  (x * pow e) = (RN x * pow e)%R.
+Proof.
+case: (Req_dec x 0) => [->|Zx] ; first by rewrite Rmult_0_l round_0 Rmult_0_l.
+(*
+by rewrite /round /F2R /= mant_bpow_flt //  cexp_bpow_flt // bpow_plus
+Rmult_assoc.
+Qed.
+*)
+Admitted.
+
 Lemma is_imul_format_half x y : 
   format x -> is_imul x (pow y) -> (emin + p <= y)%Z -> format (0.5 * x).
 Proof.
@@ -1671,12 +1683,12 @@ suff d0d6B : Rabs d0 + Rabs d6 <= 3.505 * u_.
     by lra.
   have phiB' : phi < Rpower 2 (- 67.4878).
     apply: Rle_lt_trans 
-       (_ :  Bz' (32.0001 * pow (-13)) / Cz (32.1 * pow (-13)) < _); last first.
+       (_ :  Bz' (32 * pow (-13)) / Cz (32.1 * pow (-13)) < _); last first.
       rewrite /Bz' /Cz /B1 /B2' /B3' /B4 /B5 /B6 /B7 /P3 /P4 /P5 /P6 /P7 /P8.
       by interval with (i_prec 100).
     rewrite /phi.
     have CzB : 0 < Cz (32.1 * pow (-13)) <= Cz z.
-      rewrite /Cz /P3 /P4 /P5 /P6 /P7 /P8.
+      rewrite /Bz' /Cz /B1 /B2' /B3' /B4 /B5 /B6 /B7 /P3 /P4 /P5 /P6 /P7 /P8.
       by split; interval with (i_prec 100).
     apply: Rle_trans (_ : Bz' z / Cz z <= _).
       apply: Rmult_le_compat; first apply: Rabs_pos.
@@ -1687,9 +1699,12 @@ suff d0d6B : Rabs d0 + Rabs d6 <= 3.505 * u_.
     - rewrite /Bz' /B1 /B2' /B3' /B4 /B5 /B6 /B7.
       by interval with (i_prec 100).
     - by apply: Rinv_0_le_compat; lra.
-    - rewrite /Bz' /Cz /B1 /B2' /B3' /B4 /B5 /B6 /B7 /P3 /P4 /P5 /P6 /P7 /P8.
-      clear -zB1.
-      interval with (i_prec 100).
+    - rewrite /Bz' /B1 /B2' /B3' /B4 /B5 /B6 /B7 /P3 /P4 /P5 /P6 /P7 /P8.
+      rewrite !pow_Rpower.
+      clear  -zB1.
+      by do ! apply: Rplus_le_compat; apply: Rmult_le_compat_l; try interval;
+       rewrite [in X in _ <= X]Rabs_pos_eq ?pow_Rpower; try interval; try lra;
+       apply: pow_incr; split; try lra; apply: Rabs_pos.
     by apply: Rinv_le_contravar; lra.
   rewrite Herr in phiB'.
   have HB1' : Rabs ((z + ph + pl) / ln (1 + z) -1) < Rpower 2 (-67.441).
@@ -1723,6 +1738,151 @@ suff d0d6B : Rabs d0 + Rabs d6 <= 3.505 * u_.
     clear -HB'.
     by split_Rabs; nra.
   by [].
+have G1 : Rpower 2 (- 1.5894) < v.
+  apply: Rlt_le_trans (_ : P4 * 33 * pow (-13) + P3 - pow (- 54) <= _).
+    by rewrite /P4 /P3; interval.
+  rewrite -pow_Rpower in zB. 
+  clear - F17_1 zB.
+  rewrite /e3 /P4 in F17_1 *.
+  by split_Rabs; nra.
+pose v0 := Rpower 2 (- 1.5894) * (1 - pow (-52)).
+have G2 : v0 <= v'.
+  apply: Rle_trans (_ : RN v <= _); last first.
+    apply: round_le.
+    by clear -F18_3 wh_gt_0; nra.
+  rewrite round_generic; last by apply: generic_format_round.
+  rewrite /v0.
+  apply: Rle_trans (_ :Rpower 2 (-1.5894) <= _); last by lra.
+  by interval with (i_prec 100).
+pose v1 := Rpower 2 (-1.5805).
+have G3 : v' < v1 by rewrite /v1; lra.
+pose sf := (1 - mag beta z)%Z.
+have sf_gt0 : (0 <= sf)%Z.
+  rewrite /sf -mag_abs.
+  suff : (mag beta (Rabs z) <= mag beta 1)%Z by rewrite mag_1; lia.
+  apply: mag_le.
+  clear -z_neq0; split_Rabs; lra.
+  by interval.
+pose z1 := z * pow sf.
+have z1B : 1 <= Rabs z1 < 2.
+  rewrite Rabs_mult [Rabs (pow sf)]Rabs_pos_eq; last by apply: bpow_ge_0.
+  suff G4 : pow (- sf) <= Rabs z < pow (1 - sf).
+    have -> : 1 = pow (- sf) * pow sf.
+      by rewrite -bpow_plus -(pow0E beta); congr (pow _); lia.
+    have -> : 2 = pow (1 - sf) * pow sf.
+      rewrite -[2](pow1E beta) -bpow_plus; congr (pow _); lia.
+    split.
+      apply: Rmult_le_compat_r; first by apply: bpow_ge_0.
+      by lra.
+    apply: Rmult_lt_compat_r; first by apply: bpow_gt_0.
+    by lra.
+  split.
+    have -> : (- sf = mag beta z - 1)%Z by rewrite /sf; lia.
+    by apply: bpow_mag_le; lra.
+  have -> : (1 - sf = mag beta z)%Z by rewrite /sf; lia.
+  by apply: bpow_mag_gt; lra.
+pose wh1 := wh * (pow sf) ^ 2.
+have wh1E : wh1 = RN (z1 ^ 2).
+  rewrite Rpow_mult_distr -pow2M round_bpow_flt; last first.
+    have z2_neq_0 : z ^ 2 <> 0 by clear -z_neq0; nra.
+    rewrite /p /emin /emax.
+    have XF1 : (-121 <= mag beta (z ^ 2))%Z.
+      by have := is_imul_pow_mag z2_neq_0 F10; lia.
+    have XF2 : (-60 <= mag beta z)%Z.
+      by have := is_imul_pow_mag z_neq0 Mz; lia.
+    by lia.
+  by rewrite pow2M /wh1 /wh !pow2_mult.
+have d0'E : wh1 = z1 ^ 2 * (1 + d0).
+  by rewrite /wh1 d0E /z1; lra. 
+pose u1'' := u'' *  (pow sf) ^ 3.
+pose v1' := v' * pow sf.
+have d6'E : u1'' = (v1' * wh1) * (1 + d6).
+  by rewrite /u1'' /v1' /wh1 d6E; lra.
+have u1''E : u1'' = RN (v1' * wh1).
+  rewrite /v1' /wh1.
+  have -> : v' * pow sf * (wh * pow sf ^ 2) = v' *  wh * (pow (3 * sf)).
+    have -> : (3 * sf = 2 * sf + sf)%Z by lia.
+    by rewrite bpow_plus pow2M; lra.
+  rewrite round_bpow_flt.
+    have -> : (3 * sf = 2 * sf + sf)%Z by lia.
+    by rewrite bpow_plus pow2M /u1'' /u''; lra.
+  have v'wh_neq_0 : v' * wh <> 0.
+    by clear -wh_gt_0 F19_3; nra.
+  have G6 : is_imul (v' * wh) (pow (- 482)).
+    have -> : pow (- 482) = pow (- 360) * pow (-122).
+      by rewrite -bpow_plus; congr (pow _); lia.
+    by apply: is_imul_mul.
+  have XF1 : (-481 <= mag beta (v' * wh))%Z.
+    by have := is_imul_pow_mag v'wh_neq_0 G6; lia.
+  rewrite /emin /p /emax.
+  by lia.
+have z12B : 1 <= z1 ^ 2 < 4 by clear -z1B; split_Rabs; nra.
+have wh1B : 1 <= wh1 <= 4.
+  split.
+    have -> : 1 = RN 1.
+      rewrite -(pow0E beta) round_generic //.
+      by apply: generic_format_FLT_bpow; first by rewrite /emin; lia.
+    rewrite wh1E.
+    by apply: round_le; lra.
+  have -> : 4 = RN (pow 2).
+    rewrite round_generic //.
+    by apply: generic_format_FLT_bpow; first by rewrite /emin; lia.
+  rewrite wh1E.
+  apply: round_le.
+  have -> : pow 2 = 4 by [].
+  by lra.
+have v1'wh1B : v1' <= v1' * wh1 <= 4 * v1'.
+  suff : 0 <= v1' by clear -wh1B; nra.
+  rewrite /v1'.
+  apply: Rmult_le_pos; first by lra.
+  by apply: bpow_ge_0.
+have Fz1 : format z1.
+  rewrite /z1.
+  by apply: mult_bpow_pos_exact_FLT.
+have Faz1 : format (Rabs z1).
+  by apply: generic_format_abs.
+have f2 : format 2.
+  rewrite -(pow1E beta).
+  by apply: generic_format_FLT_bpow; rewrite /emin; lia.
+have : wh1 <> 4.
+  have T2M2uE : 2 - 2 * u_ = F2R (Float beta (2 ^ p - 1) (1 - p)).
+    rewrite /F2R /= /u_ /Exp.u /Z.pow_pos /= /Z.pow_pos /=.
+    by lra.
+  have F2M2 : format (2 - 2 * u_).
+    apply: generic_format_FLT.
+    apply: FLT_spec T2M2uE _ _ => /=.
+      by rewrite /Z.pow_pos /=; lia.
+    by rewrite /emin; lia.
+  have z1R2M2u : Rabs z1 <= 2 - 2 * u_.
+    have L0 : succ beta fexp (2 - 2 * u_) = 2.
+      rewrite succ_eq_pos.
+        rewrite ulp_neq_0.
+          rewrite /cexp /fexp (mag_unique_pos beta _ 1).
+            rewrite -[Z.max _ _]/(1 - p)%Z.
+            by rewrite /u_ /Exp.u; lra.
+          by rewrite pow1E /u_ /Exp.u /= /Z.pow_pos /=; lra.
+        by rewrite /u_ /Exp.u /= /Z.pow_pos /=; lra.
+      by rewrite /u_ /Exp.u /= /Z.pow_pos /=; lra.
+    have L1 : pred beta fexp 2 = 2 - 2 * u_.
+      by rewrite -[in LHS]L0 pred_succ.
+    have L2 : Rabs z1 <= pred beta fexp 2.
+      by apply: pred_ge_gt => //; lra.
+    by lra.
+  have z12B' : z1 ^ 2 < 4 - 4 * u_.
+    apply: Rle_lt_trans (_ : 4 - 8 * u_ + 4 * u_^2 < _); last first.
+      by rewrite /u_ /Exp.u /= /Z.pow_pos /=; lra.
+    have -> : z1 ^ 2 = (Rabs z1) ^ 2 by rewrite pow2_abs.
+    have : 0 <= Rabs z1 by apply: Rabs_pos.
+    by clear -z1R2M2u; nra.
+  have U4 : ulp (4 - 4 * u_) = 4 * u_.
+    rewrite ulp_neq_0 /cexp /fexp /=; last by rewrite /u_ /Exp.u /=; lra.
+    rewrite (mag_unique_pos beta _ 2).
+      by rewrite /= /u_ /Exp.u /Z.pow_pos /= /Z.pow_pos /=; lra.
+    by rewrite /= /u_ /Exp.u /Z.pow_pos /= /Z.pow_pos /=; lra.
+  have Lsucc : succ beta fexp (4  - 4 * u_) = 4.
+    rewrite succ_eq_pos.
+      rewrite U4; lra.
+    by rewrite /u_ /Exp.u /= /Z.pow_pos /=; lra.
 Qed.
 
 End Exp.
