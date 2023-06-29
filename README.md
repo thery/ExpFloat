@@ -37,11 +37,10 @@ Progress
   - [MathComp algebra 1.17 or later](https://math-comp.github.io)
   - [Flocq 4.1.1 or later](https://gitlab.inria.fr/flocq/flocq)
   - [Interval 4.7.0 or later](https://gitlab.inria.fr/coqinterval/interval)
-- Coq namespace: `exp`
+- Coq namespace: `floatexp`
 - Related publication(s): none
 
 ## Building and installation instructions
-
 
 To build and install manually, do:
 
