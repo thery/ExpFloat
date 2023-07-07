@@ -1,0 +1,90 @@
+---
+fullname: ExpFloat
+shortname: expfloat
+organization: thery
+community: false
+dune: false
+action: true
+
+synopsis: e
+
+description: |-
+
+  Exponential in binary 64 
+
+  Progress
+  - [Absolute error of Sollya polynomial](https://github.com/thery/ExpFloat/blob/e12afe8dd40ae8aac31915c839f13a6729392f6e/exp.v#L344-L346)
+  - [Relative error of Sollya polynomial](https://github.com/thery/ExpFloat/blob/e12afe8dd40ae8aac31915c839f13a6729392f6e/exp.v#L576-L579)
+  - [Bound of `ph` of algorithm P1](https://github.com/thery/ExpFloat/blob/e12afe8dd40ae8aac31915c839f13a6729392f6e/exp.v#L2090-L2095)
+  - [Bound of `pl` of algorithm P1](https://github.com/thery/ExpFloat/blob/e12afe8dd40ae8aac31915c839f13a6729392f6e/exp.v#L2101-L2106)
+  - [Absolute error of algorithm P1](https://github.com/thery/ExpFloat/blob/e12afe8dd40ae8aac31915c839f13a6729392f6e/exp.v#L2112-L2117)
+  - [Relative error of algorithm P1](https://github.com/thery/ExpFloat/blob/e12afe8dd40ae8aac31915c839f13a6729392f6e/exp.v#L2123-L2129)
+  - [Refined relative error of algorithm P1](https://github.com/thery/ExpFloat/blob/e12afe8dd40ae8aac31915c839f13a6729392f6e/exp.v#L2136-L2142)
+
+authors:
+- name: Laurent Théry
+- name: Laurence Rideau
+
+maintainers:
+- name: Laurent Théry
+  nickname: thery
+- name: Laurence Rideau
+  nickname: lrg
+
+opam-file-maintainer: thery@sophia.inria.fr
+
+license:
+  fullname: MIT License
+  identifier: MIT
+
+supported_coq_versions:
+  text: '8.17 or later'
+  opam: '{(>= "8.17")}'
+
+dependencies:
+- opam:
+    name: coq-mathcomp-ssreflect
+    version: '{(>= "1.17.0")}'
+  description: |-
+    [MathComp ssreflect 1.17 or later](https://math-comp.github.io)
+
+- opam:
+    name: coq-coquelicot
+    version: '{(>= "3.3.1")}'
+  description: |-
+    [Coquelicot 3.3.1 or later](https://gitlab.inria.fr/coquelicot/coquelicot)
+
+- opam:
+    name: coq-mathcomp-algebra
+    version: '{(>= "1.17.0")}'
+  description: |-
+    [MathComp algebra 1.17 or later](https://math-comp.github.io)
+
+- opam:
+    name: coq-flocq
+    version: '{(>= "4.1.1")}'
+  description: |-
+    [Flocq 4.1.1 or later](https://gitlab.inria.fr/flocq/flocq)
+
+- opam:
+    name: coq-interval
+    version: '{(>= "4.7.0")}'
+  description: |-
+    [Interval 4.7.0 or later](https://gitlab.inria.fr/coqinterval/interval)
+
+
+tested_coq_opam_versions:
+- version: '1.17.0-coq-8.17'
+  repo: 'mathcomp/mathcomp'
+
+namespace: floatexp
+
+keywords:
+- name: floating point number
+- name: exponential function
+- name: Coq
+
+
+
+
+---

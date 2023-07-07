@@ -1,0 +1,47 @@
+# This file was generated from `meta.yml`, please do not edit manually.
+# Follow the instructions on https://github.com/coq-community/templates to regenerate.
+
+opam-version: "2.0"
+maintainer: "thery@sophia.inria.fr"
+version: "dev"
+
+homepage: "https://github.com/thery/expfloat"
+dev-repo: "git+https://github.com/thery/expfloat.git"
+bug-reports: "https://github.com/thery/expfloat/issues"
+license: "MIT"
+
+synopsis: "e"
+description: """
+
+Exponential in binary 64 
+
+Progress
+- [Absolute error of Sollya polynomial](https://github.com/thery/ExpFloat/blob/e12afe8dd40ae8aac31915c839f13a6729392f6e/exp.v#L344-L346)
+- [Relative error of Sollya polynomial](https://github.com/thery/ExpFloat/blob/e12afe8dd40ae8aac31915c839f13a6729392f6e/exp.v#L576-L579)
+- [Bound of `ph` of algorithm P1](https://github.com/thery/ExpFloat/blob/e12afe8dd40ae8aac31915c839f13a6729392f6e/exp.v#L2090-L2095)
+- [Bound of `pl` of algorithm P1](https://github.com/thery/ExpFloat/blob/e12afe8dd40ae8aac31915c839f13a6729392f6e/exp.v#L2101-L2106)
+- [Absolute error of algorithm P1](https://github.com/thery/ExpFloat/blob/e12afe8dd40ae8aac31915c839f13a6729392f6e/exp.v#L2112-L2117)
+- [Relative error of algorithm P1](https://github.com/thery/ExpFloat/blob/e12afe8dd40ae8aac31915c839f13a6729392f6e/exp.v#L2123-L2129)
+- [Refined relative error of algorithm P1](https://github.com/thery/ExpFloat/blob/e12afe8dd40ae8aac31915c839f13a6729392f6e/exp.v#L2136-L2142)"""
+
+build: [make "-j%{jobs}%"]
+install: [make "install"]
+depends: [
+  "coq" {(>= "8.17")}
+  "coq-mathcomp-ssreflect" {(>= "1.17.0")}
+  "coq-coquelicot" {(>= "3.3.1")}
+  "coq-mathcomp-algebra" {(>= "1.17.0")}
+  "coq-flocq" {(>= "4.1.1")}
+  "coq-interval" {(>= "4.7.0")}
+]
+
+tags: [
+  "keyword:floating point number"
+  "keyword:exponential function"
+  "keyword:Coq"
+  "logpath:floatexp"
+]
+authors: [
+  "Laurent Théry"
+  "Laurence Rideau"
+]
