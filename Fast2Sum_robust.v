@@ -308,25 +308,61 @@ pose delta := (Zminus (ce a)  (ce b)).
     lia.
   rewrite /fx; set ces := (1 + ce a)%Z.
   by rewrite /F2R/= /ces /cexp /fexp;lia.
-Admitted
+have abE: a+b = 
+       (IZR Ma * pow (ce a - ce s) + IZR Mb * pow (ce b - ce s)) * pow (ce s).
+  rewrite {1}aE {1}bE Rmult_plus_distr_r !Rmult_assoc -!bpow_plus.
+  congr Rplus ; congr Rmult; congr bpow; lia.
+have :   Rabs (s - (a + b)) <   ulp beta fexp s.
+        by apply/error_lt_ulp_round=>//.
+rewrite ulp_neq_0 =>//.
+move/Rabs_lt_inv=> s_e.
+have : b - pow (ce s) < s - a < b + pow (ce s) by lra.
+have ->: b = (IZR Mb * pow (ce b - ce s)) * pow (ce s).
+rewrite [LHS]bE Rmult_assoc -bpow_plus; congr Rmult; congr bpow; lia.
+rewrite  -[X in _ - X]Rmult_1_l -[X in _ + X]Rmult_1_l.
+rewrite -Rmult_minus_distr_r -Rmult_plus_distr_r.
+have smaE : s - a = IZR (Ms - Ma * 2 ^ (ce a - ce s)) * pow (ce s).
+  have aE': a = IZR Ma * pow (ce a - ce s)* pow (ce s).
+    by rewrite [LHS] aE Rmult_assoc -bpow_plus; congr Rmult ; 
+       congr bpow; lia.
 
+  rewrite [in LHS]sE [in LHS]aE'.
+  rewrite minus_IZR mult_IZR (IZR_Zpower beta); last lia; lra.
+rewrite smaE.
+set K := (Ms - _)%Z.
+move=> hK.
+have : (IZR Mb * pow (ce b - ce s) - 1)  < IZR K <  
+         (IZR Mb * pow (ce b - ce s) + 1).
+by move:(bpow_gt_0 beta (ce s)); nra.
+rewrite /sma smaE -/K.
+move=> Hk.
+pose fx := Float beta K (ce s). 
+apply/generic_format_FLT/(FLT_spec _ _ _ _ fx); first 2 last.
+- by rewrite /fx/F2R/= /cexp/fexp;lia.
+- by rewrite /fx /F2R/=.  
+rewrite /fx/F2R/=.
+apply/lt_IZR; rewrite abs_IZR (IZR_Zpower beta); last lia.
+apply/(Rle_lt_trans _ (Rabs (IZR Mb)/2 + 1)); last first.
+  case:(Z_zerop Mb)=>[->|mb0].
+    rewrite Rabs_R0/Rdiv  Rmult_0_l Rplus_0_l; have ->: 1 = pow 0 by [].
+    apply/bpow_lt; lia.
+  apply/(Rlt_le_trans _ (Rabs (IZR Mb) + 1)).
+    suff: 0 < Rabs (IZR Mb) by lra.
+    by apply/Rabs_pos_lt/IZR_neq.
+  suff:   Rabs (IZR Mb)  <= pow p -1 by lra.
+  rewrite -abs_IZR -IZR_Zpower; last lia.
+  by rewrite -minus_IZR; apply/IZR_le.
+apply/(Rle_trans _  ((Rabs (IZR Mb)) * pow (ce b - ce s) +1)); last first.
+suff:  pow (ce b - ce s)<= /2 by move:(Rabs_pos (IZR Mb)); nra.
+have ->: /2 = pow (-1) by [].
+apply/bpow_le; lia.
+apply/Rabs_le.
+    case : (Rle_lt_dec 0 (IZR Mb))=> Mb0.
+      by rewrite Rabs_pos_eq //; move:(bpow_gt_0 beta (ce b -ce s)); nra.
+    rewrite -Rabs_Ropp Rabs_pos_eq; last lra.
+    by move:(bpow_gt_0 beta (ce b -ce s)); nra.
+Qed.
 
 End Main.
-
-
-
-
-
-generic_format_F2R:
-  forall (beta : radix) (fexp : Z -> Z) (m e : Z),
-  (m <> 0%Z -> (cexp beta fexp (F2R {| Fnum := m; Fexp := e |}) <= e)%Z) ->
-  generic_format beta fexp (F2R {| Fnum := m; Fexp := e |})
-
-generic_format_F2R':
-  forall (beta : radix) (fexp : Z -> Z) (x : R) (f : float beta),
-  F2R f = x -> (x <> 0 -> (cexp beta fexp x <= Fexp f)%Z) -> generic_format beta fexp x
-
-
-
 
 
