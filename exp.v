@@ -761,21 +761,21 @@ have wh_gt_0 : 0 < wh.
     have -> : pow (-122) = pow (-61) * pow (-61) by rewrite -bpow_plus.
     by apply: is_imul_mul.
   by apply: is_imul_format_round_gt_0 _ G1 _ => //=; nra.
-have F1 : wh + wl = z * z.
+have wh_wl_zz : wh + wl = z * z.
   apply: exactMul_correct => //.
   have [k ->] := Mz.
   exists (k * k * 2 ^ 952)%Z.
   rewrite 2!mult_IZR.
   suff : pow (-61) * pow (-61) = IZR (2 ^ 952) * pow emin by nra.
   by rewrite -!bpow_plus (IZR_Zpower beta) // -bpow_plus.
-have F2 : z ^ 2 <= 33 ^ 2 * Rpower 2 (-26).
+have zzLe : z ^ 2 <= 33 ^ 2 * Rpower 2 (-26).
   have -> : Rpower 2 (-26) = (Rpower 2 (-13)) ^ 2.
     by rewrite pow2_mult -Rpower_plus; congr (Rpower _ _); lra.
   rewrite -Rpow_mult_distr.
   by apply: pow_maj_Rabs.
-have F3 : z ^ 2 < Rpower 2 (- 15.91).
-  by apply: Rle_lt_trans F2 _; interval.
-have F4 : ulp(z ^ 2) <= Rpower 2 (-68).
+have zzLt : z ^ 2 < Rpower 2 (- 15.91).
+  by apply: Rle_lt_trans zzLe _; interval.
+have uzzLe : ulp(z ^ 2) <= Rpower 2 (-68).
   apply: Rle_trans (_ : ulp (33 ^ 2 * Rpower 2 (-26)) <= _).
     apply: ulp_le => //.
     by rewrite !Rabs_pos_eq //; nra.
@@ -785,7 +785,7 @@ have F4 : ulp(z ^ 2) <= Rpower 2 (-68).
     apply: mag_unique_pos.
     by rewrite !pow_Rpower /=; split; interval.
   by rewrite pow_Rpower /emin /Z.max /=; lra.
-have F5 : Rabs wh <= Rpower 2 (-15.91) + Rpower 2 (-68).
+have whLe : Rabs wh <= Rpower 2 (-15.91) + Rpower 2 (-68).
   apply: Rle_trans (_ : z ^ 2 + ulp (z ^2) <= _); last by lra.
   rewrite Rabs_pos_eq; last first.
     rewrite -(round_0 beta fexp).
@@ -793,71 +793,69 @@ have F5 : Rabs wh <= Rpower 2 (-15.91) + Rpower 2 (-68).
   suff : Rabs (RN (z ^ 2) - z ^ 2) <= ulp(z ^ 2).
     by rewrite /wh -pow2_mult; split_Rabs; lra.
   by apply: error_le_ulp.
-rewrite Rabs_pos_eq in F5; last by lra.
-have F6 : Rabs wl <= Rpower 2 (-68).
-  apply: Rle_trans F4.
+rewrite Rabs_pos_eq in whLe; last by lra.
+have wlLe : Rabs wl <= Rpower 2 (-68).
+  apply: Rle_trans uzzLe.
   have -> : wl = - (wh - z ^ 2) by lra.
   rewrite Rabs_Ropp.
   rewrite /wh -pow2_mult.
   by apply: error_le_ulp.
-have F7 : is_imul wh (pow (- 122)).
+have imul_wh : is_imul wh (pow (- 122)).
   apply: is_imul_pow_round.
   have -> : pow (-122) = pow (-61) * pow (-61) by rewrite -bpow_plus.
   by apply: is_imul_mul.
-have F8 : is_imul wl (pow (- 122)).
+have imul_wl : is_imul wl (pow (- 122)).
   have -> : wl = z * z - wh by lra.
   apply: is_imul_minus => //.
   have -> : pow (-122) = pow (-61) * pow (-61) by rewrite -bpow_plus.
   by apply: is_imul_mul.
-have F9 : ph = -0.5 * wh.
+have phE : ph = -0.5 * wh.
   rewrite /ph round_generic //.
   have-> : -0.5 = -(0.5) by lra.
   rewrite -!Ropp_mult_distr_l.
   apply: generic_format_opp.
-  by apply: is_imul_format_half Fwh F7 _; lia.
-have F10 : is_imul (z ^ 2) (pow (-122)).
+  by apply: is_imul_format_half Fwh imul_wh _; lia.
+have imul_zz122 : is_imul (z ^ 2) (pow (-122)).
   have -> : pow (-122) = pow (-61) * pow (-61) by rewrite -bpow_plus.
   by rewrite pow2_mult; apply: is_imul_mul.
-have F11 : is_imul (z ^ 2) (pow (-123)).
-  by apply: is_imul_pow_le F10 _; lia.
-have F12 : is_imul (z ^ 2 - wh) (pow (-123)).
-  by apply: is_imul_pow_le (is_imul_minus F10 F7) _; lia.
-have F13 : is_imul (0.5 * wh) (pow (-123)).
+have imul_zz123 : is_imul (z ^ 2) (pow (-123)).
+  by apply: is_imul_pow_le imul_zz122 _; lia.
+have imul_zzBwh : is_imul (z ^ 2 - wh) (pow (-123)).
+  by apply: is_imul_pow_le (is_imul_minus imul_zz122 imul_wh) _; lia.
+have imul_half_wh : is_imul (0.5 * wh) (pow (-123)).
   have-> : pow (-123) = pow (-1) * pow (-122) by rewrite -bpow_plus.
   by rewrite powN1; apply: is_imul_mul => //; exists 1%Z; lra.
-have F14 : is_imul (0.5 * wl) (pow (-123)).
+have imul_half_wl : is_imul (0.5 * wl) (pow (-123)).
   have-> : pow (-123) = pow (-1) * pow (-122) by rewrite -bpow_plus.
   by rewrite powN1; apply: is_imul_mul => //; exists 1%Z; lra.
 pose e1 := t - (P8 * z + P7).
 have e1E : t = P8 * z + P7 + e1 by rewrite /e1;lra.
-have [F15_1 F15_2 F15_3 F15_4] : 
+have [e1Le tLe tB imul_t] : 
   [/\ 
     Rabs e1 <= pow (- 55),
     t <= Rpower 2 (- 2.8022) + Rpower 2 (-55),
     0 < t < Rpower 2 (- 2.802) & 
     is_imul t (pow (-116))].
-  have G1 : 0 < P8 * z + P7 < Rpower 2 (- 2.8022).
+  have P8zP7B : 0 < P8 * z + P7 < Rpower 2 (- 2.8022).
     by split; rewrite /P8 /P7; interval.
-  have G2 : ulp (Rpower 2 (- 2.8022)) = pow (-55).
+  have u28022 : ulp (Rpower 2 (- 2.8022)) = pow (-55).
     rewrite ulp_neq_0 /cexp /fexp  ?(mag_unique_pos _ _ (-55 + p)%Z); try lra.
       rewrite Z.max_l; last by lia.
       congr bpow; lia.
     by rewrite !pow_Rpower /p/=;split; [apply: Rle_Rpower|apply: Rpower_lt];
        lra.
-  have G3 : Rabs e1 <= pow (- 55).
-    rewrite -G2 /e1.
+  have e1Le : Rabs e1 <= pow (- 55).
+    rewrite -u28022 /e1.
     apply: Rle_trans (_ : ulp (P8 * z + P7) <= _); last first.
-      by apply: ulp_le; rewrite {zB F6}//; split_Rabs; lra.
+      by apply: ulp_le; clear -P8zP7B; split_Rabs; lra.
     rewrite /t Pf8E Pf7E.
     by apply: error_le_ulp.
-  have G4 : t <= Rpower 2 (- 2.8022) + Rpower 2 (-55).
+  have tLe : t <= Rpower 2 (- 2.8022) + Rpower 2 (-55).
     apply: Rle_trans (_ : Rabs e1 + P8 * z + P7 <= _).
-      by rewrite {zB F6}// /e1; split_Rabs; lra.
-    by rewrite pow_Rpower in G3; lra.
-  have G5 : t < Rpower 2 (- 2.802).
-    apply: Rle_lt_trans G4 _.
-    by interval. 
-  have G6 : is_imul (P8 * z + P7) (pow (-116)).
+      by rewrite /e1; clear -e1E P8zP7B; split_Rabs; lra.
+    by rewrite pow_Rpower in e1Le; lra.
+  have tLt : t < Rpower 2 (- 2.802) by interval. 
+  have imul_P8zP7 : is_imul (P8 * z + P7) (pow (-116)).
     apply: is_imul_add.
       have -> : pow (-116) = pow (-55) * pow (-61).
         by rewrite -bpow_plus; congr (pow _); lia.
@@ -866,41 +864,39 @@ have [F15_1 F15_2 F15_3 F15_4] :
       by rewrite /P8 /= /Z.pow_pos /=; lra.
     exists (11868429770568140608450203318484992)%Z.
     by rewrite /P7 /= /Z.pow_pos /=; lra.
-  have G7 : is_imul t (pow (-116)).
+  have imul_t : is_imul t (pow (-116)).
     by apply: is_imul_pow_round; rewrite Pf8E Pf7E.
-  suff G8 : 0 < t by [].
+  suff t_gt0 : 0 < t by [].
   rewrite /t Pf8E Pf7E.
-  by apply: is_imul_format_round_gt_0 _ G6 _ => //=; nra.
+  by apply: is_imul_format_round_gt_0 _ imul_P8zP7 _ => //=; nra.
 pose e2 := u - (P6 * z + P5).
 have e2E : u = P6 * z + P5 + e2 by rewrite /e2;lra.
-have [F16_1 F16_2 F16_3 F16_4] : 
+have [e2Le uB uLw imul_u] : 
   [/\ 
     Rabs e2 <= pow (- 55),
     0 < u < Rpower 2 (- 2.317),
     u <= Rpower 2 (-2.31709) + Rpower 2 (-55) & 
     is_imul u (pow (-116))].
-  have G1 : 0 < P6 * z + P5 < Rpower 2 (- 2.31709).
+  have P6zP5B : 0 < P6 * z + P5 < Rpower 2 (- 2.31709).
     by split; rewrite /P6 /P5; interval.
-  have G2 : ulp (Rpower 2 (- 2.31709)) = pow (-55).
+  have u131709 : ulp (Rpower 2 (- 2.31709)) = pow (-55).
     rewrite ulp_neq_0 /cexp /fexp  ?(mag_unique_pos _ _ (-55 + p)%Z); try lra.
       rewrite Z.max_l; last by lia.
       congr bpow; lia.
     by rewrite !pow_Rpower /p/=;split; [apply: Rle_Rpower|apply: Rpower_lt];
        lra.
-  have G3 : Rabs e2 <= pow (- 55).
-    rewrite -G2 /e2.
+  have e2Le : Rabs e2 <= pow (- 55).
+    rewrite -u131709 /e2.
     apply: Rle_trans (_ : ulp (P6 * z + P5) <= _); last first.
-      by apply: ulp_le; rewrite {zB F6 F15_1}//; split_Rabs; lra.
+      by apply: ulp_le; clear -P6zP5B; split_Rabs; lra.
     rewrite /u Pf6E Pf5E.
     by apply: error_le_ulp.
-  have G4 : u <= Rpower 2 (-2.31709) + Rpower 2 (-55).
+  have uLe : u <= Rpower 2 (-2.31709) + Rpower 2 (-55).
     apply: Rle_trans (_ : Rabs e2 + P6 * z + P5 <= _).
-      by rewrite {zB F6 F15_1 G3}// /e2; split_Rabs; lra.
-    by rewrite pow_Rpower in G3; lra.
-  have G5 : u < Rpower 2 (- 2.317).
-    apply: Rle_lt_trans G4 _.
-    by interval. 
-  have G6 : is_imul (P6 * z + P5) (pow (-116)).
+      by rewrite /e2; clear e2E P6zP5B; split_Rabs; lra.
+    by rewrite pow_Rpower in e2Le; lra.
+  have uLt : u < Rpower 2 (- 2.317) by interval. 
+  have imul_P6zP5 : is_imul (P6 * z + P5) (pow (-116)).
     apply: is_imul_add.
       have -> : pow (-116) = pow (-55) * pow (-61).
         by rewrite -bpow_plus; congr (pow _); lia.
@@ -909,41 +905,39 @@ have [F16_1 F16_2 F16_3 F16_4] :
       by rewrite /P6 /= /Z.pow_pos /=; lra.
     exists (16615349943738746199199974751731712)%Z.
     by rewrite /P5 /= /Z.pow_pos /=; lra.
-  have G7 : is_imul u (pow (-116)).
+  have imul_u : is_imul u (pow (-116)).
     by apply: is_imul_pow_round; rewrite Pf6E Pf5E.
-  suff G8 : 0 < u by [].
+  suff u_gt0 : 0 < u by [].
   rewrite /u Pf6E Pf5E.
-  by apply: is_imul_format_round_gt_0 _ G6 _ => //=; nra.
+  by apply: is_imul_format_round_gt_0 _ imul_P6zP5 _ => //=; nra.
 pose e3 := v - (P4 * z + P3).
 have e3E : v = P4 * z + P3 + e3 by rewrite /e3;lra.
-have [F17_1 F17_2 F17_3 F17_4] : 
+have [e3Le vLe vB imul_v] : 
   [/\ 
     Rabs e3 <= pow (- 54),
     v <= Rpower 2 (- 1.5806) + Rpower 2 (-54),
     0 < v < Rpower 2 (- 1.580) & 
     is_imul v (pow (-115))].
-  have G1 : 0 < P4 * z + P3 < Rpower 2 (- 1.5806).
+  have P4zP3B: 0 < P4 * z + P3 < Rpower 2 (- 1.5806).
     by split; rewrite /P4 /P3; interval.
-  have G2 : ulp (Rpower 2 (- 1.5806)) = pow (-54).
+  have u15806 : ulp (Rpower 2 (- 1.5806)) = pow (-54).
     rewrite ulp_neq_0 /cexp /fexp  ?(mag_unique_pos _ _ (-54 + p)%Z); try lra.
       rewrite Z.max_l; last by lia.
       congr bpow; lia.
     by rewrite !pow_Rpower /p/=;split; [apply: Rle_Rpower|apply: Rpower_lt];
        lra.
-  have G3 : Rabs e3 <= pow (- 54).
-    rewrite -G2 /e3.
+  have e3Le : Rabs e3 <= pow (- 54).
+    rewrite -u15806 /e3.
     apply: Rle_trans (_ : ulp (P4 * z + P3) <= _); last first.
-      by apply: ulp_le; rewrite {zB F6 F15_1 F16_1}//; split_Rabs; lra.
+      by apply: ulp_le; clear -P4zP3B; split_Rabs; lra.
     rewrite /v Pf4E Pf3E.
     by apply: error_le_ulp.
-  have G4 : v <= Rpower 2 (- 1.5806) + Rpower 2 (-54).
+  have vLe : v <= Rpower 2 (- 1.5806) + Rpower 2 (-54).
     apply: Rle_trans (_ : Rabs e3 + P4 * z + P3 <= _).
-      by rewrite /e3; rewrite {zB F6 F15_1 F16_1 G3}//; split_Rabs; lra.
-    by rewrite pow_Rpower in G3; lra.
-  have G5 : v < Rpower 2 (- 1.580).
-    apply: Rle_lt_trans G4 _.
-    by interval. 
-  have G6 : is_imul (P4 * z + P3) (pow (-115)).
+      by rewrite /e3; clear -P4zP3B; split_Rabs; lra.
+    by rewrite pow_Rpower in e3Le; lra.
+  have vLt : v < Rpower 2 (- 1.580) by interval. 
+  have imul_P4zP3 : is_imul (P4 * z + P3) (pow (-115)).
     apply: is_imul_add.
       have -> : pow (-115) = pow (-54) * pow (-61).
         by rewrite -bpow_plus; congr (pow _); lia.
@@ -952,182 +946,169 @@ have [F17_1 F17_2 F17_3 F17_4] :
       by rewrite /P4 /= /Z.pow_pos /=; lra.
     exists (13846124956092879824996014781104128)%Z.
     by rewrite /P3 /= /Z.pow_pos /=; lra.
-  have G7 : is_imul v (pow (-115)).
+  have imul_v : is_imul v (pow (-115)).
     by apply: is_imul_pow_round; rewrite Pf4E Pf3E.
-  suff G8 : 0 < v by [].
+  suff v_gt0 : 0 < v by [].
   rewrite /v Pf4E Pf3E.
-  by apply: is_imul_format_round_gt_0 _ G6 _ => //=; nra.
+  by apply: is_imul_format_round_gt_0 _ imul_P4zP3 _ => //=; nra.
 pose e4 := u' - (t * wh + u).
 have e4E : u' = t * wh + u + e4 by rewrite /e4; lra.
-have [F18_1 F18_2 F18_3 F18_4] : 
+have [e4Le u'Le u'B imul_u'] : 
   [/\ 
     Rabs e4 <= pow (- 55),
     u' <= Rpower 2 (-2.31707) + Rpower 2 (-55), 
     0 < u' < Rpower 2 (- 2.31706) & 
     is_imul u' (pow (-238))].
-  have G1 : 0 < t * wh + u < Rpower 2 (- 2.31707).
+  have twhuB : 0 < t * wh + u < Rpower 2 (- 2.31707).
     split; first by nra.
     apply: Rle_lt_trans
       (_ :  Rpower 2 (-2.802) * (Rpower 2 (-15.91) + Rpower 2 (-68)) + 
             (Rpower 2 (- 2.31709) + Rpower 2 (- 55)) < _); last by interval.
     by nra.
-  have G2 : ulp (Rpower 2 (-2.31707)) = pow (-55).
+  have u231707 : ulp (Rpower 2 (-2.31707)) = pow (-55).
     rewrite ulp_neq_0 /cexp /fexp  ?(mag_unique_pos _ _ (-55 + p)%Z); try lra.
       rewrite Z.max_l; last by lia.
       congr bpow; lia.
     by rewrite !pow_Rpower /p/=;split; [apply: Rle_Rpower|apply: Rpower_lt];
        lra.
-  have G3 : Rabs e4 <= pow (- 55).
-    rewrite -G2 /e4.
+  have e4Le : Rabs e4 <= pow (- 55).
+    rewrite -u231707 /e4.
     apply: Rle_trans (_ : ulp (t * wh + u) <= _); last first.
-      by apply: ulp_le; rewrite {zB F6 F15_1 F16_1 F17_1}//; split_Rabs; lra.
+      by apply: ulp_le; clear -twhuB; split_Rabs; lra.
     by apply: error_le_ulp.    
-  have G4 : u' <= Rpower 2 (-2.31707) + Rpower 2 (-55).
+  have u'Le : u' <= Rpower 2 (-2.31707) + Rpower 2 (-55).
     apply: Rle_trans (_ : Rabs e4 + t * wh + u <= _).
-      by rewrite /e4; rewrite {zB F6 F15_1 F16_1 F17_1 G3}//;
-         split_Rabs; lra.
-    by rewrite pow_Rpower in G3; lra.
-  have G5 : u' < Rpower 2 (-2.31706).
-    apply: Rle_lt_trans G4 _.
-    by interval. 
-  have G6 : is_imul (t * wh + u) (pow (-238)).
+      by rewrite /e4; clear -twhuB; split_Rabs; lra.
+    by rewrite pow_Rpower in e4Le; lra.
+  have u'Lt : u' < Rpower 2 (-2.31706) by interval. 
+  have imul_twhu : is_imul (t * wh + u) (pow (-238)).
     apply: is_imul_add; last first.
-      by apply: is_imul_pow_le F16_4 _; lia.
+      by apply: is_imul_pow_le imul_u _; lia.
     have -> : pow (-238) = pow (-116) * pow (-122).
       by rewrite -bpow_plus; congr (pow _); lia.
     by apply: is_imul_mul.
-  have G7 : is_imul u'  (pow (-238)).
+  have imul_u' : is_imul u'  (pow (-238)).
     by apply: is_imul_pow_round.
-  suff G8 : 0 < u' by [].
-  by apply: is_imul_format_round_gt_0 _ G6 _ => //=; nra.
+  suff u'_gt0 : 0 < u' by [].
+  by apply: is_imul_format_round_gt_0 _ imul_twhu _ => //=; nra.
 pose e5 := v' - (u' * wh + v).
 have e5E : v' = u' * wh + v + e5 by rewrite /e5; lra.
-have [F19_1 F19_2 F19_3 F19_4] : 
+have [e5Le v'Le v'B imul_v'] : 
   [/\ 
     Rabs e5 <= pow (- 54),
     v' <= Rpower 2 (- 1.58058) + Rpower 2 (-54), 
     0 < v' < Rpower 2 (- 1.5805) & 
     is_imul v' (pow (- 360))].
-  have G1 : 0 < u' * wh + v < Rpower 2 (- 1.58058).
+  have u'whvB : 0 < u' * wh + v < Rpower 2 (- 1.58058).
     split; first by nra.
     apply: Rle_lt_trans
       (_ :  Rpower 2 (- 2.31706) * (Rpower 2 (-15.91) + Rpower 2 (-68)) + 
             (Rpower 2 (- 1.5806) + Rpower 2 (- 54)) < _); last by interval.
     by nra.
-  have G2 : ulp (Rpower 2 (- 1.58058)) = pow (-54).
+  have u158058 : ulp (Rpower 2 (- 1.58058)) = pow (-54).
     rewrite ulp_neq_0 /cexp /fexp  ?(mag_unique_pos _ _ (- 54 + p)%Z); try lra.
       rewrite Z.max_l; last by lia.
       congr bpow; lia.
     by rewrite !pow_Rpower /p/=;split; [apply: Rle_Rpower|apply: Rpower_lt];
        lra.
-  have G3 : Rabs e5 <= pow (- 54).
-    rewrite -G2 /e5.
+  have e5Le : Rabs e5 <= pow (- 54).
+    rewrite -u158058 /e5.
     apply: Rle_trans (_ : ulp (u' * wh + v) <= _); last first.
-      by apply: ulp_le; rewrite {zB F6 F15_1 F16_1 F17_1 F18_1}//;
-         split_Rabs; lra.
+      by apply: ulp_le; clear -u'whvB; split_Rabs; lra.
     by apply: error_le_ulp.
-  have G4 : v' <= Rpower 2 (- 1.58058) + Rpower 2 (-54).
+  have v'Le : v' <= Rpower 2 (- 1.58058) + Rpower 2 (-54).
     apply: Rle_trans (_ : Rabs e5 + u' * wh + v <= _).
-      by rewrite {zB F6 F15_1 F16_1 F17_1 F18_1 G3}// /e5; split_Rabs; lra.
-    by rewrite pow_Rpower in G3; lra.
-  have G5 : v' < Rpower 2 (-1.5805).
-    apply: Rle_lt_trans G4 _.
-    by interval. 
-  have G6 : is_imul (u' * wh + v) (pow (- 360)).
+      by rewrite /e5;  clear -u'whvB; split_Rabs; lra.
+    by rewrite pow_Rpower in e5Le; lra.
+  have v'Lt : v' < Rpower 2 (-1.5805) by interval. 
+  have imul_u'whv : is_imul (u' * wh + v) (pow (- 360)).
     apply: is_imul_add; last first.
-      by apply: is_imul_pow_le F17_4 _; lia.
+      by apply: is_imul_pow_le imul_v _; lia.
     have -> : pow (- 360) = pow (- 238) * pow (-122).
       by rewrite -bpow_plus; congr (pow _); lia.
     by apply: is_imul_mul.
-  have G7 : is_imul v'  (pow (- 360)).
+  have imul_v' : is_imul v'  (pow (- 360)).
     by apply: is_imul_pow_round.
-  suff G8 : 0 < v' by [].
-  by apply: is_imul_format_round_gt_0 _ G6 _ => //=; nra.
+  suff v'_gt0 : 0 < v' by [].
+  by apply: is_imul_format_round_gt_0 _ imul_u'whv _ => //=; nra.
 pose e6 := u'' - (v' * wh).
 have e6E : u'' = v' * wh + e6 by rewrite /e6; lra.
-have [F20_1 F20_2 F20_3 F20_4] : 
+have [e6Le u''Le u''B imul_u''] : 
   [/\ 
     Rabs e6 <= pow (- 70),
     u'' <= Rpower 2 (- 17.49057) + Rpower 2 (- 70),
     0 < u'' < Rpower 2 (- 17.4905) & 
     is_imul u'' (pow (- 482))].
-  have G1 : 0 < v' * wh < Rpower 2 (- 17.49057).
+  have v'whB : 0 < v' * wh < Rpower 2 (- 17.49057).
     split; first by nra.
     apply: Rle_lt_trans
       (_ :  (Rpower 2 (- 1.58058) + Rpower 2 (- 54)) *
             (Rpower 2 (- 15.91) + Rpower 2 (- 68)) < _); last by interval.
     by apply: Rmult_le_compat; lra.
-  have G2 : ulp (Rpower 2 (- 17.49057)) = pow (- 70).
+  have u1749057 : ulp (Rpower 2 (- 17.49057)) = pow (- 70).
     rewrite ulp_neq_0 /cexp /fexp  ?(mag_unique_pos _ _ (- 70 + p)%Z); try lra.
       rewrite Z.max_l; last by lia.
       congr bpow; lia.
     by rewrite !pow_Rpower /p/=;split; [apply: Rle_Rpower|apply: Rpower_lt];
        lra.
-  have G3 : Rabs e6 <= pow (- 70).
-    rewrite -G2 /e6.
+  have e6Le : Rabs e6 <= pow (- 70).
+    rewrite -u1749057 /e6.
     apply: Rle_trans (_ : ulp (v' * wh) <= _); last first.
-      by apply: ulp_le; rewrite {zB F6 F15_1 F16_1 F17_1 F18_1 F19_1}//;
-         split_Rabs; lra.
+      by apply: ulp_le; clear -v'whB; split_Rabs; lra.
     by apply: error_le_ulp.
-  have G4 : u'' <= Rpower 2 (- 17.49057) + Rpower 2 (- 70).
+  have u''Le : u'' <= Rpower 2 (- 17.49057) + Rpower 2 (- 70).
     apply: Rle_trans (_ : Rabs e6 + v' * wh <= _).
-      by rewrite {zB F6 F15_1 F16_1 F17_1 F18_1 F19_1 G3}// /e6; 
-         split_Rabs; lra.
-    by rewrite pow_Rpower in G3; lra.
-  have G5 : u'' < Rpower 2 (- 17.4905).
-    apply: Rle_lt_trans G4 _.
-    by interval. 
-  have G6 : is_imul (v' * wh) (pow (- 482)).
+      by rewrite /e6; clear -v'whB; split_Rabs; lra.
+    by rewrite pow_Rpower in e6Le; lra.
+  have u''Lt : u'' < Rpower 2 (- 17.4905) by interval. 
+  have imul_v'wh : is_imul (v' * wh) (pow (- 482)).
     have -> : pow (- 482) = pow (- 360) * pow (-122).
       by rewrite -bpow_plus; congr (pow _); lia.
     by apply: is_imul_mul.
-  have G7 : is_imul u'' (pow (- 482)).
+  have imul_u'' : is_imul u'' (pow (- 482)).
     by apply: is_imul_pow_round.
-  suff G8 : 0 < u'' by [].
-  by apply: is_imul_format_round_gt_0 _ G6 _ => //=; nra.
+  suff u''_gt0 : 0 < u'' by [].
+  by apply: is_imul_format_round_gt_0 _ imul_v'wh _ => //=; nra.
 pose e7 := pl - (u'' * z - 0.5 * wl).
 have e7E : pl = u'' * z - 0.5 * wl + e7 by rewrite /e7; lra.
-have [F21_1 F21_2 F21_3] : 
+have [e7Le plB imul_pl] : 
   [/\ 
     Rabs e7 <= pow (- 78),
     Rabs pl < Rpower 2 (- 25.446) & 
     is_imul pl (pow (- 543))].
-  have G1 : Rabs (u'' * z - 0.5 * wl) < Rpower 2 (- 25.4461).
+  have u''zhwlLt : Rabs (u'' * z - 0.5 * wl) < Rpower 2 (- 25.4461).
     apply: Rle_lt_trans
       (_ :  (Rpower 2 (- 17.49057) + Rpower 2 (- 70)) *
             (33  * Rpower 2 (- 13)) + Rpower 2 (- 69) < _); last by interval.
     apply: Rle_trans
       (_ :  (u'' * Rabs z + 0.5 * Rabs wl <= _)).
-      by rewrite {zB F6 F15_1 F16_1 F17_1 F18_1 F19_1}//; split_Rabs; nra.
+      by  clear -u''B; split_Rabs; nra.
     apply: Rplus_le_compat; last first.
       suff -> : Rpower 2 (-69) = 0.5 * Rpower 2 (- 68) by lra.
       have -> : 0.5 = Rpower 2 (-1).
         by rewrite -pow_Rpower /= /Z.pow_pos /=; lra.
       by rewrite -Rpower_plus; congr (Rpower _ _); lra.
     apply: Rmult_le_compat; try lra.
-    rewrite {zB F6 F15_1 F16_1 F17_1 F18_1 F19_1}//; split_Rabs; lra.
-  have G2 : ulp (Rpower 2 (- 25.4461)) = pow (- 78).
+    by apply: Rabs_pos.
+  have u254461 : ulp (Rpower 2 (- 25.4461)) = pow (- 78).
     rewrite ulp_neq_0 /cexp /fexp  ?(mag_unique_pos _ _ (- 78 + p)%Z); try lra.
     - rewrite Z.max_l; last by lia.
       congr bpow; lia.
     - by rewrite !pow_Rpower /p/=;split; [apply: Rle_Rpower|apply: Rpower_lt];
        lra.
     by interval.
-  have G3 : Rabs e7 <= pow (- 78).
-    rewrite -G2 /e7.
+  have e7Le : Rabs e7 <= pow (- 78).
+    rewrite -u254461 /e7.
     apply: Rle_trans (_ : ulp (u'' * z - 0.5 * wl) <= _); last first.
-      by apply: ulp_le; 
-         rewrite {zB F6 F15_1 F16_1 F17_1 F18_1 F19_1 F20_1 G2}// /e6;
-         split_Rabs; lra.
+      by apply: ulp_le; clear -u''zhwlLt; split_Rabs; lra.
     by apply: error_le_ulp.
-  have G4 : Rabs pl < Rpower 2 (- 25.446).
+  have plLt : Rabs pl < Rpower 2 (- 25.446).
     apply: Rle_lt_trans (_ : Rpower 2 (- 25.4461) + Rpower 2 (- 78) < _).
       apply: Rle_trans (_ : Rabs e7 + Rabs (u'' * z - 0.5 * wl) <= _).
-        by  rewrite {zB F6 F15_1 F16_1 F17_1 F18_1 F19_1 F20_1 G2}// /e7;
-            split_Rabs; lra.
-      by rewrite pow_Rpower in G3; lra.
+        by rewrite /e7; clear -u''B; split_Rabs; lra.
+      by rewrite pow_Rpower in e7Le; lra.
     by interval. 
-  have G5 : is_imul (u'' * z - 0.5 * wl) (pow (- 543)).
+  have imul_u''zhwl : is_imul (u'' * z - 0.5 * wl) (pow (- 543)).
     apply: is_imul_minus.
       have -> : pow (- 543) = pow (- 482) * pow (- 61).
         by rewrite -bpow_plus; congr (pow _); lia.
@@ -1136,10 +1117,9 @@ have [F21_1 F21_2 F21_3] :
       by rewrite -bpow_plus; congr (pow _); lia.
     apply: is_imul_mul.
       by exists 1%Z; rewrite /= /Z.pow_pos /=; lra.
-    by apply: is_imul_pow_le F8 _; lia.
-  have G6 : is_imul pl (pow (- 543)).
-    by apply: is_imul_pow_round.
-  by [].
+    by apply: is_imul_pow_le imul_wl _; lia.
+  suff imul_pl : is_imul pl (pow (- 543)) by [].
+  by apply: is_imul_pow_round.
 set E := Rabs (ph + pl - (P z - z)).
 pose Q := P3 + P4 * z + P5 * z ^ 2 + P6 * z ^ 3 +
          P7 * z ^ 4 + P8 * z ^ 5.
@@ -1149,141 +1129,130 @@ have QE : Q = P3 + P4 * z + tR * z ^ 2 by rewrite /Q /tR; lra.
 have F22 : E = Rabs (u'' * z + e7 - z ^ 3 * Q).
   congr (Rabs _); rewrite PzE.
   suff : ph + pl + 0.5 * z ^ 2 = u'' * z + e7 by lra.
-  by rewrite pow2_mult -F1 e7E F9; lra.
+  by rewrite pow2_mult -wh_wl_zz e7E phE; lra.
 pose E1 := Rabs (u'' - z ^ 2 * Q); pose tE0 := Rabs e7.
-have F23 : E <= E1 * Rabs z + tE0.
+have ELe : E <= E1 * Rabs z + tE0.
   rewrite /tE0 /E1 F22.
-  rewrite {zB F6 F15_1 F16_1 F17_1 F18_1 F19_1 F20_1 F21_1 F21_2 }//.
-  by split_Rabs; nra.
+  by clear; split_Rabs; nra.
 pose E3 := Rabs (v' - Q); pose tE1 := Rabs (- v' * wl + e6).
-have F24 : E1 <= E3 * z ^ 2 + tE1.
+have E1LE2zzE1 : E1 <= E3 * z ^ 2 + tE1.
   rewrite /tE1 /E1 /E3.
-  have -> : u'' = v' * z ^ 2 - v' * wl + e6 by rewrite e6E pow2_mult -F1; lra.
-  rewrite {zB F6 F15_1 F16_1 F17_1 F18_1 F19_1 F20_1 F21_1 F21_2 F22 F23 }//.
-  by split_Rabs; nra.
+  have -> : u'' = v' * z ^ 2 - v' * wl + e6.
+    by rewrite e6E pow2_mult -wh_wl_zz; lra.
+  by clear; split_Rabs; nra.
 pose E5 := Rabs (u' - tR); pose tE3 := Rabs (- u' * wl + e3 + e5).
-have F25 : E3 <= E5 * z ^ 2 + tE3.
+have E3LE5zzE3 : E3 <= E5 * z ^ 2 + tE3.
   rewrite /E3 /E5 /tE3.
   have -> : v' - Q = (u' - tR) * z ^ 2  - u' * wl + e3 + e5.
     have -> : v' = u' * (z ^ 2 - wl) + (P4 * z + P3 + e3 ) + e5.
-      by rewrite pow2_mult -F1; lra.
+      by rewrite pow2_mult -wh_wl_zz; lra.
     by lra.
-  rewrite {zB F6 F15_1 F16_1 F17_1 F18_1 F19_1 F20_1 F21_1 F21_2 F22 F23 }//.
-  by split_Rabs; nra.
+  by clear; split_Rabs; nra.
 pose tE7 := Rabs e1; pose tE5 := Rabs (- t * wl + e2 + e4).
-have F26 : E5 <= tE7 * z ^2 + tE5.
+have E5LE7zzE5 : E5 <= tE7 * z ^2 + tE5.
   rewrite /E5 /tE7 /tE5.
   have-> : u' - tR = e1 * z ^ 2 - t * wl + e2 + e4 by rewrite /tR; nra.
-  rewrite {zB F6 F15_1 F16_1 F17_1 F18_1 F19_1 F20_1 F21_1 F21_2 F22 F23 }//.
-  by split_Rabs; nra.
-have F27 : E <= Rpower 2 (- 75.513).
+  by clear; split_Rabs; nra.
+have ELe75513 : E <= Rpower 2 (- 75.513).
   apply: Rle_trans 
       (_ : tE0 + tE1 * Rabs z + tE3 * Rabs z ^ 3 + 
                  tE5 * Rabs z ^ 5 + tE7 * Rabs z ^ 7 <= _).
-    apply: Rle_trans F23 _.
+    apply: Rle_trans ELe _.
     suff : E1 <= tE1 + tE3 * Rabs z ^ 2 + tE5 * Rabs z ^ 4 + tE7 * Rabs z ^ 6.
       have : 0 <= Rabs z by apply: Rabs_pos.
       by nra.
     rewrite pow2_abs.
     have -> : Rabs z ^ 4 = z ^ 4.
       have-> : (Rabs z) ^ 4 = (Rabs z ^ 2) ^ 2 by lra.
-      rewrite pow2_abs; lra.
+      by rewrite pow2_abs; lra.
     have -> : Rabs z ^ 6 = z ^ 6.
       have-> : (Rabs z) ^ 6 = (Rabs z ^ 2) ^ 3 by lra.
-      rewrite pow2_abs; lra.
-    apply: Rle_trans F24 _.
-    suff : E3 <= tE3 + tE5 * z ^ 2 + tE7 * z ^ 4.
-      by nra.
+      by rewrite pow2_abs; lra.
+    apply: Rle_trans E1LE2zzE1 _.
+    suff : E3 <= tE3 + tE5 * z ^ 2 + tE7 * z ^ 4 by nra.
     by nra.
-  have G1 : tE0 <= pow (- 78) by rewrite /tE0; lra.
-  have G2 : tE1 < Rpower 2 (- 68.775).
+  have E0Le : tE0 <= pow (- 78) by rewrite /tE0; lra.
+  have E1Lt : tE1 < Rpower 2 (- 68.775).
     apply: Rle_lt_trans 
       (_ : (Rpower 2 (- 1.58058) + pow (-54)) * pow (-68) + pow (-70) < _);
         last first.
       by rewrite !pow_Rpower; interval.
     apply: Rle_trans (_ : Rabs v' * Rabs wl + Rabs e6 <= _).
-      rewrite /tE1.
-      rewrite {zB F6 F15_1 F16_1 F17_1 F18_1 F19_1 F20_1 F21_1 F21_2 F22 F23 }//.
-      by split_Rabs; nra.
+      by rewrite /tE1; clear; split_Rabs; nra.
     have-> : Rabs v' = v' by rewrite Rabs_pos_eq; lra.
     apply: Rplus_le_compat => //.
     apply: Rmult_le_compat; first by lra.
     - by apply: Rabs_pos; lra.
     - by rewrite pow_Rpower.
     by rewrite pow_Rpower.
-  have G3 : tE3 < Rpower 2 (- 52.999).
+  have E3Lt : tE3 < Rpower 2 (- 52.999).
     apply: Rle_lt_trans 
       (_ : (Rpower 2 (- 2.31707) + pow (-55)) * pow (-68) + 
             pow (-54) + pow (-54) < _);
         last first.
       by rewrite !pow_Rpower; interval.
     apply: Rle_trans (_ : u' * Rabs wl + Rabs e3  + Rabs e5 <= _).
-      rewrite /tE3.
-      rewrite {zB F6 F15_1 F16_1 F17_1 F18_1 F19_1 F20_1 F21_1 F21_2 F22 F23 }//.
-      by split_Rabs; nra.
+      by rewrite /tE3; clear -u'B; split_Rabs; nra.
     apply: Rplus_le_compat => //.
     apply: Rplus_le_compat => //.
     apply: Rmult_le_compat => //; first by lra.
     - by apply: Rabs_pos; lra.
     - by rewrite pow_Rpower.
     by rewrite pow_Rpower.
-  have G4 : tE5 < Rpower 2 (- 53.999).
+  have E5Lt : tE5 < Rpower 2 (- 53.999).
     apply: Rle_lt_trans 
       (_ : (Rpower 2 (- 2.8022) + pow (-55)) * pow (-68) + 
             pow (-55) + pow (-55) < _);
         last first.
       by rewrite !pow_Rpower; interval.
     apply: Rle_trans (_ : t * Rabs wl + Rabs e2 + Rabs e4 <= _).
-      rewrite /tE5.
-      rewrite {zB F6 F15_1 F16_1 F17_1 F18_1 F19_1 F20_1 F21_1 F21_2 F22 F23 }//.
-      by split_Rabs; nra.
+      by rewrite /tE5; clear -tB; split_Rabs; nra.
     apply: Rplus_le_compat => //.
     apply: Rplus_le_compat => //.
     apply: Rmult_le_compat => //; first by lra.
     - by apply: Rabs_pos; lra.
     - by rewrite pow_Rpower.
     by rewrite pow_Rpower.
-  have G5 : tE7 <= Rpower 2 (- 55) by rewrite /tE7 -pow_Rpower.
-  have G6 : (Rabs z) ^ 3 <= 33 ^ 3 * (Rpower 2 (-13)) ^ 3.
+  have E7Le : tE7 <= Rpower 2 (- 55) by rewrite /tE7 -pow_Rpower.
+  have z3Le : (Rabs z) ^ 3 <= 33 ^ 3 * (Rpower 2 (-13)) ^ 3.
     rewrite -Rpow_mult_distr.
     apply: pow_incr; split; last by lra.
     by apply: Rabs_pos.
-  have G7 : (Rabs z) ^ 5 <= 33 ^ 5 * (Rpower 2 (-13)) ^ 5.
+  have z5Le : (Rabs z) ^ 5 <= 33 ^ 5 * (Rpower 2 (-13)) ^ 5.
     rewrite -Rpow_mult_distr.
     apply: pow_incr; split; last by lra.
     by apply: Rabs_pos.
-  have G8 : (Rabs z) ^ 7 <= 33 ^ 7 * (Rpower 2 (-13)) ^ 7.
+  have z7Le : (Rabs z) ^ 7 <= 33 ^ 7 * (Rpower 2 (-13)) ^ 7.
     rewrite -Rpow_mult_distr.
     apply: pow_incr; split; last by lra.
     by apply: Rabs_pos.
   apply: Rle_trans.
     apply: Rplus_le_compat; last first.
-      apply: Rmult_le_compat G5 G8; first by apply: Rabs_pos.
+      apply: Rmult_le_compat E7Le z7Le; first by apply: Rabs_pos.
       by apply/pow_le/Rabs_pos.
     apply: Rplus_le_compat; last first.
-      apply: Rmult_le_compat (Rlt_le _ _ G4) G7; first by apply: Rabs_pos.
+      apply: Rmult_le_compat (Rlt_le _ _ E5Lt) z5Le; first by apply: Rabs_pos.
       by apply/pow_le/Rabs_pos.
     apply: Rplus_le_compat; last first.
-      apply: Rmult_le_compat (Rlt_le _ _ G3) G6; first by apply: Rabs_pos.
+      apply: Rmult_le_compat (Rlt_le _ _ E3Lt) z3Le; first by apply: Rabs_pos.
       by apply/pow_le/Rabs_pos.
     apply: Rplus_le_compat; last first.
-      apply: Rmult_le_compat (Rlt_le _ _ G2) zB; first by apply: Rabs_pos.
+      apply: Rmult_le_compat (Rlt_le _ _ E1Lt) zB; first by apply: Rabs_pos.
       by apply: Rabs_pos.
-    by apply: G1.
+    by apply: E0Le.
   by interval.
 split => //.
   split.
     apply: Rle_lt_trans (_ : E + Rabs (ln (1 + z) - P z) < _).
-      rewrite /E.
-      rewrite {zB F6 F15_1 F16_1 F17_1 F18_1 F19_1 F20_1 F21_1 F21_2 F22 F23 }//.
-      by split_Rabs; nra.
+      by rewrite /E; clear; split_Rabs; nra.
     apply: Rle_lt_trans (_ : Rpower 2 (- 75.513) + Rpower 2 (- 81.63) < _); 
        last by interval.
     apply: Rplus_le_compat => //.
     by apply: P_abs_error.
   split.
-    rewrite F9 Rabs_mult Rabs_left; try lra.
-    apply: Rle_lt_trans (_ : 0.5 * (33 ^ 2 * pow (-13) ^ 2) < _); last by interval.
+    rewrite phE Rabs_mult Rabs_left; try lra.
+    apply: Rle_lt_trans (_ : 0.5 * (33 ^ 2 * pow (-13) ^ 2) < _); last first.
+      by interval.
     pose f := Float beta (33 ^ 2) (- 26).
     have Ff : format (33 ^ 2 * (pow (-13)) ^ 2).
       apply: generic_format_FLT.
@@ -1302,20 +1271,20 @@ pose u_ := Exp.u.
 pose d0 := (wh - z ^ 2) / (z ^ 2).
 have d0E : wh = z ^ 2 * (1 + d0) by rewrite /d0; field; lra.
 have d0L2u : Rabs d0 < 2 * u_.
-  apply: relative_error_is_min_eps_bound _ F11 _ _.
+  apply: relative_error_is_min_eps_bound _ imul_zz123 _ _.
   - by rewrite /emin; lia.
   - by apply: pow_nonzero; lra.
   by rewrite [in LHS]pow2_mult.
-have H1 : Rpower 2 (- 2.8125) < P8 * z + P7  < Rpower 2 (- 2.8022).
-  rewrite /P8 /P7; split; interval.
+have P8zP7B : Rpower 2 (- 2.8125) < P8 * z + P7  < Rpower 2 (- 2.8022).
+  by rewrite /P8 /P7; split; interval.
 pose d1 := e1 / (P8 * z + P7).
 have d1E : t = (P8 * z + P7) * (1 + d1).
   rewrite /d1 /e1; field; interval.
 have d1B : Rabs d1 < 1.76 * u_.
   rewrite /d1 [u_]uE pow_Rpower [IZR (- p)]/=.
   by interval.
-have H2 : Rpower 2 (- 2.3268) < P6 * z + P5  < Rpower 2 (- 2.3170).
-  rewrite /P6 /P5; split; interval.
+have P6zP5B : Rpower 2 (- 2.3268) < P6 * z + P5  < Rpower 2 (- 2.3170).
+  by rewrite /P6 /P5; split; interval.
 pose d2 := e2 / (P6 * z + P5).
 have d2E : u = (P6 * z + P5) * (1 + d2).
   rewrite /d2 /e2; field; interval.
@@ -1324,7 +1293,7 @@ have d2B : Rabs d2 < 1.255 * u_.
   by interval.
 pose d3 := e3 / (P4 * z + P3).
 have d3E : v = (P4 * z + P3) * (1 + d3).
-  rewrite /d3 /e3; field; interval.
+  by rewrite /d3 /e3; field; interval.
 have d3B : Rabs d3 < 1.505 * u_.
   rewrite /d3 [u_]uE pow_Rpower [IZR (- p)]/=.
   by interval.
@@ -1338,17 +1307,17 @@ pose d4 := e4 / (t * wh + u).
 have d4E : u' = (t * wh + u) * (1 + d4).
   rewrite /d4 /e4; field; lra.
 have d4B : Rabs d4 < 1.255 * u_.
-  have G1 : u <= t * wh + u by clear -wh_gt_0 F15_3; nra.
+  have G1 : u <= t * wh + u by clear -wh_gt_0 tB; nra.
   rewrite /d4 [u_]uE pow_Rpower [IZR (- p)]/=.
   rewrite Rabs_mult Rabs_inv [X in _ * / X]Rabs_pos_eq; last by lra.
   apply/Rlt_div_l; first by lra.
   suff X1 : Rpower 2 (- 2.3269) < t * wh + u.
     set vv := t * wh + u in X1 *.
-    apply: Rle_lt_trans F18_1 _.
-    interval.
+    apply: Rle_lt_trans e4Le _.
+    by interval.
   apply: Rlt_le_trans (_ : u <= _); last by lra.
-  rewrite /e2 in F16_1.
-  clear -H2 F16_1.
+  rewrite /e2 in e2Le.
+  clear -P6zP5B e2Le.
   apply: Rle_lt_trans (_ : Rpower 2 (-2.3268) - pow (-55) < _).
     by interval.
   by split_Rabs; lra.
@@ -1359,25 +1328,25 @@ and wh ≥ 0, we have also u′ wh + v ≥ v =
 ◦(P4 z + P3 ) > 2−1.5894 − 2−54 > 2−1.5895 , which
 gives λ5 < 2 · 2−2 /2−1.5895 < 1.505.
 *)
-have H3 : Rpower 2 (- 1.5894) < P4 * z + P3 < Rpower 2 (- 1.5806).
+have P4zP3B : Rpower 2 (- 1.5894) < P4 * z + P3 < Rpower 2 (- 1.5806).
   by rewrite /P4 /P3; split; interval.
 pose d5 := e5 / (u' * wh + v).
 have d5E : v' = (u' * wh + v) * (1 + d5).
   rewrite /d5 /e5; field.
-  clear - F17_3 F18_3 wh_gt_0.
+  clear -vB u'B wh_gt_0.
   by nra.
 have d5B : Rabs d5 < 1.505 * u_.
-  have G1 : v <= u' * wh + v by clear -wh_gt_0 F17_3 F18_3; nra.
+  have vLu'whv : v <= u' * wh + v by clear -wh_gt_0 vB u'B; nra.
   rewrite /d5 [u_]uE pow_Rpower [IZR (- p)]/=.
   rewrite Rabs_mult Rabs_inv [X in _ * / X]Rabs_pos_eq; last by lra.
   apply/Rlt_div_l; first by lra.
   suff X1 : Rpower 2 (- 1.5895) < u' * wh + v.
     set vv := u' * wh + v in X1 *.
-    apply: Rle_lt_trans F19_1 _.
-    interval.
+    apply: Rle_lt_trans e5Le _.
+    by interval.
   apply: Rlt_le_trans (_ : v <= _); last by lra.
-  rewrite /e3 in F17_1.
-  clear -H3 F17_1.
+  rewrite /e3 in e3Le.
+  clear -P4zP3B e3Le.
   apply: Rle_lt_trans (_ : Rpower 2 (-1.5894) - pow (-54) < _).
     by interval.
   by split_Rabs; lra.
@@ -1399,15 +1368,15 @@ have v'E : v' =  A * z ^ 4 * (1 + d0) ^ 2 * (1 + d1) * (1 + d4) * (1 + d5) +
 pose d6 := e6 / (v' * wh).
 have d6E : u'' = (v' * wh) * (1 + d6).
   rewrite /d6 /e6; field.
-  clear -F19_3 wh_gt_0.
-  by nra.
+  by clear -v'B wh_gt_0; nra.
 have d6B : Rabs d6 < 2 * u_.
-  have G6 : is_imul (v' * wh) (pow (- 482)).
+  have imul_v'wh : is_imul (v' * wh) (pow (- 482)).
     have -> : pow (- 482) = pow (- 360) * pow (-122).
       by rewrite -bpow_plus; congr (pow _); lia.
     by apply: is_imul_mul.
-  apply: relative_error_is_min_eps_bound G6 _ d6E; first by rewrite /emin /=.
-  by clear - F19_3 wh_gt_0; nra.
+  apply: relative_error_is_min_eps_bound imul_v'wh _ d6E.
+    by rewrite /emin /=.
+  by clear -v'B wh_gt_0; nra.
 pose t7 := (1 + d0) ^ 3 * (1 + d1) * (1 + d4) * (1 + d5) * (1 + d6) - 1.
 pose t6 := (1 + d0) ^ 2 * (1 + d2) * (1 + d4) * (1 + d5) * (1 + d6) - 1.
 pose t4 := (1 + d0) * (1 + d3) * (1 + d5) * (1 + d6) - 1.
@@ -1427,7 +1396,7 @@ have d7B : Rabs d7 < 2 * u_.
     rewrite /d7 /e7 /pl uzwl_eq0 round_0 !Rsimp01.
     suff : 0 < u_ by lra.
     by apply: u_gt_0.
-  have G5 : is_imul (u'' * z - 0.5 * wl) (pow (- 543)).
+  have imul_u''zhwl : is_imul (u'' * z - 0.5 * wl) (pow (- 543)).
     apply: is_imul_minus.
       have -> : pow (- 543) = pow (- 482) * pow (- 61).
         by rewrite -bpow_plus; congr (pow _); lia.
@@ -1436,13 +1405,13 @@ have d7B : Rabs d7 < 2 * u_.
       by rewrite -bpow_plus; congr (pow _); lia.
     apply: is_imul_mul.
       by exists 1%Z; rewrite /= /Z.pow_pos /=; lra.
-    by apply: is_imul_pow_le F8 _; lia.
-  by apply: relative_error_is_min_eps_bound G5 _ d7E.
+    by apply: is_imul_pow_le imul_wl _; lia.
+  by apply: relative_error_is_min_eps_bound imul_u''zhwl _ d7E.
 have phplE : 
      ph + pl = - 0.5 * z ^ 2 + 0.5 * d0 * d7 * z ^ 2 + u'' * z * (1 + d7).
   have whE : wh = z ^ 2 - wl by lra.
   have wlE : wl = - z ^ 2 * d0 by lra.
-  by rewrite d7E F9 whE wlE; lra.
+  by rewrite d7E phE whE wlE; lra.
 pose t8 := (1 + t7) * (1 + d7) - 1.
 pose t7' := (1 + t6) * (1 + d7) - 1.
 pose t5 := (1 + t4) * (1 + d7) -1.
@@ -1496,43 +1465,37 @@ pose Bz z := B1 * Rabs z +       B2 * (Rabs z) ^ 2 + B3 * (Rabs z) ^ 3 +
            B7 * (Rabs z) ^ 7.
 have u_E : u_ = pow (- 53).
   by rewrite [u_]/(Fmore.u _ _) /= /Z.pow_pos /=; lra.
-have V1 : 1 - 2 * pow (- 53) < 1 + d0 < 1 + 2 * pow (- 53).
+have Od0B : 1 - 2 * pow (- 53) < 1 + d0 < 1 + 2 * pow (- 53).
   by clear -d0L2u u_E; split_Rabs; lra.
-have V2 : 1 - 1.255 * pow (- 53) < 1 + d2 < 1 + 1.255 * pow (- 53).
+have Od2B : 1 - 1.255 * pow (- 53) < 1 + d2 < 1 + 1.255 * pow (- 53).
   by clear -d2B u_E; split_Rabs; lra.
-have V3 : 1 - 1.505 * pow (- 53) < 1 + d3 < 1 + 1.505 * pow (- 53).
+have Od3B : 1 - 1.505 * pow (- 53) < 1 + d3 < 1 + 1.505 * pow (- 53).
   by clear -d3B u_E; split_Rabs; lra.
-have V4 : 1 - 1.255 * pow (- 53) < 1 + d4 < 1 + 1.255 * pow (- 53).
+have Od4B : 1 - 1.255 * pow (- 53) < 1 + d4 < 1 + 1.255 * pow (- 53).
   by clear -d4B u_E; split_Rabs; lra.
-have V5 : 1 - 1.505 * pow (- 53) < 1 + d5 < 1 + 1.505 * pow (- 53).
+have Od5B : 1 - 1.505 * pow (- 53) < 1 + d5 < 1 + 1.505 * pow (- 53).
   by clear -d5B u_E; split_Rabs; lra.
-have V6 : 1 - 2 * pow (- 53) < 1 + d6 < 1 + 2 * pow (- 53).
+have Od6B : 1 - 2 * pow (- 53) < 1 + d6 < 1 + 2 * pow (- 53).
   by clear -d6B u_E; split_Rabs; lra.
-have V7 : 1 - 2 * pow (- 53) < 1 + d7 < 1 + 2 * pow (- 53).
+have Od7B : 1 - 2 * pow (- 53) < 1 + d7 < 1 + 2 * pow (- 53).
   by clear -d7B u_E; split_Rabs; lra.
-have K1 : Rabs (0.5 * d0 * d7) < B1.
+have B1Gt : Rabs (0.5 * d0 * d7) < B1.
   by apply: d0d7B.
-have K2 : Rabs (t5 * P3) <= B2.
-  rewrite /B2 /P3 /t5 /t4.
-  interval with (i_prec 65).
-have K3 : Rabs (t5 * P4) <= B3.
-  rewrite /B3 /P4 /t5 /t4.
-  interval with (i_prec 65).
-have K4 : Rabs (t7' * P5) <= B4.
-  rewrite /t7' /t6 /P5 /B4.
-  interval with (i_prec 100).
-have K5 : Rabs (t7' * P6) <= B5.
-  rewrite /t7' /t6 /P6 /B5.
-  interval with (i_prec 100).
-have K6 : Rabs (t8 * P7) <= B6.
-  rewrite /t8 /t7 /P7 /B6.
-  interval with (i_prec 100).
-have K7 : Rabs (t8 * P8) <= B7.
-  rewrite /t8 /t7 /P8 /B7.
-  interval with (i_prec 100).
-have K8 : Rabs nphi <= Bz z.
+have B2Gt : Rabs (t5 * P3) <= B2.
+  by rewrite /B2 /P3 /t5 /t4; interval with (i_prec 65).
+have B3Gt : Rabs (t5 * P4) <= B3.
+  by rewrite /B3 /P4 /t5 /t4; interval with (i_prec 65).
+have B4Gt : Rabs (t7' * P5) <= B4.
+  by rewrite /t7' /t6 /P5 /B4; interval with (i_prec 100).
+have B5Gt : Rabs (t7' * P6) <= B5.
+  by rewrite /t7' /t6 /P6 /B5; interval with (i_prec 100).
+have B6Gt : Rabs (t8 * P7) <= B6.
+  by rewrite /t8 /t7 /P7 /B6; interval with (i_prec 100).
+have B7Gt : Rabs (t8 * P8) <= B7.
+  by rewrite /t8 /t7 /P8 /B7; interval with (i_prec 100).
+have BzGe : Rabs nphi <= Bz z.
   rewrite /nphi /Bz /A /B /C.
-  clear - K1 K2 K3 K4 K5 K6 K7.
+  clear - B1Gt B2Gt B3Gt B4Gt B5Gt B6Gt B7Gt.
   rewrite [in X in _ <= X]Rplus_assoc.
   apply: Rle_trans (Rabs_triang _ _) _.
     apply: Rplus_le_compat; last first.
@@ -1578,9 +1541,9 @@ pose Cz z := 1 - 0.5 * Rabs z + Rabs z ^ 2 *
 have CzLdphi : Cz z <= dphi.
   rewrite /Cz /dphi.
   apply: Rplus_le_compat.
-    by clear - K8; split_Rabs;lra.
-  rewrite {1}RPow_abs Rabs_pos_eq; last by clear - K8; nra.
-  apply: Rmult_le_compat_l; first by clear - K8; nra.
+    by clear - BzGe; split_Rabs;lra.
+  rewrite {1}RPow_abs Rabs_pos_eq; last by clear -BzGe; nra.
+  apply: Rmult_le_compat_l; first by clear -BzGe; nra.
   rewrite /Q.
   do !apply: Rplus_le_compat; try lra.
   - by rewrite /P4; clear; split_Rabs; lra.
@@ -1662,22 +1625,22 @@ suff d0d6B : Rabs d0 + Rabs d6 <= 3.505 * u_.
   have Vd0d6 : 1 - 3.505 * u_ - 4 * u_ ^ 2  <= d0d6 <= 
                  1 + 3.505 * u_ + 4 * u_ ^ 2 . 
       rewrite /d0d6 .
-      clear -V1 V6 d0d6B u_E.
+      clear -Od0B Od6B d0d6B u_E.
       rewrite u_E in d0d6B *.
       by split_Rabs; nra.
-  have K2' : Rabs (t5 * P3) <= B2'.
+  have t5P3LB2 : Rabs (t5 * P3) <= B2'.
     rewrite /B2' /P3 /t5 /t4.
     have -> : (1 + d0) * (1 + d3) * (1 + d5) * (1 + d6) = 
          (d0d6) * (1 + d3) * (1 + d5) by rewrite /d0d6; lra.
     by interval with (i_prec 100).
-  have K3' : Rabs (t5 * P4) <= B3'.
+  have t5P3LB3 : Rabs (t5 * P4) <= B3'.
     rewrite /B3' /P4 /t5 /t4.
     have -> : (1 + d0) * (1 + d3) * (1 + d5) * (1 + d6) = 
          (d0d6) * (1 + d3) * (1 + d5) by rewrite /d0d6; lra.
     by interval with (i_prec 100).
-  have K8' : Rabs nphi <= Bz' z.
+  have nphiLBz : Rabs nphi <= Bz' z.
     rewrite /nphi /Bz' /A /B /C.
-    clear - K1 K2' K3' K4 K5 K6 K7.
+    clear - B1Gt t5P3LB2 t5P3LB3 B4Gt B5Gt B6Gt B7Gt.
     rewrite [in X in _ <= X]Rplus_assoc.
     apply: Rle_trans (Rabs_triang _ _) _.
       apply: Rplus_le_compat; last first.
@@ -1774,24 +1737,24 @@ suff d0d6B : Rabs d0 + Rabs d6 <= 3.505 * u_.
     clear -HB'.
     by split_Rabs; nra.
   by [].
-have G1 : Rpower 2 (- 1.5894) < v.
+have vGt : Rpower 2 (- 1.5894) < v.
   apply: Rlt_le_trans (_ : P4 * 33 * pow (-13) + P3 - pow (- 54) <= _).
     by rewrite /P4 /P3; interval.
   rewrite -pow_Rpower in zB. 
-  clear - F17_1 zB.
-  rewrite /e3 /P4 in F17_1 *.
+  clear - e3Le zB.
+  rewrite /e3 /P4 in e3Le *.
   by split_Rabs; nra.
 pose v0 := Rpower 2 (- 1.5894) * (1 - pow (-52)).
-have G2 : v0 <= v'.
+have v0Lv' : v0 <= v'.
   apply: Rle_trans (_ : RN v <= _); last first.
     apply: round_le.
-    by clear -F18_3 wh_gt_0; nra.
+    by clear -u'B wh_gt_0; nra.
   rewrite round_generic; last by apply: generic_format_round.
   rewrite /v0.
   apply: Rle_trans (_ :Rpower 2 (-1.5894) <= _); last by lra.
   by interval with (i_prec 100).
 pose v1 := Rpower 2 (-1.5805).
-have G3 : v' < v1 by rewrite /v1; lra.
+have v'Lv1 : v' < v1 by rewrite /v1; lra.
 pose sf := (1 - mag beta z)%Z.
 have sf_gt0 : (0 <= sf)%Z.
   rewrite /sf -mag_abs.
@@ -1802,7 +1765,7 @@ have sf_gt0 : (0 <= sf)%Z.
 pose z1 := z * pow sf.
 have z1B : 1 <= Rabs z1 < 2.
   rewrite Rabs_mult [Rabs (pow sf)]Rabs_pos_eq; last by apply: bpow_ge_0.
-  suff G4 : pow (- sf) <= Rabs z < pow (1 - sf).
+  suff zBsf : pow (- sf) <= Rabs z < pow (1 - sf).
     have -> : 1 = pow (- sf) * pow sf.
       by rewrite -bpow_plus -(pow0E beta); congr (pow _); lia.
     have -> : 2 = pow (1 - sf) * pow sf.
@@ -1822,9 +1785,9 @@ have wh1E : wh1 = RN (z1 ^ 2).
   rewrite Rpow_mult_distr -pow2M round_bpow_flt; last first.
     have z2_neq_0 : z ^ 2 <> 0 by clear -z_neq0; nra.
     rewrite /p /emin /emax.
-    have XF1 : (-121 <= mag beta (z ^ 2))%Z.
-      by have := is_imul_pow_mag z2_neq_0 F10; lia.
-    have XF2 : (-60 <= mag beta z)%Z.
+    have magzzB : (-121 <= mag beta (z ^ 2))%Z.
+      by have := is_imul_pow_mag z2_neq_0 imul_zz122; lia.
+    have magzGe : (-60 <= mag beta z)%Z.
       by have := is_imul_pow_mag z_neq0 Mz; lia.
     by lia.
   by rewrite pow2M /wh1 /wh !pow2_mult.
@@ -1843,13 +1806,13 @@ have u1''E : u1'' = RN (v' * wh1).
   rewrite round_bpow_flt.
     by rewrite pow2M /u1'' /u''; lra.
   have v'wh_neq_0 : v' * wh <> 0.
-    by clear -wh_gt_0 F19_3; nra.
-  have G6 : is_imul (v' * wh) (pow (- 482)).
+    by clear -wh_gt_0 v'B; nra.
+  have imul_v'wh : is_imul (v' * wh) (pow (- 482)).
     have -> : pow (- 482) = pow (- 360) * pow (-122).
       by rewrite -bpow_plus; congr (pow _); lia.
     by apply: is_imul_mul.
-  have XF1 : (-481 <= mag beta (v' * wh))%Z.
-    by have := is_imul_pow_mag v'wh_neq_0 G6; lia.
+  have magv'whGe : (-481 <= mag beta (v' * wh))%Z.
+    by have := is_imul_pow_mag v'wh_neq_0 imul_v'wh; lia.
   rewrite /emin /p /emax.
   by lia.
 have z12B : 1 <= z1 ^ 2 < 4 by clear -z1B; split_Rabs; nra.
@@ -1924,11 +1887,11 @@ have [wh1_12|wh1_24] : (1 <= wh1 < 2) \/ (2 <= wh1 < 4) by lra.
         apply: Rle_trans (_ : v0 * wh1 <= _).
           by rewrite /v0; interval.
         have : 0 <= v0 by rewrite /v0; interval.
-        by clear - wh1_12 G2; nra.
+        by clear - wh1_12 v0Lv'; nra.
       apply: Rle_lt_trans (_ : v1 * 2 < _).
         have : 0 <= v1 by rewrite /v1; interval.
         have : 0 <= v' by rewrite /v1; interval.        
-        by clear - wh1_12 G3; nra.
+        by clear - wh1_12 v'Lv1; nra.
       by rewrite /v1; interval.
     suff : Rabs d6 < 1.505 * u_ by lra.
     apply: Rle_lt_trans (_ : u_ / (2 * v0) < _); last first.
@@ -1999,11 +1962,11 @@ have [v'wh_N1N1 | v'wh_N1N0] : (pow (-1) <= v' * wh1 < 1) \/
         apply: Rle_trans (_ : v0 * wh1 <= _).
           by rewrite /v0; interval.
         have : 0 <= v0 by rewrite /v0; interval.
-        by clear - wh1_24 G2; nra.
+        by clear - wh1_24 v0Lv'; nra.
       apply: Rle_lt_trans (_ : v1 * 4 < _).
         have : 0 <= v1 by rewrite /v1; interval.
         have : 0 <= v' by rewrite /v1; interval.        
-        by clear - wh1_24 G3; nra.
+        by clear - wh1_24 v'Lv1; nra.
       by rewrite /v1; interval.
     suff : Rabs d6 < 1.505 * u_ by lra.
     apply: Rle_lt_trans (_ : u_ / (2 * v0) < _); last first.
