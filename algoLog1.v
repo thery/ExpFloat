@@ -47,6 +47,21 @@ Local Notation cexp := (cexp beta fexp).
 Local Notation mant := (scaled_mantissa beta fexp).
 Local Notation RN := (round beta fexp rnd).
 
+Definition LOG2H : float := Float _ 3048493539143 (- 42).
+
+Lemma format_LOG2H : format LOG2H.
+Proof.
+apply: generic_format_FLT.
+apply: FLT_spec (refl_equal _) _ _ => /=; lia.
+Qed.
+
+Definition LOG2L : float := Float _ 544487923021427 (- 93).
+
+Lemma format_LOG2L : format LOG2L.
+Proof.
+apply: generic_format_FLT.
+apply: FLT_spec (refl_equal _) _ _ => /=; lia.
+Qed.
 
 End Exp.
 
