@@ -467,7 +467,7 @@ have [->|Zx] := Req_dec x 0; first by rewrite Rmult_0_l round_0 Rmult_0_l.
 rewrite /round/F2R /=  /mant /cexp mag_mult_bpow // 
         !Rmult_assoc -!bpow_plus/fexp.
 by congr(IZR (Znearest _ (_ * pow _)) * pow _); lia.
-Qed. 
+Qed.
 
 (* Lemma 4.2 *)
 Fact RN_lt_pos x y (xpos : 0 <= x) (ypos : 0 < y): 
