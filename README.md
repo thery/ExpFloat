@@ -16,13 +16,13 @@ Follow the instructions on https://github.com/coq-community/templates to regener
 Exponential in binary 64 
 
 Progress
-- [Absolute error of Sollya polynomial](https://github.com/thery/ExpFloat/blob/e12afe8dd40ae8aac31915c839f13a6729392f6e/exp.v#L344-L346)
-- [Relative error of Sollya polynomial](https://github.com/thery/ExpFloat/blob/e12afe8dd40ae8aac31915c839f13a6729392f6e/exp.v#L576-L579)
-- [Bound of `ph` of algorithm P1](https://github.com/thery/ExpFloat/blob/e12afe8dd40ae8aac31915c839f13a6729392f6e/exp.v#L2090-L2095)
-- [Bound of `pl` of algorithm P1](https://github.com/thery/ExpFloat/blob/e12afe8dd40ae8aac31915c839f13a6729392f6e/exp.v#L2101-L2106)
-- [Absolute error of algorithm P1](https://github.com/thery/ExpFloat/blob/e12afe8dd40ae8aac31915c839f13a6729392f6e/exp.v#L2112-L2117)
-- [Relative error of algorithm P1](https://github.com/thery/ExpFloat/blob/e12afe8dd40ae8aac31915c839f13a6729392f6e/exp.v#L2123-L2129)
-- [Refined relative error of algorithm P1](https://github.com/thery/ExpFloat/blob/e12afe8dd40ae8aac31915c839f13a6729392f6e/exp.v#L2136-L2142)
+- [Absolute error of Sollya polynomial](https://github.com/thery/ExpFloat/blob/f9a2fa5548a7a67f99c35514041a3d3b422d50f6/algoP1.v#L344-L346)
+- [Relative error of Sollya polynomial](https://github.com/thery/ExpFloat/blob/f9a2fa5548a7a67f99c35514041a3d3b422d50f6/algoP1.v#L576-L579)
+- [Bound of `ph` of algorithm P1](https://github.com/thery/ExpFloat/blob/f9a2fa5548a7a67f99c35514041a3d3b422d50f6/algoP1.v#L2066-2071)
+- [Bound of `pl` of algorithm P1](https://github.com/thery/ExpFloat/blob/f9a2fa5548a7a67f99c35514041a3d3b422d50f6/algoP1.v#L2077-2082)
+- [Absolute error of algorithm P1](https://github.com/thery/ExpFloat/blob/f9a2fa5548a7a67f99c35514041a3d3b422d50f6/algoP1.v#L2088-2093)
+- [Relative error of algorithm P1](https://github.com/thery/ExpFloat/blob/f9a2fa5548a7a67f99c35514041a3d3b422d50f6/algoP1.v#L2123-2129)
+- [Refined relative error of algorithm P1](https://github.com/thery/ExpFloat/blob/f9a2fa5548a7a67f99c35514041a3d3b422d50f6/algoP1.v#L2112-2119)
 
 ## Meta
 
