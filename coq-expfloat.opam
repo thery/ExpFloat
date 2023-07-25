@@ -16,6 +16,8 @@ description: """
 Exponential in binary 64 
 
 Progress
+
+Algorithm P1 : 
 - [Absolute error of Sollya polynomial](https://github.com/thery/ExpFloat/blob/f9a2fa5548a7a67f99c35514041a3d3b422d50f6/algoP1.v#L344-L346)
 - [Relative error of Sollya polynomial](https://github.com/thery/ExpFloat/blob/f9a2fa5548a7a67f99c35514041a3d3b422d50f6/algoP1.v#L576-L579)
 - [Bound of `ph` of algorithm P1](https://github.com/thery/ExpFloat/blob/f9a2fa5548a7a67f99c35514041a3d3b422d50f6/algoP1.v#L2066-L2071)
