@@ -245,5 +245,39 @@ do ! (rewrite in_cons => /orP[/eqP->|];
 by [].
 Qed.
 
+(* This is lemma 3 *)
+
+Lemma rt_float t : 
+  format t -> / sqrt 2 <= t < sqrt 2 ->
+  let i := Z.to_nat (Zfloor (pow 8 * t)) in 
+  let r := nth 1 INVERSE (i - 181) in 
+  let z := r * t - 1 in 
+  [/\ format z, Rabs z < 33 * pow (- 13) & is_imul z (pow (- 61))].
+Proof.
+move=> Ft tB i r z.
+have pow8_ge0 : 0 <= pow 8 by apply: bpow_ge_0.
+have powN8_gt0 : 0 < pow (- 8) by apply: bpow_gt_0.
+have pow8t_ge0 : (0 <= Zfloor (pow 8 * t))%Z.
+  by rewrite -(Zfloor_IZR 0); apply: Zfloor_le; interval.
+have iB : (181 <= i <= 362)%N.
+  apply/andP; split; apply/leP/Nat2Z.inj_le.
+    suff <- : Zfloor (/ sqrt 2 * pow 8 ) = Z.of_nat 181.
+      by rewrite Z2Nat.id //; apply: Zfloor_le; nra.
+    apply: Zfloor_imp; rewrite /= /Z.pow_pos /=.
+    by split; interval.
+  suff <- : Zfloor (sqrt 2 * pow 8 ) = Z.of_nat 362.
+    by rewrite Z2Nat.id //; apply: Zfloor_le; nra.
+  apply: Zfloor_imp; rewrite /= /Z.pow_pos /=.
+  by split; interval.
+have tiB : pow (- 8) * INR i <= t < pow (- 8) * INR (i.+1).
+  rewrite !INR_IZR_INZ Nat2Z.inj_succ /Z.succ Z2Nat.id // plus_IZR.
+  rewrite [X in _ <= X < _](_ : t = pow (-8) * (pow 8 * t)); last first.
+    by rewrite -Rmult_assoc -bpow_plus Rsimp01.
+  suff :  IZR (Zfloor (pow 8 * t)) <= (pow 8 * t) < 
+              IZR (Zfloor (pow 8 * t)) + 1 by nra.
+  split; first by apply: Zfloor_lb.
+  by apply: Zfloor_ub.
+Qed.
+
 End Exp.
 
