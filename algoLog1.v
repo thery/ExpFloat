@@ -296,8 +296,6 @@ have iB : (181 <= i <= 362)%N.
   apply: Zfloor_imp; rewrite /= /Z.pow_pos /=.
   by split; interval.
 pose ti := pow (- 8) * INR i; pose ti1 := pow (- 8) * INR i.+1. 
-have Fti : format ti.
-  admit.
 have ti_gt_0 : 0 < ti.
   apply: Rmult_lt_0_compat; try lra.
   apply/(lt_INR 0)/leP.
@@ -318,6 +316,15 @@ have [iL255|iG256] := leqP i 255.
       by apply/le_INR/leP; case/andP: iB.
     have->: 255 = INR 255 by rewrite /=; lra.
     by apply/le_INR/leP.
+  have Fti : format ti.
+    have ZiB : (181 <= Z.of_nat i <= 255)%Z.
+      split; first by apply/(Nat2Z.inj_le 181)/leP; case/andP: iB.
+      by apply/(Nat2Z.inj_le _ 255)/leP.
+    have -> : ti = (Float _ (Z.of_nat i * Z.pow_pos 2 45) (- 53) : float).
+      by rewrite /ti /F2R /= /Z.pow_pos /= mult_IZR -INR_IZR_INZ; lra.
+    apply: generic_format_FLT.
+    apply: FLT_spec (refl_equal _) _ _ => /=; last by lia.
+    by rewrite Z.abs_eq /Z.pow_pos /=; lia.
   have t_lt_1 : t < 1.
     apply: Rlt_le_trans (_ : ti1 <= _); first by lra.
     have -> : 1 = pow (- 8) * INR (255).+1 by rewrite /= /Z.pow_pos /=; lra.
