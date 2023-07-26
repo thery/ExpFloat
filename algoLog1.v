@@ -269,8 +269,9 @@ have iB : (181 <= i <= 362)%N.
     by rewrite Z2Nat.id //; apply: Zfloor_le; nra.
   apply: Zfloor_imp; rewrite /= /Z.pow_pos /=.
   by split; interval.
-have tiB : pow (- 8) * INR i <= t < pow (- 8) * INR (i.+1).
-  rewrite !INR_IZR_INZ Nat2Z.inj_succ /Z.succ Z2Nat.id // plus_IZR.
+pose ti := pow (- 8) * INR i; pose ti1 := pow (- 8) * INR i.+1. 
+have tiB : ti <= t < ti1.
+  rewrite /ti /ti1 !INR_IZR_INZ Nat2Z.inj_succ /Z.succ Z2Nat.id // plus_IZR.
   rewrite [X in _ <= X < _](_ : t = pow (-8) * (pow 8 * t)); last first.
     by rewrite -Rmult_assoc -bpow_plus Rsimp01.
   suff :  IZR (Zfloor (pow 8 * t)) <= (pow 8 * t) < 
