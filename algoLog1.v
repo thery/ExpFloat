@@ -247,6 +247,31 @@ Qed.
 
 (* This is lemma 3 *)
 
+Local Notation ulp := (ulp beta fexp).
+
+Lemma format_pos_le_ex_add_ulp f1 f2 :
+  format f1 -> format f2 -> 0 < f1 <= f2 ->
+  exists k, f2 = f1 + k * ulp f1.
+Proof.
+move=> Hf1 Hf2 f1Lf2.
+red in Hf1.
+have cf1Lcf2 : (cexp f1 <= cexp f2)%Z.
+  have [cf2Lcf1|//] := Z_lt_le_dec (cexp f2) (cexp f1).
+  suff : f2 < f1 by lra.
+  by apply: lt_cexp_pos cf2Lcf1; lra.
+rewrite ulp_neq_0; last by lra.
+rewrite {1}Hf1 {1}Hf2 /F2R /=
+        -[(Generic_fmt.cexp radix2 fexp f2)]/(cexp f2)
+        -[(Generic_fmt.cexp radix2 fexp f1)]/(cexp f1). 
+set x1 := IZR _; set x2 := IZR _.
+exists (x1 * bpow radix2 (cexp f2 - cexp f1) - x2).
+rewrite Rmult_minus_distr_r Rmult_assoc -bpow_plus -[bpow _ _]/(pow _).
+rewrite -[bpow _ (cexp f1)]/(pow _).
+rewrite -[bpow _ (_ + _)]/(pow _).
+have -> : (cexp f2 - cexp f1 + cexp f1 = cexp f2)%Z by lia.
+by lra.
+Qed.
+
 Lemma rt_float t : 
   format t -> / sqrt 2 <= t < sqrt 2 ->
   let i := Z.to_nat (Zfloor (pow 8 * t)) in 
@@ -255,7 +280,8 @@ Lemma rt_float t :
   [/\ format z, Rabs z < 33 * pow (- 13) & is_imul z (pow (- 61))].
 Proof.
 move=> Ft tB i r z.
-have pow8_ge0 : 0 <= pow 8 by apply: bpow_ge_0.
+have t_gt0 : 0 < t by interval.
+have pow8_gt0 : 0 < pow 8 by apply: bpow_gt_0.
 have powN8_gt0 : 0 < pow (- 8) by apply: bpow_gt_0.
 have pow8t_ge0 : (0 <= Zfloor (pow 8 * t))%Z.
   by rewrite -(Zfloor_IZR 0); apply: Zfloor_le; interval.
@@ -270,6 +296,13 @@ have iB : (181 <= i <= 362)%N.
   apply: Zfloor_imp; rewrite /= /Z.pow_pos /=.
   by split; interval.
 pose ti := pow (- 8) * INR i; pose ti1 := pow (- 8) * INR i.+1. 
+have Fti : format ti.
+  admit.
+have ti_gt_0 : 0 < ti.
+  apply: Rmult_lt_0_compat; try lra.
+  apply/(lt_INR 0)/leP.
+  apply: leq_trans (_ : 180 < _)%N => //.
+  by case/andP: iB.
 have tiB : ti <= t < ti1.
   rewrite /ti /ti1 !INR_IZR_INZ Nat2Z.inj_succ /Z.succ Z2Nat.id // plus_IZR.
   rewrite [X in _ <= X < _](_ : t = pow (-8) * (pow 8 * t)); last first.
@@ -278,6 +311,85 @@ have tiB : ti <= t < ti1.
               IZR (Zfloor (pow 8 * t)) + 1 by nra.
   split; first by apply: Zfloor_lb.
   by apply: Zfloor_ub.
+have [iL255|iG256] := leqP i 255.
+  have INRiB : 181 <= INR i <= 255.
+    split.
+      have->: 181 = INR 181 by rewrite /=; lra.
+      by apply/le_INR/leP; case/andP: iB.
+    have->: 255 = INR 255 by rewrite /=; lra.
+    by apply/le_INR/leP.
+  have t_lt_1 : t < 1.
+    apply: Rlt_le_trans (_ : ti1 <= _); first by lra.
+    have -> : 1 = pow (- 8) * INR (255).+1 by rewrite /= /Z.pow_pos /=; lra.
+    rewrite /ti1; suff : INR i.+1 <= INR 256 by nra.
+    by apply/le_INR/leP.
+  have ti1_le_1 : ti1 <= 1.
+    suff : INR i.+1 <= 256.
+      by rewrite /ti1 -[pow (-8)]/(/256); lra.
+    have -> : 256 = INR 256 by rewrite /=; lra.
+    by apply/(le_INR _ 256%N)/leP.
+  pose ril := IZR (Zfloor (/ ti1 * pow 8)) * pow (- 8).
+  pose riu := IZR (Zceil (/ ti * pow 8)) * pow (- 8).
+  have riB : 1 <= ril < riu.
+    split.
+      rewrite /ril.
+      have /IZR_le : (Zfloor (pow 8) <= Zfloor (/ ti1 * pow 8))%Z.
+        apply: Zfloor_le.
+        suff : / 1 <= / ti1 by nra.
+        by apply: Rinv_le; lra.
+      have -> : Zfloor (pow 8) = 256%Z.
+        by apply: Zfloor_imp; rewrite /= /Z.pow_pos /=; lra.
+      by rewrite -[pow (- 8)]/(/256); lra.
+    rewrite /ril /riu.
+    suff : IZR (Zfloor (/ ti1 * pow 8)) < IZR (Zceil (/ ti * pow 8)) by nra.
+    have [Hf|Hnf] := Req_dec (IZR (Zfloor (/ ti * pow 8))) (/ ti * pow 8).
+      rewrite - Hf Zceil_IZR Hf.
+      apply: Rle_lt_trans (Zfloor_lb _) _.
+      suff : /ti1 < /ti by nra.
+      by apply: Rinv_lt; lra.
+    rewrite (Zceil_floor_neq _ Hnf).
+    rewrite plus_IZR.
+    suff: IZR (Zfloor (/ ti1 * pow 8)) <= IZR (Zfloor (/ ti * pow 8)) by lra.
+    apply/IZR_le/Zfloor_le.
+    suff : /ti1 < /ti by nra.
+    by apply: Rinv_lt; lra.
+  pose kil := (Zfloor (/ ti1 * pow 8) - 256)%Z.
+  have rilE : ril = 1 + IZR kil * pow (- 8).
+    by rewrite /ril /kil minus_IZR -[pow (- 8)]/(/256); lra.
+  pose kiu := (Zceil (/ ti * pow 8) - 256)%Z.
+  have riuE : riu = 1 + IZR kiu * pow (- 8).
+    by rewrite /riu /kiu minus_IZR -[pow (- 8)]/(/256); lra.
+  have kiuBkilB : (1 <= kiu - kil <= 3)%Z.
+    split.
+      suff: (kil < kiu)%Z by lia.
+      by apply/lt_IZR; nra.
+    suff: (kiu - kil < 4)%Z by lia.
+      apply/lt_IZR; rewrite minus_IZR.
+    apply: Rle_lt_trans 
+       (_ : pow 8 * pow 8 / (INR i * INR (i.+1)) + 2 < _); last first.
+      by rewrite S_INR; interval.
+    have -> : IZR kiu - IZR kil = 
+          IZR (Zceil (/ ti * pow 8)) -IZR (Zfloor (/ ti1 * pow 8)).
+      by rewrite /kiu /kil !minus_IZR; lra.
+    apply: Rle_trans
+       (_ : (/ ti * pow 8) - IZR (Zfloor (/ ti1 * pow 8)) + 1 <= _).
+      have := Zceil_lb ((/ ti * pow 8)); lra.
+    apply: Rle_trans
+       (_ : (/ ti * pow 8) - (/ ti1 * pow 8) + 2 <= _).
+      by have := Zfloor_ub ((/ ti1 * pow 8)); lra.
+    suff : / ti - / ti1 <= pow 8 / (INR i * INR i.+1) by nra.
+    rewrite /ti /ti1 S_INR -[pow (-8)]/(/256) -[pow 8]/256.
+    right.
+    by field; split; lra.
+  have [k tE] : exists k, t = ti + k * ulp ti.
+    by apply: format_pos_le_ex_add_ulp => //; last by lra.
+  have ulp_ti : ulp ti = pow (-53).
+    rewrite ulp_neq_0 /cexp /fexp  ?(mag_unique_pos _ _ (- 53 + p)%Z); try lra.
+      rewrite Z.max_l; last by lia.
+      congr bpow; lia.
+    rewrite /ti !pow_Rpower /p //.
+    by split; interval.
+  rewrite ulp_ti in tE.
 Qed.
 
 End Exp.
