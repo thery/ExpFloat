@@ -614,6 +614,154 @@ have [iL255|iG256] := leqP i 255.
     try by rewrite [nth _ _ _]/= INR_IZR_INZ [Z.of_nat _]/=;
            move=> *; apply: Rmax_lub; interval with (i_prec 100)).
   by rewrite ltnNge; case: (i <= 255)%N.
+have pow9_gt_0 : 0 < pow 9 by apply: bpow_gt_0.
+have powN9_gt_0 : 0 < pow (- 9) by apply: bpow_gt_0.
+have INRiB : 256 <= INR i <= 362.
+  split.
+    have->: 256 = INR 256 by rewrite /=; lra.
+    by apply/le_INR/leP; case/andP: iB.
+  have->: 362 = INR 362 by rewrite /=; lra.
+  by apply/le_INR/leP; case/andP: iB.
+have Fti : format ti.
+  have ZiB : (256 <= Z.of_nat i <= 362)%Z.
+    split; first by apply/(Nat2Z.inj_le 256)/leP; case/andP: iB.
+    by apply/(Nat2Z.inj_le _ 362)/leP; case/andP: iB.
+  have -> : ti = (Float _ (Z.of_nat i * Z.pow_pos 2 44) (- 52) : float).
+    by rewrite /ti /F2R /= /Z.pow_pos /= mult_IZR -INR_IZR_INZ; lra.
+  apply: generic_format_FLT.
+  apply: FLT_spec (refl_equal _) _ _ => /=; last by lia.
+  by rewrite Z.abs_eq /Z.pow_pos /=; lia.
+  have t_ge_1 : 1 <= t.
+    apply: Rle_trans (_ : ti <= _); last by lra.
+    have -> : 1 = pow (- 8) * INR (256) by rewrite /= /Z.pow_pos /=; lra.
+    rewrite /ti; suff : INR 256 <= INR i by nra.
+  by apply/le_INR/leP.
+have ti_ge_1 : 1 <= ti.
+  have -> : 1 = pow (- 8) * INR (255).+1 by rewrite /= /Z.pow_pos /=; lra.
+  rewrite /ti; suff : INR 256 <= INR i by nra.
+  by apply/le_INR/leP.
+pose ril := IZR (Zfloor (/ ti1 * pow 9)) * pow (- 9).
+pose riu := IZR (Zceil (/ ti * pow 9)) * pow (- 9).
+have riB : ril < riu <= 1.
+  split.
+    rewrite /ril /riu.
+    suff : IZR (Zfloor (/ ti1 * pow 9)) < IZR (Zceil (/ ti * pow 9)) by nra.
+    have [Hf|Hnf] := Req_dec (IZR (Zfloor (/ ti * pow 9))) (/ ti * pow 9).
+      rewrite - Hf Zceil_IZR Hf.
+      apply: Rle_lt_trans (Zfloor_lb _) _.
+      suff : /ti1 < /ti by nra.
+      by apply: Rinv_lt; lra.
+    rewrite (Zceil_floor_neq _ Hnf).
+    rewrite plus_IZR.
+    suff: IZR (Zfloor (/ ti1 * pow 9)) <= IZR (Zfloor (/ ti * pow 9)) by lra.
+    apply/IZR_le/Zfloor_le.
+    suff : /ti1 < /ti by nra.
+    by apply: Rinv_lt; lra.
+  rewrite /riu.
+  have /IZR_le : (Zceil (/ ti * pow 9) <= Zceil (pow 9))%Z.
+    apply: Zceil_le.
+    suff : / ti <= / 1 by nra.
+    by apply: Rinv_le; lra.
+  have -> : Zceil (pow 9) = 512%Z.
+    by apply: Zceil_imp; rewrite /= /Z.pow_pos /=; lra.
+  by rewrite -[pow (- 9)]/(/512); lra.
+pose kil := (512 - Zfloor (/ ti1 * pow 9))%Z.
+have rilE : ril = 1 - IZR kil * pow (- 9).
+  by rewrite /ril /kil minus_IZR -[pow (- 9)]/(/512); lra.
+pose kiu := (512 - Zceil (/ ti * pow 9))%Z.
+have riuE : riu = 1 - IZR kiu * pow (- 9).
+  by rewrite /riu /kiu minus_IZR -[pow (- 9)]/(/512); lra.
+have kiuBkilB : (1 <= kil - kiu <= 3)%Z.
+  split.
+    suff: (kiu < kil)%Z by lia.
+    by apply/lt_IZR; nra.
+  suff: (kil - kiu < 4)%Z by lia.
+  apply/lt_IZR; rewrite minus_IZR.
+  apply: Rle_lt_trans 
+      (_ : pow 8 * pow 9 / (INR i * INR (i.+1)) + 2 < _); last first.
+    by rewrite S_INR; interval.
+  have -> : IZR kil - IZR kiu = 
+            IZR (Zceil (/ ti * pow 9)) - IZR (Zfloor (/ ti1 * pow 9)).
+  rewrite /kiu /kil ![IZR (512 - _)]minus_IZR; lra.
+    apply: Rle_trans
+       (_ : (/ ti * pow 9) - IZR (Zfloor (/ ti1 * pow 9)) + 1 <= _).
+    by have := Zceil_lb ((/ ti * pow 9)); lra.
+  apply: Rle_trans
+    (_ : (/ ti * pow 9) - (/ ti1 * pow 9) + 2 <= _).
+    by have := Zfloor_ub ((/ ti1 * pow 9)); lra.
+  suff : / ti - / ti1 <= pow 8 / (INR i * INR i.+1) by nra.
+  rewrite /ti /ti1 S_INR -[pow (-8)]/(/256) -[pow 8]/256.
+  right.
+  by field; split; lra.
+have [j tE] : exists j, t = ti + IZR j * ulp ti.
+  by apply: format_pos_le_ex_add_ulp => //; last by lra.
+have ulp_ti : ulp ti = pow (- 52).
+  rewrite ulp_neq_0 /cexp /fexp  ?(mag_unique_pos _ _ (- 52 + p)%Z); try lra.
+    rewrite Z.max_l; last by lia.
+    by congr bpow; lia.
+  rewrite /ti /= /Z.pow_pos /=.
+  by lra.
+rewrite ulp_ti in tE.
+pose jmax := (radix2 ^ 44 - 1)%Z.
+have jB : (0 <= j <= jmax)%Z.
+  suff : (0 <= j < radix2 ^ 44)%Z by lia.
+  split.
+    apply/le_IZR.
+    suff : 0 < pow (- 52) by nra.
+    by apply: bpow_gt_0.
+  apply/lt_IZR.
+  rewrite IZR_Zpower //= /Z.pow_pos /=.
+  have ti1E : ti1 = ti + pow (- 8) by rewrite /ti /ti1 S_INR; lra.
+  have : t - ti < ti1 - ti by lra.
+  rewrite tE ti1E /jmax /= /Z.pow_pos /=.
+  by lra.
+have rjB : 0 <= IZR j <= IZR jmax.
+  by split; apply: IZR_le; lia.
+have imul_r : is_imul r (pow (- 9)).
+  pose fr := nth (Float _ 0 0) FINVERSE (i - 181).
+  have <- : F2R fr = r.
+    rewrite /fr /r -map_FINVERSE (nth_map (Float _ 0 0)) //=.
+    by rewrite ltn_subLR; case/andP: iB.
+  apply: imul_fexp_le.
+  rewrite /fr.
+  case/andP: iB; move: iG256.
+  do 107 rewrite leq_eqVlt=> /orP[/eqP<-//|].
+  by rewrite ltnNge; case (i <= 362)%N.
+have imul_z : is_imul z (pow (-61)).
+  apply: is_imul_minus; last first.
+    exists (radix2 ^ 61)%Z.
+    by rewrite IZR_Zpower // -bpow_plus -(pow0E radix2); congr bpow; lia.
+  rewrite -[(-61)%Z]/(-9 + - 52)%Z bpow_plus tE.
+  apply: is_imul_mul => //.
+  apply: is_imul_add; last by exists j.
+  exists (Z.of_nat i * radix2 ^ (- 9 + 53))%Z.
+  rewrite /ti mult_IZR IZR_Zpower // -INR_IZR_INZ.
+  by rewrite Rmult_comm Rmult_assoc -bpow_plus.
+have F : Rabs z <= Rmax (Rabs (r * ti - 1))
+                        (Rabs (r * (ti + IZR jmax * pow (- 52)) - 1)).
+  apply/Rmax_Rle.
+  have M a b c d : a <= b <= c -> Rabs (d * b - 1) <= Rabs (d * a - 1) \/ 
+                                  Rabs (d * b - 1) <= Rabs (d * c - 1).
+    move=> Ha.
+    have [r_pos|r_neg] := Rle_lt_dec 0 d.
+      have F : d * a <= d * b <= d * c by nra.
+      by split_Rabs; lra.
+    have F : d * c <= d * b <= d * a by nra.
+    by split_Rabs; lra.
+  apply: M.
+  have: 0 <= pow (-52) by apply: bpow_ge_0.
+  by nra.
+suff zB : Rabs z <= pow (-8).
+  split => //.
+    by apply: imul_format imul_z zB _ => //=; lra.
+  by apply: Rle_trans zB _; interval.
+apply: Rle_trans F _.
+rewrite /jmax [IZR (_ ^ _ - 1)]/= /ti /r.
+case/andP: iB; move: iG256.
+do 107 (rewrite leq_eqVlt=> /orP[/eqP<-//|];
+  try by rewrite [nth _ _ _]/= INR_IZR_INZ [Z.of_nat _]/=;
+         move=> *; apply: Rmax_lub; interval with (i_prec 100)).
+by rewrite ltnNge; case: (i <= 362)%N.
 Qed.
 
 End Exp.
