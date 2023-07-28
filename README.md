@@ -26,6 +26,10 @@ Algorithm P1 :
 - [Relative error of algorithm P1](https://github.com/thery/ExpFloat/blob/f9a2fa5548a7a67f99c35514041a3d3b422d50f6/algoP1.v#L2099-L2105)
 - [Refined relative error of algorithm P1](https://github.com/thery/ExpFloat/blob/f9a2fa5548a7a67f99c35514041a3d3b422d50f6/algoP1.v#L2112-L2119)
 
+Algorithm Log1 :
+- [Definition of the `INVERSE` table](https://github.com/thery/ExpFloat/blob/7e29fe8f6b9e68fb838339663fdd01402e9d10f3/algoLog1.v#L107-L138)
+- [Lemma 3](https://github.com/thery/ExpFloat/blob/7e29fe8f6b9e68fb838339663fdd01402e9d10f3/algoLog1.v#L344-L349)   
+
 ## Meta
 
 - Author(s):
