@@ -274,7 +274,7 @@ have -> : (cexp f2 - cexp f1 + cexp f1 = cexp f2)%Z by lia.
 by lra.
 Qed.
 
-Lemma imul_fexp (f : float) e : (e <= Fexp f)%Z -> is_imul f (pow e).
+Lemma imul_fexp_le (f : float) e : (e <= Fexp f)%Z -> is_imul f (pow e).
 Proof.
 case: f => mf ef /= eLef.
 rewrite /F2R /=.
@@ -284,7 +284,23 @@ exists (mf * (radix2 ^ (ef - e)))%Z.
 rewrite mult_IZR IZR_Zpower; try lia.
 by rewrite Rmult_assoc.
 Qed.
-(* Rework the proof *)
+
+Lemma imul_fexp_lt (f : float) e : 
+  Z.even (Fnum f) -> (e - 1 <= Fexp f)%Z -> is_imul f (pow e).
+Proof.
+case: f => mf ef /= even_f eLef.
+rewrite /F2R /=.
+have ->: (ef = -1 + (ef - (e - 1) + e))%Z by lia.
+rewrite 2!bpow_plus.
+exists ((mf / 2) * (radix2 ^ (ef - (e - 1))))%Z.
+rewrite mult_IZR IZR_Zpower; last by lia.
+rewrite -!Rmult_assoc; congr (_ * _ * _).
+have [hp ->] := Zeven_ex mf.
+rewrite even_f Z.add_0_r Zmult_comm Z.div_mul //.
+by rewrite mult_IZR /= /Z.pow_pos /=; lra.
+Qed.
+
+(* This proof should be reworked *)
 Lemma imul_format z e b : 
   (emin <= e)%Z -> is_imul z (pow e) -> Rabs z <= b -> b <= (pow (p + e))
   -> format z.
@@ -330,7 +346,7 @@ Lemma rt_float t :
   let i := Z.to_nat (Zfloor (pow 8 * t)) in 
   let r := nth 1 INVERSE (i - 181) in 
   let z := r * t - 1 in 
-  [/\ format z, Rabs z < 33 * pow (- 13) & is_imul z (pow (- 61))].
+  [/\ format z, Rabs z <= 33 * pow (- 13) & is_imul z (pow (- 61))].
 Proof.
 move=> Ft tB i r z.
 have t_gt0 : 0 < t by interval.
@@ -470,7 +486,7 @@ have [iL255|iG256] := leqP i 255.
     have <- : F2R fr = r.
       rewrite /fr /r -map_FINVERSE (nth_map (Float _ 0 0)) //=.
       by rewrite ltn_subLR; case/andP: iB.
-    apply: imul_fexp.
+    apply: imul_fexp_le.
     have -> : fr = nth (Float _ 0 0) (take 75 FINVERSE) (i - 181).
       by rewrite nth_take // ltn_subLR //; case/andP: iB.
     case/andP: iB iL255.
@@ -500,20 +516,104 @@ have [iL255|iG256] := leqP i 255.
     apply: M.
     have: 0 <= pow (-53) by apply: bpow_ge_0.
     by nra.
-  have [i187|/eqP iD187] := (i =P 187%N); last first.
-    have [i196|/eqP iD196] := (i =P 196%N); last first.
-      have [i199|/eqP iD199] := (i =P 199%N); last first.
-        suff zB : Rabs z <= pow (-8).
-          split => //.
-            apply: imul_format imul_z zB _ => //=; lra.
-          by apply: Rle_lt_trans zB _; interval.
-        apply: Rle_trans F _.
-        rewrite /jmax [IZR (_ ^ _ - 1)]/= /ti /r.
-    case/andP: iB iL255 iD187 iD196 iD199.
-    do 75 (rewrite leq_eqVlt=> /orP[/eqP<-//|];
-           try by rewrite [nth _ _ _]/= INR_IZR_INZ [Z.of_nat _]/=;
-               move=> *; apply: Rmax_lub; interval with (i_prec 100)).
-    by rewrite ltnNge; case: (i <= 255)%N.
+  have [i187|/eqP iD187] := (i =P 187%N).
+    have imul_r1 : is_imul r (pow (-7)).
+      pose fr := nth (Float _ 0 0) FINVERSE (i - 181).
+      have <- : F2R fr = r.
+        rewrite /fr /r -map_FINVERSE (nth_map (Float _ 0 0)) //=.
+        by rewrite ltn_subLR; case/andP: iB.
+      rewrite /fr i187 [nth _ _ _ ]/=.
+      by apply: imul_fexp_lt.
+    have imul_z1 : is_imul z (pow (-60)).
+      apply: is_imul_minus; last first.
+        exists (radix2 ^ 60)%Z.
+        by rewrite IZR_Zpower // -bpow_plus -(pow0E radix2); congr bpow; lia.
+      rewrite -[(-60)%Z]/(-7 + - 53)%Z bpow_plus tE.
+      apply: is_imul_mul => //.
+      apply: is_imul_add; last by exists j.
+      exists (Z.of_nat i * radix2 ^ (- 8 + 53))%Z.
+      rewrite /ti mult_IZR IZR_Zpower // -INR_IZR_INZ.
+      by rewrite Rmult_comm Rmult_assoc -bpow_plus.
+    split => //.
+      suff zB : Rabs z <= pow (-7).
+        by apply: imul_format imul_z1 zB _ => //=; lra.
+      apply: Rle_trans F _.
+      rewrite /jmax [IZR (_ ^ _ - 1)]/= /ti /r i187.
+      rewrite [nth _ _ _]/= INR_IZR_INZ [Z.of_nat _]/=.
+      by apply: Rmax_lub; interval with (i_prec 100).
+    apply: Rle_trans F _.
+    rewrite /jmax [IZR (_ ^ _ - 1)]/= /ti /r i187.
+    rewrite [nth _ _ _]/= INR_IZR_INZ [Z.of_nat _]/=.
+    by apply: Rmax_lub; interval with (i_prec 100).
+  have [i196|/eqP iD196] := (i =P 196%N).
+    have imul_r1 : is_imul r (pow (-7)).
+      pose fr := nth (Float _ 0 0) FINVERSE (i - 181).
+      have <- : F2R fr = r.
+        rewrite /fr /r -map_FINVERSE (nth_map (Float _ 0 0)) //=.
+        by rewrite ltn_subLR; case/andP: iB.
+      rewrite /fr i196 [nth _ _ _ ]/=.
+      by apply: imul_fexp_lt.
+    have imul_z1 : is_imul z (pow (-60)).
+      apply: is_imul_minus; last first.
+        exists (radix2 ^ 60)%Z.
+        by rewrite IZR_Zpower // -bpow_plus -(pow0E radix2); congr bpow; lia.
+      rewrite -[(-60)%Z]/(-7 + - 53)%Z bpow_plus tE.
+      apply: is_imul_mul => //.
+      apply: is_imul_add; last by exists j.
+      exists (Z.of_nat i * radix2 ^ (- 8 + 53))%Z.
+      rewrite /ti mult_IZR IZR_Zpower // -INR_IZR_INZ.
+      by rewrite Rmult_comm Rmult_assoc -bpow_plus.
+    split => //.
+      suff zB : Rabs z <= pow (-7).
+        by apply: imul_format imul_z1 zB _ => //=; lra.
+      apply: Rle_trans F _.
+      rewrite /jmax [IZR (_ ^ _ - 1)]/= /ti /r i196.
+      rewrite [nth _ _ _]/= INR_IZR_INZ [Z.of_nat _]/=.
+      by apply: Rmax_lub; interval with (i_prec 100).
+    apply: Rle_trans F _.
+    rewrite /jmax [IZR (_ ^ _ - 1)]/= /ti /r i196.
+    rewrite [nth _ _ _]/= INR_IZR_INZ [Z.of_nat _]/=.
+    by apply: Rmax_lub; interval with (i_prec 100).
+  have [i199|/eqP iD199] := (i =P 199%N).
+    have imul_r1 : is_imul r (pow (-7)).
+      pose fr := nth (Float _ 0 0) FINVERSE (i - 181).
+      have <- : F2R fr = r.
+        rewrite /fr /r -map_FINVERSE (nth_map (Float _ 0 0)) //=.
+        by rewrite ltn_subLR; case/andP: iB.
+      rewrite /fr i199 [nth _ _ _ ]/=.
+      by apply: imul_fexp_lt.
+    have imul_z1 : is_imul z (pow (-60)).
+      apply: is_imul_minus; last first.
+        exists (radix2 ^ 60)%Z.
+        by rewrite IZR_Zpower // -bpow_plus -(pow0E radix2); congr bpow; lia.
+      rewrite -[(-60)%Z]/(-7 + - 53)%Z bpow_plus tE.
+      apply: is_imul_mul => //.
+      apply: is_imul_add; last by exists j.
+      exists (Z.of_nat i * radix2 ^ (- 8 + 53))%Z.
+      rewrite /ti mult_IZR IZR_Zpower // -INR_IZR_INZ.
+      by rewrite Rmult_comm Rmult_assoc -bpow_plus.
+    split => //.
+      suff zB : Rabs z <= pow (-7).
+        by apply: imul_format imul_z1 zB _ => //=; lra.
+      apply: Rle_trans F _.
+      rewrite /jmax [IZR (_ ^ _ - 1)]/= /ti /r i199.
+      rewrite [nth _ _ _]/= INR_IZR_INZ [Z.of_nat _]/=.
+      by apply: Rmax_lub; interval with (i_prec 100).
+    apply: Rle_trans F _.
+    rewrite /jmax [IZR (_ ^ _ - 1)]/= /ti /r i199.
+    rewrite [nth _ _ _]/= INR_IZR_INZ [Z.of_nat _]/=.
+    by apply: Rmax_lub; interval with (i_prec 100).
+  suff zB : Rabs z <= pow (-8).
+    split => //.
+      by apply: imul_format imul_z zB _ => //=; lra.
+    by apply: Rle_trans zB _; interval.
+  apply: Rle_trans F _.
+  rewrite /jmax [IZR (_ ^ _ - 1)]/= /ti /r.
+  case/andP: iB iL255 iD187 iD196 iD199.
+  do 75 (rewrite leq_eqVlt=> /orP[/eqP<-//|];
+    try by rewrite [nth _ _ _]/= INR_IZR_INZ [Z.of_nat _]/=;
+           move=> *; apply: Rmax_lub; interval with (i_prec 100)).
+  by rewrite ltnNge; case: (i <= 255)%N.
 Qed.
 
 End Exp.
