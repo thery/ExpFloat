@@ -764,5 +764,16 @@ do 107 (rewrite leq_eqVlt=> /orP[/eqP<-//|];
 by rewrite ltnNge; case: (i <= 362)%N.
 Qed.
 
+Lemma rt_inverse i : 
+  (i < size INVERSE)%N ->  
+  let r := nth 1 INVERSE i in r <> 1 -> 0.00587 < Rabs (ln r) < 0.347.
+Proof.
+rewrite [size _]/=.
+do 74 (case: i => [_ r|i]; first by rewrite /r [nth _ _ _]/=; split; interval).
+do 2 (case: i => [_ r|i]; first by rewrite /r [nth _ _ _]/=; case; lra).
+do 106 (case: i => [_ r|i]; first by rewrite /r [nth _ _ _]/=; split; interval).
+by [].
+Qed.
+
 End Exp.
 
