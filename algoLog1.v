@@ -5,6 +5,8 @@ From Coquelicot Require Import Coquelicot.
 From Interval Require Import  Tactic.
 Require Import Nmore Rmore Fmore Rstruct MULTmore algoP1.
 
+Locate Zfloor.
+
 Delimit Scope R_scope with R.
 Delimit Scope Z_scope with Z.
 
@@ -773,6 +775,87 @@ do 74 (case: i => [_ r|i]; first by rewrite /r [nth _ _ _]/=; split; interval).
 do 2 (case: i => [_ r|i]; first by rewrite /r [nth _ _ _]/=; case; lra).
 do 106 (case: i => [_ r|i]; first by rewrite /r [nth _ _ _]/=; split; interval).
 by [].
+Qed.
+
+Lemma ZnearestE_IZR z : ZnearestE (IZR z) = z.
+Proof.
+by case: (Znearest_DN_or_UP (fun x => ~~ Z.even x) (IZR z)); 
+   rewrite ?(Zfloor_IZR, Zceil_IZR) => ->.
+Qed.
+
+Lemma l1_bound  i : 
+  (i < size INVERSE)%N ->  
+  let r := nth 1 INVERSE i in
+  let l1 := IZR (ZnearestE ((- ln r) *  pow 42)) * pow (- 42) in
+  [/\ is_imul l1 (pow (- 42)), 
+      l1 <> 0 -> pow (-8) < Rabs l1 < pow (-1),
+      format l1 &
+      l1 <> - ln r -> pow (- 52) < Rabs (l1 - (- ln r)) < pow (- 43)].
+Proof.
+move=> Hs r l1.
+have imul_l1 : is_imul l1 (pow (- 42)).
+  by exists (ZnearestE (- ln r * pow 42)).
+have l1_B : l1 <> 0 -> pow (-8) < Rabs l1 < pow (-1).
+  move=> l1_neq0.
+  have [r_eq1|r_neq1] := Req_dec r 1.
+    by case: l1_neq0; rewrite /l1 r_eq1 ln_1 !Rsimp01 ZnearestE_IZR Rsimp01.
+  rewrite /l1 -/r; set v := - ln r.
+  have : (0.00587 < v < 0.347) \/ (- 0.347 < v < - 0.00587).
+    have := rt_inverse Hs r_neq1.
+    by rewrite -/r /v; split_Rabs; lra.
+  by case; split; interval.
+have Fl1 : format l1.
+  have [->|l1_neq0] := Req_dec l1 0; first by apply: generic_format_0.
+  apply: imul_format imul_l1 (_ : _ <= pow (- 1)) _ => //; first by lra.
+  by apply: bpow_le.
+split => //; move: Hs.
+rewrite [size _]/= /l1 {l1 imul_l1 l1_B Fl1}/r.
+do 74 (case: i => [_ |i]; first by rewrite [nth _ _ _]/=;
+                                     split; interval with (i_prec 100)).
+do 2 (case: i => [_|i]; first by 
+   rewrite [nth _ _ _]/=; case; (have -> : 0x1.00%xR = 1 by lra);
+   rewrite !(ln_1, ZnearestE_IZR, Rsimp01)).
+do 106 (case: i => [_ |i]; first by rewrite [nth _ _ _]/=;
+                                     split; interval with (i_prec 100)).
+by [].
+Qed.
+
+Lemma ulp_FLT_FLX (x : R) :
+  bpow beta (emin + p - 1) <= Rabs x ->
+  Ulp.ulp beta (FLT_exp emin p) x =
+  Ulp.ulp beta (FLX_exp p) x.
+Proof.
+move=> x_ge.
+rewrite -[LHS]ulp_abs -[RHS]ulp_abs.
+have x_gt_0 : 0 < Rabs x.
+  by apply: Rlt_le_trans x_ge; apply: bpow_gt_0.
+rewrite !ulp_neq_0; try by lra.
+by rewrite cexp_FLT_FLX // Rabs_Rabsolu.
+Qed.
+
+Lemma err7_bound i (choice : Z -> bool) : 
+  (i < size INVERSE)%N ->  
+  let r := nth 1 INVERSE i in
+  let l1 := IZR (ZnearestE ((- ln r) *  pow 42)) * pow (- 42) in
+  let l2 := round beta fexp (Znearest choice) ((- ln r) - l1) in
+  let err7 := Rabs (l1 + l2 - (- ln r)) in err7 <= pow (- 97).
+Proof.
+move=> iLs r l1 l2 err7.
+have -> : err7 = Rabs (l2 - (- ln r - l1)).
+  by rewrite /err7; split_Rabs; lra.
+apply: Rle_trans  (_ : /2 * ulp (- ln r - l1) <= _).
+  by apply: error_le_half_ulp.
+suff: ulp (- ln r - l1) <= pow (- 96) by rewrite /= /Z.pow_pos /=; lra.
+rewrite -ulp_abs.
+have [->|l1_neqlr] := Req_dec l1  (- ln r).
+  have -> : - ln r - - ln r = 0 by lra.
+  by rewrite Rsimp01 ulp_FLT_0 /= /Z.pow_pos /=; lra.
+have F1 : pow (- 52) < Rabs (l1 - (- ln r)) < pow (- 43).
+  by case: (l1_bound iLs) => // _ _ _; apply.
+rewrite ulp_neq_0; last by split_Rabs; lra.
+apply: bpow_le.
+have <- : (fexp (- 43) = - 96)%Z by [].
+by apply: cexp_le_bpow; split_Rabs; lra.
 Qed.
 
 End Exp.
