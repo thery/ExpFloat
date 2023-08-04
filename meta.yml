@@ -15,14 +15,14 @@ description: |-
   Progress
 
   Algorithm P1 : 
-  - [Algotiyhm P1](./algoP1.v#L360-L369)
+  - [Algotiyhm P1](./algoP1.v#L360-L368)
   - [Absolute error of Sollya polynomial](./algoP1.v#L151-L153)
-  - [Relative error of Sollya polynomial](./algoP1.v#L342-L345)
-  - [Bound of `ph` of algorithm P1](./algoP1.v#L1690-L1696)
-  - [Bound of `pl` of algorithm P1](./algoP1.v#L1701-L1707)
-  - [Absolute error of algorithm P1](./algoP1.v#L1712-L1718)
-  - [Relative error of algorithm P1](./algoP1.v#L1723-L1730)
-  - [Refined relative error of algorithm P1](./algoP1.v#L1736-L1743)
+  - [Relative error of Sollya polynomial](./algoP1.v#L342-L344)
+  - [Bound of `ph` of algorithm P1](./algoP1.v#L1690-L1695)
+  - [Bound of `pl` of algorithm P1](./algoP1.v#L1701-L1706)
+  - [Absolute error of algorithm P1](./algoP1.v#L1712-L1717)
+  - [Relative error of algorithm P1](./algoP1.v#L1723-L1729)
+  - [Refined relative error of algorithm P1](./algoP1.v#L1736-L1742)
 
   Algorithm Log1 :
   - [Definition of the `INVERSE` table](./tableINVERSE.v#L48-L79)
