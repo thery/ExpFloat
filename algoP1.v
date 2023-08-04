@@ -357,7 +357,6 @@ Notation exactMul := (exactMul rnd).
 
 (* L'algo p_1 *)
 
-Check exactMul.
 Definition p1 (z : R) :=
   let: DWR wh wl := exactMul z z in 
   let: t := RN (P8 * z + P7) in
