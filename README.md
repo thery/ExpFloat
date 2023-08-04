@@ -18,17 +18,20 @@ Exponential in binary 64
 Progress
 
 Algorithm P1 : 
-- [Absolute error of Sollya polynomial](https://github.com/thery/ExpFloat/blob/f9a2fa5548a7a67f99c35514041a3d3b422d50f6/algoP1.v#L344-L346)
-- [Relative error of Sollya polynomial](https://github.com/thery/ExpFloat/blob/f9a2fa5548a7a67f99c35514041a3d3b422d50f6/algoP1.v#L576-L579)
-- [Bound of `ph` of algorithm P1](https://github.com/thery/ExpFloat/blob/f9a2fa5548a7a67f99c35514041a3d3b422d50f6/algoP1.v#L2066-L2071)
-- [Bound of `pl` of algorithm P1](https://github.com/thery/ExpFloat/blob/f9a2fa5548a7a67f99c35514041a3d3b422d50f6/algoP1.v#L2077-L2082)
-- [Absolute error of algorithm P1](https://github.com/thery/ExpFloat/blob/f9a2fa5548a7a67f99c35514041a3d3b422d50f6/algoP1.v#L2088-L2093)
-- [Relative error of algorithm P1](https://github.com/thery/ExpFloat/blob/f9a2fa5548a7a67f99c35514041a3d3b422d50f6/algoP1.v#L2099-L2105)
-- [Refined relative error of algorithm P1](https://github.com/thery/ExpFloat/blob/f9a2fa5548a7a67f99c35514041a3d3b422d50f6/algoP1.v#L2112-L2119)
+- [Algotiyhm P1](./algoP1.v#L360-L369)
+- [Absolute error of Sollya polynomial](./algoP1.v#L151-L153)
+- [Relative error of Sollya polynomial](./algoP1.v#L342-L345)
+- [Bound of `ph` of algorithm P1](./algoP1.v#L1690-L1696)
+- [Bound of `pl` of algorithm P1](./algoP1.v#L1701-L1707)
+- [Absolute error of algorithm P1](./algoP1.v#L1712-L1718)
+- [Relative error of algorithm P1](./algoP1.v#L1723-L1730)
+- [Refined relative error of algorithm P1](./algoP1.v#L1736-L1743)
 
 Algorithm Log1 :
-- [Definition of the `INVERSE` table](https://github.com/thery/ExpFloat/blob/7e29fe8f6b9e68fb838339663fdd01402e9d10f3/algoLog1.v#L107-L138)
-- [Lemma 3](https://github.com/thery/ExpFloat/blob/7e29fe8f6b9e68fb838339663fdd01402e9d10f3/algoLog1.v#L344-L349)   
+- [Definition of the `INVERSE` table](./tableINVERSE.v#L48-L79)
+- [Lemma 3](./tableINVERSE.v#L284-L289)   
+- [Definition of the `LOGINV` table](./tableLOGINV.v#L108-L292)
+- [Definition of Log1](./algoLog1.v#L82-L93)
 
 ## Meta
 

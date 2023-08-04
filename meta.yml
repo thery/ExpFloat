@@ -13,21 +13,22 @@ description: |-
   Exponential in binary 64 
 
   Progress
-  
+
   Algorithm P1 : 
-  - [Algotiyhm P1]()
-  - [Absolute error of Sollya polynomial](https://github.com/thery/ExpFloat/blob/106f9d7dfc77f7bd40fdef90dc10fd3c4ed3ae58/algoP1.v#L151-L153)
-  - [Relative error of Sollya polynomial](https://github.com/thery/ExpFloat/blob/106f9d7dfc77f7bd40fdef90dc10fd3c4ed3ae58/algoP1.v#L342-L345)
-  - [Bound of `ph` of algorithm P1](https://github.com/thery/ExpFloat/blob/106f9d7dfc77f7bd40fdef90dc10fd3c4ed3ae58/algoP1.v#L1691-L1697)
-  - [Bound of `pl` of algorithm P1](https://github.com/thery/ExpFloat/blob/106f9d7dfc77f7bd40fdef90dc10fd3c4ed3ae58/algoP1.v#L1702-L1708)
-  - [Absolute error of algorithm P1](https://github.com/thery/ExpFloat/blob/106f9d7dfc77f7bd40fdef90dc10fd3c4ed3ae58/algoP1.v#L1713-L1719)
-  - [Relative error of algorithm P1](https://github.com/thery/ExpFloat/blob/106f9d7dfc77f7bd40fdef90dc10fd3c4ed3ae58/algoP1.v#L1724-L1731)
-  - [Refined relative error of algorithm P1]()
+  - [Algotiyhm P1](./algoP1.v#L360-L369)
+  - [Absolute error of Sollya polynomial](./algoP1.v#L151-L153)
+  - [Relative error of Sollya polynomial](./algoP1.v#L342-L345)
+  - [Bound of `ph` of algorithm P1](./algoP1.v#L1690-L1696)
+  - [Bound of `pl` of algorithm P1](./algoP1.v#L1701-L1707)
+  - [Absolute error of algorithm P1](./algoP1.v#L1712-L1718)
+  - [Relative error of algorithm P1](./algoP1.v#L1723-L1730)
+  - [Refined relative error of algorithm P1](./algoP1.v#L1736-L1743)
 
   Algorithm Log1 :
-  - [Definition of the `INVERSE` table]()
-  - [Lemma 3]()   
-
+  - [Definition of the `INVERSE` table](./tableINVERSE.v#L48-L79)
+  - [Lemma 3](./tableINVERSE.v#L284-L289)   
+  - [Definition of the `LOGINV` table](./tableLOGINV.v#L108-L292)
+  - [Definition of Log1](./algoLog1.v#L82-L93)
 authors:
 - name: Laurent Théry
 - name: Laurence Rideau
