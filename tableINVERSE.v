@@ -3,7 +3,7 @@ From mathcomp Require Import all_ssreflect all_algebra.
 From Flocq Require Import Core Relative Sterbenz Operations Mult_error.
 From Coquelicot Require Import Coquelicot.
 From Interval Require Import  Tactic.
-Require Import Nmore Rmore Fmore Rstruct MULTmore algoP1.
+Require Import Nmore Rmore Fmore Rstruct MULTmore prelim.
 
 Delimit Scope R_scope with R.
 Delimit Scope Z_scope with Z.
