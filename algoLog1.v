@@ -51,13 +51,40 @@ Local Notation RN := (round beta fexp rnd).
 Local Notation p1 := (p1 rnd).
 
 Let alpha := pow (- 1074).
+Let omega := (1 - pow (-p)) * pow emax.
 
 Variable getRange : R -> R * Z.
 
 Hypothesis getRangeCorrect : 
-  forall f,  format f -> alpha <= f -> 
+  forall f,  format f -> alpha <= f <= omega -> 
     sqrt 2 / 2 < (getRange f).1 < sqrt 2 /\ 
     f = ((getRange f).1) * pow (getRange f).2.
+
+Lemma getRange_bound f : 
+  format f -> alpha <= f <= omega -> (- 1074 <= (getRange f).2 <= 1024)%Z.
+Proof.
+move=> aF aB.
+have sqrt2B : 1.4 < sqrt 2 < 1.5 by split; interval.
+have [tN eB] := getRangeCorrect aF aB.
+set t := (_).1 in eB tN; set e := (_).2 in eB *.
+suff:  (- 1075 < e < 1025)%Z by lia.
+suff : -1075 < IZR e < 1025 by case; split; apply/lt_IZR.
+suff:  Rpower 2 (- 1075) < Rpower 2 (IZR e) < Rpower 2 (1025).
+  have: IZR e <= - 1075 -> Rpower 2 (IZR e) <= Rpower 2 (- 1075).
+    by apply: Rle_Rpower; lra.
+  have: 1025 <= IZR e -> Rpower 2 1025 <= Rpower 2 (IZR e).
+    by apply: Rle_Rpower; lra.
+  by lra.
+have -> : Rpower 2 (IZR e) = pow e by rewrite pow_Rpower.
+suff : t * Rpower 2 (-1075) < t * pow e < t * Rpower 2 1025 by nra.
+suff : sqrt 2 * Rpower 2 (-1075) < t * pow e < sqrt 2 / 2 * Rpower 2 1025.
+  have : 0 < Rpower 2 (- 1075).
+    by rewrite -pow_Rpower //; apply: bpow_gt_0.
+  suff : 0 < Rpower 2 (1025) by nra.
+  by rewrite -pow_Rpower //; apply: bpow_gt_0.
+rewrite -eB; rewrite /alpha /omega in aB.
+split; interval with (i_prec 40).
+Qed.
 
 Definition getIndex (f : R) : nat := Z.to_nat (Zfloor (pow 8 * f)).
 
@@ -70,6 +97,7 @@ have : 0 <= pow 8 by apply: bpow_ge_0.
 have : 0 < alpha by apply: alpha_gt_0.
 nra.
 Qed.
+
 Lemma fastTwoSum_0 : fastTwoSum 0 0 = DWR 0 0.
 Proof. by rewrite /fastTwoSum !(Rsimp01, round_0). Qed. 
 
@@ -115,6 +143,13 @@ have -> : 0x1.00%xR = 1 by lra.
 by rewrite /= !(Rsimp01, Rminus_eq_0, round_0, p1_0, fastTwoSum_0).
 Qed.
 
+Lemma th_prop (e : Z) p : 
+  p \in LOGINV -> 
+  let th := RN (IZR e * LOG2H + p.1) in 
+  [/\ is_imul th (pow -42),
+      th = IZR e * LOG2H + p.1, 
+
+      
 (* This is lemma 4*)
 
 Lemma hl_logB x : 

@@ -31,7 +31,7 @@ Algorithm Log1 :
 - [Definition of the `INVERSE` table](./tableINVERSE.v#L48-L79)
 - [Lemma 3](./tableINVERSE.v#L284-L289)   
 - [Definition of the `LOGINV` table](./tableLOGINV.v#L108-L292)
-- [Definition of Log1](./algoLog1.v#L82-L93)"""
+- [Definition of Log1](./algoLog1.v#L110-L121)"""
 
 build: [make "-j%{jobs}%"]
 install: [make "install"]
