@@ -149,7 +149,7 @@ Lemma th_prop (e : Z) x :
   [/\ is_imul th (pow (- 42)),
       format th, 
       e  = 0%Z -> th <> 0 -> 0.00587 < Rabs th < 0.347 & 
-      e <> 0 %Z-> th <> 0 ->   0.346 <= Rabs th <= 744.8].
+      e <> 0 %Z-> 0.346 <= Rabs th <= 744.8].
 Proof.
 move=> xIL eB th.
 have LOG2H_pos : 0 < LOG2H by interval.
@@ -172,7 +172,7 @@ have thB : Rabs th <= 744.8.
   by apply: Rlt_le; case: HH.
 have Fth : format th.
   by apply: imul_format imul_th thB _ => //; interval.
-split => // [e_eq0|e_neq0] t_neq0.
+split => // [e_eq0 t_neq0|e_neq0].
   by rewrite /th e_eq0 !Rsimp01 in t_neq0 *; apply: x1B.
 split => //.
 apply: Rle_trans (_ : LOG2H - Rabs x.1 <= _).
@@ -189,7 +189,40 @@ have [/IZR_le|/IZR_le]: (e <= -1)%Z \/ (1 <= e)%Z by lia.
   by left; lra.
 by right; lra.
 Qed.
-      
+
+Local Notation ulp := (ulp beta fexp).
+
+(* TO fix *)
+Lemma imul_ulp z e b : 
+  (emin <= e)%Z -> is_imul z (pow e) -> Rabs z <= b -> b <= (pow (p + e))
+  -> ulp z <= pow (e + 1).
+Proof.
+Admitted.
+
+Lemma tl_prop (e : Z) x : 
+  x \in LOGINV -> (- 1074 <= e <= 1024)%Z ->
+  let tl := RN (IZR e * LOG2L + x.2) in 
+  [/\ is_imul tl (pow (- 104)),
+      e  = 0%Z -> tl <> 0 -> pow (- 52) < Rabs tl < pow (- 43), 
+      e <> 0 %Z-> tl <> 0 -> pow (- 104) <= Rabs tl <= Rpower 2 (- 33.8) &
+      let err1 := Rabs (tl - (IZR e * LOG2L + x.2)) in 
+        (e = 0%Z -> err1 = 0) /\ err1 <= pow (- 83)].
+Proof.
+move=> xIL eB tl.
+have LOG2L_pos : 0 < LOG2L by interval.
+have eRB : Rabs (IZR e) <= 1074.
+  by split_Rabs; rewrite -?opp_IZR; apply: IZR_le; lia.
+have imul_LOG2L := imul_LOG2L.
+have [] := @l1_LOGINV (index x LOGINV); first by rewrite index_mem.
+rewrite nth_index // => _ imul_x2 x2B _.
+have imul_tl : is_imul tl (pow (-104)).
+  apply: is_imul_pow_round.
+  apply: is_imul_add => //.
+  rewrite -[pow (-104)]Rmult_1_l.
+  apply: is_imul_mul; first by exists e; lra.
+  by apply: is_imul_pow_le imul_LOG2L _.
+Admitted.
+
 (* This is lemma 4*)
 
 Lemma hl_logB x : 
