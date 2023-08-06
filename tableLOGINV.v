@@ -685,7 +685,7 @@ Lemma l1_LOGINV i :
   let r := nth 1 INVERSE i in
   let l1 := (nth (1,1) LOGINV i).1 in
   let l2 := (nth (1,1) LOGINV i).2 in
-  [/\ is_imul l1 (pow (- 42)), is_imul l1 (pow (- 104)),
+  [/\ is_imul l1 (pow (- 42)), is_imul l2 (pow (- 104)),
       l1 <> 0 -> 0.00587 < Rabs l1 < 0.347,
       l2 <> 0 ->  pow (- 52) < Rabs l2 < pow (- 43) &
       Rabs (l1 + l2 - (- ln r)) <= pow (- 97)].

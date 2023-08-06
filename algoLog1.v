@@ -124,7 +124,7 @@ Lemma log1_1 :  log1 1 = DWR 0 0.
 Proof.
 have sqrt2B : 1.4 < sqrt 2 < 1.5 by split; interval.
 have F1 : format 1 by apply: format1.
-have aL1 : alpha <= 1 by rewrite /alpha; interval.
+have aL1 : alpha <= 1 <= omega by rewrite /alpha; interval.
 rewrite /log1; case: getRange (getRangeCorrect F1 aL1) => t e.
 rewrite /fst /snd => [] [H1 H2].
 have eE : e = 0%Z.
@@ -143,12 +143,52 @@ have -> : 0x1.00%xR = 1 by lra.
 by rewrite /= !(Rsimp01, Rminus_eq_0, round_0, p1_0, fastTwoSum_0).
 Qed.
 
-Lemma th_prop (e : Z) p : 
-  p \in LOGINV -> 
-  let th := RN (IZR e * LOG2H + p.1) in 
-  [/\ is_imul th (pow -42),
-      th = IZR e * LOG2H + p.1, 
-
+Lemma th_prop (e : Z) x : 
+  x \in LOGINV -> (- 1074 <= e <= 1024)%Z ->
+  let th := IZR e * LOG2H + x.1 in 
+  [/\ is_imul th (pow (- 42)),
+      format th, 
+      e  = 0%Z -> th <> 0 -> 0.00587 < Rabs th < 0.347 & 
+      e <> 0 %Z-> th <> 0 ->   0.346 <= Rabs th <= 744.8].
+Proof.
+move=> xIL eB th.
+have LOG2H_pos : 0 < LOG2H by interval.
+have eRB : Rabs (IZR e) <= 1074.
+  by split_Rabs; rewrite -?opp_IZR; apply: IZR_le; lia.
+have imul_LOG2H := imul_LOG2H.
+have [] := @l1_LOGINV (index x LOGINV); first by rewrite index_mem.
+rewrite nth_index // => imul_x1 _ x1B _ _.
+have imul_th : is_imul th (pow (-42)).
+  apply: is_imul_add => //.
+  exists (e * 3048493539143)%Z.
+  by rewrite LOG2HE -[bpow _ _]/(pow _) mult_IZR; lra.
+have thB : Rabs th <= 744.8.
+  apply: Rle_trans (_ : 1074 * LOG2H + 0.347 <= _); last first.
+    by rewrite LOG2HE; interval.
+  apply: Rle_trans (Rabs_triang _ _) _.
+  rewrite Rabs_mult [Rabs LOG2H]Rabs_pos_eq; last by lra.
+  have [->|/x1B HH] := Req_dec x.1 0; first by rewrite !Rsimp01; nra.
+  apply: Rplus_le_compat; first by nra.
+  by apply: Rlt_le; case: HH.
+have Fth : format th.
+  by apply: imul_format imul_th thB _ => //; interval.
+split => // [e_eq0|e_neq0] t_neq0.
+  by rewrite /th e_eq0 !Rsimp01 in t_neq0 *; apply: x1B.
+split => //.
+apply: Rle_trans (_ : LOG2H - Rabs x.1 <= _).
+  have [->|/x1B HH] := Req_dec x.1 0; first by rewrite LOG2HE; interval.
+  by set u := Rabs _ in HH *; clear LOG2H_pos; interval.
+apply: Rle_trans (_ : Rabs (IZR e * LOG2H) - Rabs x.1 <= _); last first.
+  by rewrite /th; split_Rabs; lra.
+suff : LOG2H <= Rabs (IZR e * LOG2H) by lra.
+rewrite Rabs_mult [Rabs LOG2H]Rabs_pos_eq; last by lra.
+suff C : IZR e <= -1 \/ 1 <= IZR e.
+  suff : 1 <= Rabs (IZR e) by nra.
+  clear x1B thB; split_Rabs; lra.
+have [/IZR_le|/IZR_le]: (e <= -1)%Z \/ (1 <= e)%Z by lia.
+  by left; lra.
+by right; lra.
+Qed.
       
 (* This is lemma 4*)
 
