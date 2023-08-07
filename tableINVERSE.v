@@ -282,7 +282,7 @@ Qed.
 (* This is lemma 3 *)
 
 Lemma rt_float t : 
-  format t -> / sqrt 2 <= t < sqrt 2 ->
+  format t -> / sqrt 2 < t < sqrt 2 ->
   let i := Z.to_nat (Zfloor (pow 8 * t)) in 
   let r := nth 1 INVERSE (i - 181) in 
   let z := r * t - 1 in 
