@@ -538,6 +538,8 @@ have hthB2 : e = 0%Z -> Rabs (h - th) < 0.699.
   case: (H3 e_eq0); last by lra.
   contradict th_neq0.
   by rewrite /th th_neq0 round_0.
+have Fht : format (h - th).
+  have : |z
 Qed.
 
 Lemma err2_err3_e_eq0  x : 

@@ -5,6 +5,8 @@ Require Import Reals  Psatz.
 From Flocq Require Import Core Plus_error Mult_error Relative Sterbenz Operations.
 From Flocq Require Import  Round.
 Require Import mathcomp.ssreflect.ssreflect.
+Require Import Rmore.
+
 Set Implicit Arguments.
 
 Section Main.
@@ -362,6 +364,30 @@ apply/Rabs_le.
     rewrite -Rabs_Ropp Rabs_pos_eq; last lra.
     by move:(bpow_gt_0 beta (ce b -ce s)); nra.
 Qed.
+
+Lemma sma_exact_abs  a b (Fa: format a) (Fb : format b) rnd (valid_rnd :Valid_rnd rnd ) : 
+  Rabs b <= Rabs a ->
+let s := round beta fexp rnd (a + b) in 
+  format (s - a).
+Proof.
+move=> bLa s.
+have [b_eq0|b_neq0] := Req_dec b 0.
+  rewrite /s b_eq0 !Rsimp01 round_generic // Rminus_eq_0.
+  by apply: generic_format_0.
+apply: sma_exact => //.
+by apply: cexp_le.
+Qed.
+
+Lemma sma_exact_abs_or0  a b (Fa: format a) (Fb : format b) rnd (valid_rnd :Valid_rnd rnd ) : 
+  (a = 0 \/ Rabs b <= Rabs a) ->
+let s := round beta fexp rnd (a + b) in 
+  format (s - a).
+Proof.
+move=> [a_eq0| bLa] s.
+  by rewrite /s a_eq0 !Rsimp01 round_generic.
+by apply: sma_exact_abs.
+Qed.
+
 End F2Sum.
 End Main.
 
