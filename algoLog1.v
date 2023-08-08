@@ -404,7 +404,7 @@ congr DWR.
 by rewrite Rminus_eq_0 // round_0 Rsimp01 round_0.
 Qed.
 
-Lemma err2_bound  x : 
+Lemma err2_err3_l_bound  x : 
   format x -> 
   alpha <= x <= omega ->
   let: (t, e) := getRange x in
@@ -680,7 +680,49 @@ have {}ulp_t1tlB1 := ulp_t1tlB1 e_neq0.
 rewrite -/xx in t1tlB1 ulp_t1tlB1.
 by interval.
 Qed.
-    
+
+Lemma err23_l_bound  x : 
+  format x -> 
+  alpha <= x <= omega ->
+  let: (t, e) := getRange x in
+  let i  := getIndex t in
+  let r  := nth 1 INVERSE (i - 181) in
+  let: (l1, l2) := nth (1,1) LOGINV (i - 181) in
+  let z  := RND (r * t  - 1) in
+  let th := RND (IZR e * LOG2H + l1) in 
+  let tl := RND (IZR e * LOG2L + l2) in
+  let: DWR h t1 := fastTwoSum th z in 
+  let l := RND (t1 + tl) in
+  let err2 := Rabs ((h + t1) - (th + z)) in 
+  let err3 := Rabs (l - (t1 + tl)) in
+  let err23 := err2 + err3 in 
+  (e = 0%Z -> err23 <= Rpower 2 (- 94.999)) /\ 
+  (e <> 0%Z -> err23 <= Rpower 2 (- 85.995)).
+Proof.
+move=> Fx xB.
+case E : getRange => [t e] i r.
+case E1 : nth => [l1 l2] z th tl.
+case E2 : fastTwoSum => [h t1] l err2 err3 err23.
+have F1 := err2_err3_l_bound Fx xB.
+  lazy zeta in F1.
+  rewrite E E1 E2 in F1.
+have {}[[err2B1 err2B2] [err3B1 err3B2] [lB1 lB2] imul_l] := F1.
+rewrite -/th -/tl -/l -/err3 -/err2 in err2B1 err2B2 err3B1 err3B2 lB1 lB2 imul_l.
+split => [e_eq0|e_neq0].
+  have {}err2B1 := err2B1 e_eq0.
+  have {}err3B1 := err3B1 e_eq0.
+  by rewrite /err23; interval.
+have {}err2B2 := err2B2 e_neq0.
+have {}err3B2 := err3B2 e_neq0.
+by rewrite /err23; interval.
+Qed.
+
+
+
+  rewrite -/i -/r in F1.
+   /= E1 E2.
+
+
   rewrite /xx.
     rewrite /t; set xx := t1 + tl.
        lra.
