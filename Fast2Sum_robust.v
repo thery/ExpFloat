@@ -379,13 +379,81 @@ by apply: cexp_le.
 Qed.
 
 Lemma sma_exact_abs_or0  a b (Fa: format a) (Fb : format b) rnd (valid_rnd :Valid_rnd rnd ) : 
-  (a = 0 \/ Rabs b <= Rabs a) ->
+  (a <> 0 -> Rabs b <= Rabs a) ->
 let s := round beta fexp rnd (a + b) in 
   format (s - a).
 Proof.
-move=> [a_eq0| bLa] s.
+move=> Hab s.
+have [a_eq0 | a_neq0] := Req_dec a 0.
   by rewrite /s a_eq0 !Rsimp01 round_generic.
-by apply: sma_exact_abs.
+apply: sma_exact_abs => //.
+lra.
+Qed.
+
+Lemma format_Rabs_round_ge f g rnd (valid_rnd :Valid_rnd rnd )  : 
+  format f -> Rabs g <= f -> Rabs (round beta fexp rnd g) <= f.
+Proof.
+move=> Ff fLg.
+set RND := round beta fexp rnd.
+have [g_pos| g_neg] := Rle_dec g 0; last first.
+  rewrite Rabs_pos_eq in fLg; last by lra.
+  rewrite Rabs_pos_eq; last first.
+    have -> : 0 = RND 0 by rewrite /RND round_0.
+    apply: round_le; lra.
+  have -> : f = RND f by rewrite /RND round_generic.
+  apply: round_le; lra.
+rewrite Rabs_left1 // in fLg.
+rewrite Rabs_left1; last first.
+  have -> : 0 = RND 0 by rewrite /RND round_0.
+  apply: round_le; lra.
+suff : -f <= RND g by lra.
+have -> : - f = RND (- f).
+  by rewrite /RND round_generic //; apply: generic_format_opp.
+apply: round_le; lra.
+Qed.
+
+Lemma sma_ulp_round  a b (Fa: format a) (Fb : format b) rnd 
+                    (valid_rnd: Valid_rnd rnd ) : 
+  (a <> 0 -> Rabs b <= Rabs a) ->
+let h := round beta fexp rnd (a + b) in 
+let s := round beta fexp rnd (h - a) in 
+let t := round beta fexp rnd (b - s) in 
+Rabs t <= ulp beta fexp h.
+Proof.
+move=> bLa h s t.
+rewrite /t [s]round_generic; last first.
+  by apply: sma_exact_abs_or0.
+rewrite /h.
+set RND := round beta fexp rnd.
+set xx := a + b.
+have ->: b - (RND xx - a) =  (xx - RND xx) by rewrite /xx; lra.
+have F1 : Rabs (xx - RND xx) <= ulp beta fexp (RND xx).
+  rewrite -Rabs_Ropp Ropp_minus_distr.
+  by apply: error_le_ulp_round.
+apply: format_Rabs_round_ge => //.
+by apply: generic_format_ulp.
+Qed.
+
+Lemma sma_ulp  a b (Fa: format a) (Fb : format b) rnd 
+                   (valid_rnd: Valid_rnd rnd ) : 
+  (a <> 0 -> Rabs b <= Rabs a) ->
+let h := round beta fexp rnd (a + b) in 
+let s := round beta fexp rnd (h - a) in 
+let t := round beta fexp rnd (b - s) in 
+Rabs t <= ulp beta fexp (a + b).
+Proof.
+move=> bLa h s t.
+rewrite /t [s]round_generic; last first.
+  by apply: sma_exact_abs_or0.
+rewrite /h.
+set RND := round beta fexp rnd.
+set xx := a + b.
+have ->: b - (RND xx - a) =  (xx - RND xx) by rewrite /xx; lra.
+have F1 : Rabs (xx - RND xx) <= ulp beta fexp xx.
+  rewrite -Rabs_Ropp Ropp_minus_distr.
+  by apply: error_le_ulp.
+apply: format_Rabs_round_ge => //.
+by apply: generic_format_ulp.
 Qed.
 
 End F2Sum.

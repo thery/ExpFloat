@@ -4,7 +4,7 @@ From Flocq Require Import Core Relative Sterbenz Operations Mult_error.
 From Coquelicot Require Import Coquelicot.
 From Interval Require Import  Tactic.
 Require Import Nmore Rmore Fmore Rstruct MULTmore prelim.
-Require Import tableINVERSE tableLOGINV algoP1.
+Require Import tableINVERSE tableLOGINV algoP1 Fast2Sum_robust.
 
 Delimit Scope R_scope with R.
 Delimit Scope Z_scope with Z.
@@ -441,8 +441,7 @@ have l1l2_in : (l1, l2) \in LOGINV.
   by case/andP: iB.
 have  [H1 H2 H3 H4]:= th_prop l1l2_in eB.
 rewrite /fst in H1 H2 H3 H4.
-have Ht1 : / sqrt 2 <= t < sqrt 2 by lra.
-have [G1 G2 G3] := rt_float (refl_equal _) Ft Ht1.
+have [G1 G2 G3] := rt_float (refl_equal _) Ft Ht.
 rewrite -[Z.to_nat _]/i in G1 G2 G3.
 rewrite -[nth _ _ _]/r in G1 G2 G3.
 have fast_cond : th <> 0 -> Rabs z <= Rabs th.
@@ -538,8 +537,72 @@ have hthB2 : e = 0%Z -> Rabs (h - th) < 0.699.
   case: (H3 e_eq0); last by lra.
   contradict th_neq0.
   by rewrite /th th_neq0 round_0.
+rewrite /fastTwoSum in E1.
+rewrite -[FLT_exp _ _]/fexp in E1.
+rewrite -![round _ _ _ _]/(RND _) in E1.
+have XX : round radix2 fexp rnd (RND (th + z) - th) = RND (RND (th + z) - th).
+  by [].
+rewrite XX in E1.
+have {}XX : round radix2 fexp rnd (z - RND (RND (th + z) - th)) = 
+             RND(z - RND (RND (th + z) - th)).
+  by [].
+rewrite XX in E1.
+case: (E1) => hE t1E.
+rewrite hE in t1E.
 have Fht : format (h - th).
-  have : |z
+  rewrite -hE.
+  apply: sma_exact_abs_or0 => //.
+  by apply: generic_format_round.
+set s := h - th in imul_hth hthB1 hthB2 Fht.
+have imul_t1 : is_imul t1 (pow (-61)).
+  rewrite -t1E -/s.
+  apply: is_imul_pow_round.
+  rewrite [RND s]round_generic //.
+  by apply: is_imul_minus.
+have thzB3 : e <> 0%Z -> Rabs (th + z) < pow 10.
+  move=> e_neq0.
+  have := thzB1 e_neq0.
+  by set xx := Rabs _ => ?; interval.
+have thzB4 : e = 0%Z -> Rabs (th + z) < pow (-1).
+  move=> e_eq0.
+  have := thzB2 e_eq0.
+  by set xx := Rabs _ => ?; interval.
+have Fth : format th by apply: generic_format_round.
+have t1B1 : e <> 0%Z -> Rabs t1 <= pow (- 43).
+  move=> e_neq0.
+  apply: Rle_trans (_ : ulp (th + z) <= _).
+    rewrite -t1E -hE.
+    by apply: sma_ulp.
+  have -> : (- 43 = 10 - p)%Z by [].
+  apply: bound_ulp => //.
+  by apply: thzB3.
+have t1B2 : e = 0%Z -> Rabs t1 <= pow (- 54).
+  move=> e_eq0.
+  apply: Rle_trans (_ : ulp (th + z) <= _).
+    rewrite -t1E -hE.
+    by apply: sma_ulp.
+  have -> : (- 54 = -1 - p)%Z by [].
+  apply: bound_ulp => //.
+  by apply: thzB4.
+split => [e_eq0|e_neq0]; last first.
+  apply: Rle_trans (_ : pow (- 105) * Rabs h <= _).
+    rewrite /err2.
+    have := @fastTwoSum_correct th z Fth G1.
+    rewrite [fastTwoSum _ _]E1.
+    by apply.
+  have := hB1 e_neq0.
+  by set xx := Rabs h => ?; interval.
+apply: Rle_trans (_ : pow (- 105) * Rabs h <= _).
+  rewrite /err2.
+  have := @fastTwoSum_correct th z Fth G1.
+  rewrite [fastTwoSum _ _]E1.
+  by apply.
+have := hB2 e_eq0.
+by set xx := Rabs h => ?; interval.
+Qed.
+
+ Search (- 105)%Z.
+
 Qed.
 
 Lemma err2_err3_e_eq0  x : 
