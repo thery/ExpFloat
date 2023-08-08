@@ -177,7 +177,7 @@ End Pre.
 
 
 (* Lemma 2.5 "robustness 2sum and f2sum" *)
-Lemma sam_exact  a b (Fa: format a) (Fb : format b) rnd (valid_rnd :Valid_rnd rnd ) : 
+Lemma sma_exact  a b (Fa: format a) (Fb : format b) rnd (valid_rnd :Valid_rnd rnd ) : 
   ((ce b ) <= (ce a))%Z ->
 let s := round beta fexp rnd (a + b) in 
   format (s - a).
@@ -362,7 +362,9 @@ apply/Rabs_le.
     rewrite -Rabs_Ropp Rabs_pos_eq; last lra.
     by move:(bpow_gt_0 beta (ce b -ce s)); nra.
 Qed.
-
+End F2Sum.
 End Main.
+
+
 
 
