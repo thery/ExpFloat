@@ -375,14 +375,15 @@ Lemma absolute_rel_error_main (z : R) :
   Rabs z <= 33 * Rpower 2 (-13) ->
   is_imul z (Rpower 2 (-61)) ->
   let: DWR ph pl := p1 z in 
-  (Rabs((ph + pl) - (ln (1 + z) - z)) < Rpower 2 (-75.492) /\ 
-   Rabs ph < Rpower 2 (-16.9) /\
-   Rabs pl < Rpower 2 (-25.446)) /\ 
+  [/\
+  Rabs((ph + pl) - (ln (1 + z) - z)) < Rpower 2 (-75.492), 
   (z <> 0%R ->  
     ((Rabs ((z + ph + pl) / ln (1 + z) -1) < Rpower 2 (- 67.2756)) /\
      (Rabs z < 32 * Rpower 2 (-13) ->
         Rabs ((z + ph + pl) / ln (1 + z) -1) < Rpower 2 (- 67.441)))
-  ).
+  ),
+  (is_imul ph (pow (- 123)) /\ Rabs ph < Rpower 2 (-16.9)) &
+  (is_imul pl (pow (- 543)) /\ Rabs pl < Rpower 2 (-25.446))].
 Proof.
 move=> Fz zB Mz /=.
 rewrite -pow_Rpower // in Mz.
@@ -874,31 +875,33 @@ have ELe75513 : E <= Rpower 2 (- 75.513).
       by apply: Rabs_pos.
     by apply: E0Le.
   by interval.
-split => //.
-  split.
-    apply: Rle_lt_trans (_ : E + Rabs (ln (1 + z) - P z) < _).
-      by rewrite /E; clear; split_Rabs; nra.
-    apply: Rle_lt_trans (_ : Rpower 2 (- 75.513) + Rpower 2 (- 81.63) < _); 
-       last by interval.
-    apply: Rplus_le_compat => //.
-    by apply: P_abs_error.
-  split.
-    rewrite phE Rabs_mult Rabs_left; try lra.
-    apply: Rle_lt_trans (_ : 0.5 * (33 ^ 2 * pow (-13) ^ 2) < _); last first.
-      by interval.
-    pose f := Float beta (33 ^ 2) (- 26).
-    have Ff : format (33 ^ 2 * (pow (-13)) ^ 2).
-      apply: generic_format_FLT.
-      apply: FLT_spec (_ : _ = F2R f) _ _; try by rewrite /=; lia.
-      by rewrite /F2R /= /Z.pow_pos /=; lra.
-    have : wh <= RN (33 ^ 2 * pow (-13) ^ 2).
-      apply: round_le.
-      rewrite -pow2_mult -Rpow_mult_distr.
-      apply: pow_maj_Rabs.
-      by rewrite pow_Rpower.
-    rewrite round_generic // Rabs_pos_eq; last by lra.
-    by lra.
+have phB : Rabs ph < Rpower 2 (-16.9).
+  rewrite phE Rabs_mult Rabs_left; try lra.
+  apply: Rle_lt_trans (_ : 0.5 * (33 ^ 2 * pow (-13) ^ 2) < _); last first.
+    by interval.
+  pose f := Float beta (33 ^ 2) (- 26).
+  have Ff : format (33 ^ 2 * (pow (-13)) ^ 2).
+    apply: generic_format_FLT.
+    apply: FLT_spec (_ : _ = F2R f) _ _; try by rewrite /=; lia.
+    by rewrite /F2R /= /Z.pow_pos /=; lra.
+  have : wh <= RN (33 ^ 2 * pow (-13) ^ 2).
+    apply: round_le.
+    rewrite -pow2_mult -Rpow_mult_distr.
+    apply: pow_maj_Rabs.
+    by rewrite pow_Rpower.
+  rewrite round_generic // Rabs_pos_eq; last by lra.
   by lra.
+split => //; first 2 last.
+- split=> //.
+  rewrite phE.
+  have -> : -0.5 * wh = -(0.5 * wh) by lra.
+  by apply: is_imul_opp.
+- apply: Rle_lt_trans (_ : E + Rabs (ln (1 + z) - P z) < _).
+    by rewrite /E; clear; split_Rabs; nra.
+  apply: Rle_lt_trans (_ : Rpower 2 (- 75.513) + Rpower 2 (- 81.63) < _); 
+      last by interval.
+  apply: Rplus_le_compat => //.
+  by apply: P_abs_error.
 move=> z_neq0.
 have {wh_ge_0}wh_gt_0 : 0 < wh.
   have G1 : is_imul (z * z) (pow (-122)).
@@ -1687,7 +1690,18 @@ rewrite -d0'E.
 by rewrite /= /Z.pow_pos /= in v'wh_N1N0; lra.
 Qed.
 
-Lemma ph_bound_p1 (z : float) :
+Lemma imul_ph_p1 z :
+  format z -> 
+  Rabs z <= 33 * Rpower 2 (-13) ->
+  is_imul z (Rpower 2 (-61)) ->
+  let: DWR ph pl := p1 z in 
+  is_imul ph (pow (- 123)).
+Proof.
+move=> Fz zB Mz.
+by have [_ _ [H _] _] := absolute_rel_error_main Fz zB Mz.
+Qed.
+
+Lemma ph_bound_p1 z :
   format z -> 
   Rabs z <= 33 * Rpower 2 (-13) ->
   is_imul z (Rpower 2 (-61)) ->
@@ -1695,10 +1709,21 @@ Lemma ph_bound_p1 (z : float) :
   Rabs ph < Rpower 2 (-16.9).
 Proof.
 move=> Fz zB Mz.
-by have [[_ [H1 _]] _] := absolute_rel_error_main Fz zB Mz.
+by have [_ _ [_ H] _] := absolute_rel_error_main Fz zB Mz.
 Qed.
 
-Lemma pl_bound_p1 (z : float) :
+Lemma imul_pl_p1 z :
+  format z -> 
+  Rabs z <= 33 * Rpower 2 (-13) ->
+  is_imul z (Rpower 2 (-61)) ->
+  let: DWR ph pl := p1 z in 
+  is_imul pl (pow (- 543)).
+Proof.
+move=> Fz zB Mz.
+by have [_ _ _ [H _]] := absolute_rel_error_main Fz zB Mz.
+Qed.
+
+Lemma pl_bound_p1 z :
   format z -> 
   Rabs z <= 33 * Rpower 2 (-13) ->
   is_imul z (Rpower 2 (-61)) ->
@@ -1706,10 +1731,10 @@ Lemma pl_bound_p1 (z : float) :
   Rabs pl < Rpower 2 (-25.446).
 Proof.
 move=> Fz zB Mz.
-by have [[_ [_ H1]] _] := absolute_rel_error_main Fz zB Mz.
+by have [_ _ _ [_ H]] := absolute_rel_error_main Fz zB Mz.
 Qed.
 
-Lemma absolute_error_p1 (z : float) :
+Lemma absolute_error_p1 z :
   format z -> 
   Rabs z <= 33 * Rpower 2 (-13) ->
   is_imul z (Rpower 2 (-61)) ->
@@ -1717,11 +1742,11 @@ Lemma absolute_error_p1 (z : float) :
   Rabs((ph + pl) - (ln (1 + z) - z)) < Rpower 2 (-75.492).
 Proof.
 move=> Fz zB Mz.
-by have [[H _] _] := absolute_rel_error_main Fz zB Mz.
+by have [H _ _ _] := absolute_rel_error_main Fz zB Mz.
 Qed.
 
-Lemma rel_error_p1 (z : float) :
-  F2R z <> 0 ->  
+Lemma rel_error_p1 z :
+  z <> 0 ->  
   format z -> 
   Rabs z <= 33 * Rpower 2 (-13) ->
   is_imul z (Rpower 2 (-61)) ->
@@ -1729,12 +1754,12 @@ Lemma rel_error_p1 (z : float) :
   Rabs ((z + ph + pl) / ln (1 + z) -1) < Rpower 2 (- 67.2756).
 Proof.
 move=> z_neq0 Fz zB Mz.
-have [_ H] := absolute_rel_error_main Fz zB Mz.
+have [_ H _ _] := absolute_rel_error_main Fz zB Mz.
 by have [H1 _] := H z_neq0.
 Qed.
 
-Lemma rel_error_32_p1 (z : float) :
-  F2R z <> 0 ->  
+Lemma rel_error_32_p1 z :
+  z <> 0 ->  
   format z -> 
   Rabs z < 32 * Rpower 2 (-13) ->
   is_imul z (Rpower 2 (-61)) ->
@@ -1743,7 +1768,7 @@ Lemma rel_error_32_p1 (z : float) :
 Proof.
 move=> z_neq0 Fz zB Mz.
 have zB1 : Rabs z <= 33 * Rpower 2 (-13) by interval.
-have [_ H] := absolute_rel_error_main Fz zB1 Mz.
+have [_ H _ _] := absolute_rel_error_main Fz zB1 Mz.
 have [_ H1] := H z_neq0.
 by apply: H1.
 Qed.

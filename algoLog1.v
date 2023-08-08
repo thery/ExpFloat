@@ -717,30 +717,7 @@ have {}err3B2 := err3B2 e_neq0.
 by rewrite /err23; interval.
 Qed.
 
-
-
-  rewrite -/i -/r in F1.
-   /= E1 E2.
-
-
-  rewrite /xx.
-    rewrite /t; set xx := t1 + tl.
-       lra.
-  rewrite /l.
-  
-      rewrite /err3 /l.
-  
-    set xx := Rabs tl => ?; interval.
-    lra.
-       
-
-Qed.
-
- Search (- 105)%Z.
-
-Qed.
-
-Lemma err2_err3_e_eq0  x : 
+Lemma er_l_bound  x : 
   format x -> 
   alpha <= x <= omega ->
   let: (t, e) := getRange x in
@@ -750,37 +727,81 @@ Lemma err2_err3_e_eq0  x :
   let z  := RND (r * t  - 1) in
   let th := RND (IZR e * LOG2H + l1) in 
   let tl := RND (IZR e * LOG2L + l2) in
-  let: DWR h t := fastTwoSum th z in 
-  let l := RND (t + tl) in
-  let err2 := Rabs ((h + t) - (th + z)) in 
-  let err3 := Rabs (l - (t + tl)) in
-  e = 0%Z -> err2 + err3 <= Rpower 2 (- 94.999).
+  let: DWR h t1 := fastTwoSum th z in 
+  let l := RND (t1 + tl) in
+  let: DWR ph pl := p1 z in
+  let lp := l + pl in 
+  let err5 := Rabs (RND lp - lp) in
+  err5 <= pow (- 78) /\ Rabs (RND lp) < Rpower 2 (- 25.4409).
 Proof.
-move=> Fx aLxLo.
-case: getRange (getRangeCorrect Fx aLxLo) => t e [Ht He].
-rewrite /fst in Ht; rewrite /fst /snd in He.
-move=> i r.
-case E:  (nth (1, 1) LOGINV (i - 181)) => [l1 l2].
-move=> z th tl.
+move=> Fx xB.
+case E : getRange => [t e] i r.
+case E1 : nth => [l1 l2] z th tl.
+case E2 : fastTwoSum => [h t1] l.
+case E3 : p1 => [ph pl] lp err5.
+have imul_l : is_imul l (pow (-104)).
+  have F1 := err2_err3_l_bound Fx xB.
+  lazy zeta in F1.
+  rewrite E E1 E2 in F1.
+  by have {}[_ _ _ imul_l] := F1.
+have Fz : format z by apply: generic_format_round.
+have Ft : format t by have := g  have -> : (- 78 = -25 - p)%Z by [].
+  apply: bound_ulp => //.
+  by set xx := Rabs (l + pl) in lplB *; interval.
 
-  x m\in LOGINV -> (e = 0)%Z ->
-  let th := IZR e * LOG2H + x.1 in 
-  let tl := RND (IZR e * LOG2L + x.2) in 
-(* This is lemma 4*)
 
-Lemma hl_logB x : 
-  alpha <= x -> format x ->
-  let: DWR h l := log1 x in 
-  [/\ Rabs l <= Rpower 2 (- 23.89) * Rabs h,
-      Rabs (h + l - ln x) <= (Rpower 2  (- 67.0544)) * Rabs (ln x) &
-      ~ (sqrt 2 / 2 < x < sqrt 2) -> 
-      Rabs (h + l - ln x) <= (Rpower 2  (- 73.527)) * Rabs (ln x)].
-Proof.
-move=> aLx Fx.
-have sqrt2B : 1.4 < sqrt 2 < 1.5 by split; interval.
-have [x_eq1|x_neq1] := Req_dec x 1.
-  by rewrite x_eq1 log1_1 !Rsimp01; split; [lra | interval | move=> _; interval].
-Admitted.
-  
+have rlpB : Rabs (RND lp) < Rpower 2 (-25.4409).
+split => //.
+etRangeFormat Fx xB; rewrite E.
+have tB : / sqrt 2 < t < sqrt 2.
+  have<- : sqrt 2 / 2 = / sqrt 2.
+    rewrite -{2}[2]pow2_sqrt; last by lra.
+    by field; interval.
+  by have [] := getRangeCorrect Fx xB; rewrite E.
+have zB : Rabs z <= 33 * Rpower 2 (- 13).
+  rewrite - pow_Rpower //.
+  have [] := rt_float _ Ft tB => //.
+  rewrite -/r -/z => Frt1 rtB _.
+  by rewrite /z round_generic.  
+have imul_z : is_imul z (Rpower 2 (-61)).
+  have [] := rt_float _ Ft tB  => // _ _ F1.
+  rewrite - pow_Rpower //.
+  by apply: is_imul_pow_round.
+have imul_pl : is_imul pl (pow (- 543)).
+  have := @imul_pl_p1 _ rnd _ z Fz zB.
+  by rewrite E3; apply.
+have imul_lp : is_imul lp (pow (- 543)).
+  apply: is_imul_add => //.
+  by apply: is_imul_pow_le imul_l _.
+have lB : Rabs l <= Rpower 2 (-33.78).
+  have F1 := err2_err3_l_bound Fx xB.
+  lazy zeta in F1.
+  rewrite E E1 E2 in F1.
+  have {}[_ _ [H1 H2] _] := F1.
+  have [e_eq0|e_neq0] := Z.eq_dec e 0.
+    have {}H1 := H1 e_eq0.
+    rewrite -/l in H1.
+    set xx := Rabs l in H1 *; interval.
+  by have {}H2 := H2 e_neq0.
+have plB : Rabs pl < Rpower 2 (-25.446).
+  have := @pl_bound_p1 _ rnd _ z Fz zB.
+  by rewrite E3; apply.
+have lplB : Rabs (l + pl) < Rpower 2 (- 25.441).
+  apply: Rle_lt_trans (Rabs_triang _ _) _.
+  by set xx := Rabs l in lB *; set yy := Rabs pl in lB *; interval.
+have ulplB : ulp (l + pl) <= pow (- 78).
+  have -> : (- 78 = -25 - p)%Z by [].
+  apply: bound_ulp => //.
+  by set xx := Rabs (l + pl) in lplB *; interval.
+have err5B : err5 <= pow (-78).
+  apply: Rle_trans ulplB.
+  by apply: error_le_ulp.
+split => //.
+apply: Rle_lt_trans (_ : Rabs (l + pl) + ulp (l + pl) < _).
+  suff : Rabs (RND lp - (l + pl)) <= ulp (l + pl) by split_Rabs; nra.
+  by apply: error_le_ulp.
+by set xx := Rabs (l + pl) in lplB; interval.
+Qed.
+
 End Log1.
 
