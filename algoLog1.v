@@ -745,14 +745,7 @@ have imul_l : is_imul l (pow (-104)).
   rewrite E E1 E2 in F1.
   by have {}[_ _ _ imul_l] := F1.
 have Fz : format z by apply: generic_format_round.
-have Ft : format t by have := g  have -> : (- 78 = -25 - p)%Z by [].
-  apply: bound_ulp => //.
-  by set xx := Rabs (l + pl) in lplB *; interval.
-
-
-have rlpB : Rabs (RND lp) < Rpower 2 (-25.4409).
-split => //.
-etRangeFormat Fx xB; rewrite E.
+have Ft : format t by have := getRangeFormat Fx xB; rewrite E.
 have tB : / sqrt 2 < t < sqrt 2.
   have<- : sqrt 2 / 2 = / sqrt 2.
     rewrite -{2}[2]pow2_sqrt; last by lra.
