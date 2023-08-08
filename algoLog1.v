@@ -796,5 +796,134 @@ apply: Rle_lt_trans (_ : Rabs (l + pl) + ulp (l + pl) < _).
 by set xx := Rabs (l + pl) in lplB; interval.
 Qed.
 
+Lemma relative_error_eps x :
+  pow (emin + p - 1) <= Rabs x ->
+  Rabs x * (1 - pow (- p + 1)) <=  Rabs (RND x).
+Proof.
+move=> xB.
+have F1 :  Rabs (RND x - x) < pow (- p + 1) * Rabs x.
+  by apply: relative_error_FLT.
+by split_Rabs; nra.
+Qed.
+
+Lemma xxx_bound  x : 
+  format x -> 
+  alpha <= x <= omega ->
+  let: (t, e) := getRange x in
+  let i  := getIndex t in
+  let r  := nth 1 INVERSE (i - 181) in
+  let: (l1, l2) := nth (1,1) LOGINV (i - 181) in
+  let z  := RND (r * t  - 1) in
+  let th := RND (IZR e * LOG2H + l1) in 
+  let tl := RND (IZR e * LOG2L + l2) in
+  let: DWR h t1 := fastTwoSum th z in 
+  let l := RND (t1 + tl) in
+  let: DWR ph pl := p1 z in
+  let lp := l + pl in 
+  let: DWR h' t' := fastTwoSum h ph in
+  let l' := RND (t' + RND lp) in   
+  let err4 := Rabs ((h' + t') - (h + ph)) in
+  let err6 := Rabs (l' - (t' + RND lp)) in
+  err4 + err6 <= Rpower 2 (- 77.9999).
+Proof.
+move=> Fx xB.
+case E : getRange => [t e] i r.
+case E1 : nth => [l1 l2] z th tl.
+case E2 : fastTwoSum => [h t1] l.
+case E3 : p1 => [ph pl] lp.
+case E4 : fastTwoSum => [h' t'] l' err4 err6.
+have [h_eq0|h_neq0] := Req_dec h 0.
+  have h'E : h' = ph.
+    rewrite h_eq0 fastTwoSum_0l // in E4; first by case: E4.
+    case: E3 => <- _.
+    by apply: generic_format_round.
+  have t'E : t' = 0.
+    rewrite h_eq0 fastTwoSum_0l // in E4; first by case: E4.
+    case: E3 => <- _.
+    by apply: generic_format_round.
+  have l'E : l' = RND lp.
+    by rewrite /l' t'E Rsimp01 round_generic //; apply: generic_format_round.
+  rewrite /err4 h'E t'E h_eq0 !Rsimp01 Rminus_eq_0 !Rsimp01.
+  rewrite /err6 l'E t'E !Rsimp01 Rminus_eq_0 !Rsimp01.
+  by interval.
+have Fz : format z by apply: generic_format_round.
+have Ft : format t by have := getRangeFormat Fx xB; rewrite E.
+have tB : / sqrt 2 < t < sqrt 2.
+  have<- : sqrt 2 / 2 = / sqrt 2.
+    rewrite -{2}[2]pow2_sqrt; last by lra.
+    by field; interval.
+  by have [] := getRangeCorrect Fx xB; rewrite E.
+have zB : Rabs z <= 33 * Rpower 2 (- 13).
+  rewrite - pow_Rpower //.
+  have [] := rt_float _ Ft tB => //.
+  rewrite -/r -/z => Frt1 rtB _.
+  by rewrite /z round_generic.  
+have fast_cond : h <> 0 -> Rabs ph <= Rabs h.
+  move=> _.
+  have [th_eq0|th_neq0] := Req_dec th 0.
+    have hE : h = z.
+      rewrite th_eq0 fastTwoSum_0l // in E2.
+      by case: E2.
+    rewrite hE.
+    have zB1 : Rabs z <= 1 by set xx := Rabs z in zB *; interval.
+    have z2B : z * z <= Rabs z.
+       have -> : z * z = Rabs z * Rabs z by split_Rabs; lra.
+       suff : 0 <= Rabs z by nra.
+       by apply: Rabs_pos.
+    apply: Rle_trans (_ : RND (z * z) <= _) => //.
+      have phE : ph = - 0.5 * RND (z * z).
+        case: E3 => <- _.
+        rewrite -[round _ _ _]/RND round_generic //.
+        have -> : -0.5 * RND (z * z) = - (0.5 * RND (z * z)) by lra.
+        have imul_z : is_imul (z) (pow (- 61)).
+          apply: is_imul_pow_round.
+          by have [] := rt_float _ Ft tB.
+        have imul_zz : is_imul ((z * z)) (pow (- 122)).
+          have -> : (- 122 = (- 61) + (- 61))%Z by [].
+          by rewrite bpow_plus; apply: is_imul_mul.
+        have imul_rzz : is_imul (RND (z * z)) (pow (- 122)).
+          by apply: is_imul_pow_round.
+        apply: generic_format_opp.
+        apply: is_imul_format_half imul_rzz _ => //.
+        by apply: generic_format_round.
+      have tphE : 2 * Rabs ph = RND (z * z).
+        suff : 0 <= RND (z * z) by rewrite phE; split_Rabs; lra.
+        have -> : 0 = RND 0 by rewrite round_0.
+        by apply: round_le; nra.
+      rewrite -tphE.
+      by split_Rabs; lra.
+    have-> : Rabs z = RND (Rabs z).
+      rewrite round_generic //. 
+      by apply: generic_format_abs.
+    by apply: round_le.
+  have hE : h = RND (th + z) by case: E2.
+  
+  Search "error" "relative" FLT_exp.
+  apply: Rle_trans 
+
+    rewrite phE.
+    
+      Search 0.5.
+
+    rewrite /ph.
+      have -> : z ^ 2 = z * z by lra.
+      rewrite Rabs_mult.
+      suff : 0 <= Rabs z by nra.
+      by apply: Rabs_pos.
+    
+    
+      Search (Rabs (_ ^ 2)).
+    
+
+
+  
+    
+
+    rewrite /h'.
+
+
+apply: Rle_trans (_ : Rpower 2 (- 95.4589) + pow (- 78) <= _).
+
+
 End Log1.
 
