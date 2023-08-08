@@ -660,18 +660,27 @@ Definition FLOGINV : seq (float * float) :=
 
 Lemma map_FLOGINV : [seq (F2R i.1, F2R i.2) | i <- FLOGINV] = LOGINV.
 Proof.
-rewrite /FLOGINV /LOGINV /F2R /= /Z.pow_pos //=.
-repeat (congr cons); congr (_, _); lra.
+do 90 (congr [:: (_, _), (_, _) & _];
+  [rewrite /F2R /= /Z.pow_pos /=; lra|
+  rewrite /F2R /= /Z.pow_pos /=; lra|
+  rewrite /F2R /= /Z.pow_pos /=; lra|
+  rewrite /F2R /= /Z.pow_pos /=; lra|
+   idtac]).
+by do 2 (congr [:: (_, _) & _]; try by rewrite /F2R /= /Z.pow_pos /=; lra).
 Qed.
 
 Lemma format_LOGINV x : x \in LOGINV -> format x.1 /\ format x.2.
 Proof.
 rewrite -map_FLOGINV.
-do ! (
-rewrite in_cons => /orP[/eqP->|]; first by 
-  split; apply: generic_format_FLT; apply: FLT_spec (refl_equal _) _ _ => 
-           /=; lia).
-by [].
+have F y z l :
+   format y -> format z -> (x \in l -> format x.1 /\ format x.2) ->
+  (x \in [:: (y, z) & l] -> format x.1 /\ format x.2).
+  by move=> Fy Fz IH; rewrite in_cons => /orP[/eqP->|/IH//].
+do 181 (apply: (F); 
+  [(by apply: generic_format_FLT; apply: FLT_spec (refl_equal _) _ _)|
+    by apply: generic_format_FLT; apply: FLT_spec (refl_equal _) _ _ | idtac]).
+by apply: F => //;
+  apply: generic_format_FLT; apply: FLT_spec (refl_equal _) _ _.
 Qed.
 
 Lemma size_LOGINV : size LOGINV = 182%N.

@@ -136,6 +136,12 @@ Lemma fastTwoSum_correct a b :
   Rabs (h + l - (a + b)) <= pow (- 105) * Rabs h.
 Admitted.
 
+Lemma error_le_ulp_add x : Rabs (RND x) <= Rabs x + ulp x.
+Proof.
+have : Rabs (RND x - x) <= ulp x by apply: error_le_ulp.
+split_Rabs; lra.
+Qed.
+
 (* Lemma 1 *)
 Lemma fastSum_correct a bh bl : 
   format a -> format bh -> format bl -> (a <> 0 -> Rabs bh <= Rabs a) ->
@@ -189,7 +195,7 @@ have iE : i = 256%N.
   by rewrite {}/i /getIndex tE Rmult_1_r /= /Z.pow_pos /= Zfloor_IZR.
 rewrite iE ![nth _ _ _]/= tE eE !Rsimp01.
 have -> : 0x1.00%xR = 1 by lra.
-by rewrite /= !(Rsimp01, Rminus_eq_0, round_0, p1_0, fastTwoSum_0).
+by rewrite /= !(Rsimp01, round_0, p1_0, fastTwoSum_0).
 Qed.
 
 Lemma th_prop (e : Z) x : 
@@ -377,15 +383,13 @@ have tlB2 : e <> 0%Z -> tl <> 0 -> pow (-104) <= Rabs tl <= Rpower 2 (-33.8).
     by interval.
   apply: Rle_trans (_ : Rabs (IZR e * LOG2L + x.2) + ulp (IZR e * LOG2L + x.2) <= _); last first.
     lra.
-  set xx := IZR e * LOG2L + x.2.
-  suff: Rabs (RND xx - xx) <= ulp xx by split_Rabs; lra.
-  by apply: error_le_ulp.
+  by apply: error_le_ulp_add.
 split => // err1.
 split.
   move=> e_eq0.
   rewrite /err1 /tl e_eq0 !Rsimp01.
   have [_ f_x2] := format_LOGINV xIL.
-  by rewrite round_generic // Rminus_eq_0 !Rsimp01.
+  by rewrite round_generic // !Rsimp01.
 apply: Rle_trans (_ : ulp (IZR e * LOG2L + x.2) <= _) => //.
 by apply: error_le_ulp.
 Qed.
@@ -393,15 +397,12 @@ Qed.
 Lemma fastTwoSum_0l f : format f -> fastTwoSum 0 f = DWR f 0.
 Proof.
 move=> Ff; rewrite /fastTwoSum !Rsimp01 round_generic //.
-congr DWR.
-by rewrite (round_generic _ _ _ f) // Rminus_eq_0 round_0.
+by rewrite (round_generic _ _ _ f) // !Rsimp01 round_0.
 Qed.
 
 Lemma fastTwoSum_0r f : format f -> fastTwoSum f 0 = DWR f 0.
 Proof.
-move=> Ff; rewrite /fastTwoSum !Rsimp01 round_generic //.
-congr DWR.
-by rewrite Rminus_eq_0 // round_0 Rsimp01 round_0.
+by move=> Ff; rewrite /fastTwoSum !Rsimp01 round_generic // !(Rsimp01, round_0).
 Qed.
 
 Lemma err2_err3_l_bound  x : 
@@ -468,13 +469,13 @@ have [L1 L2 L3 [L4 L5]] := tl_prop l1l2_in eB.
 have [th_eq0|th_neq0] := Req_dec th 0.
   rewrite th_eq0 fastTwoSum_0l //; last first.
     by apply: generic_format_round.
-  rewrite !(Rminus_eq_0, round_0, Rsimp01).
+  rewrite !(round_0, Rsimp01).
   split; try split; try by (move=> _; interval).
   - move=> _; rewrite round_generic //.
-      by rewrite Rminus_eq_0 Rabs_R0; apply: bpow_ge_0.
+      by rewrite !Rsimp01; apply: bpow_ge_0.
     by apply: generic_format_round.
   - move=> _; rewrite round_generic //.
-      by rewrite Rminus_eq_0 Rabs_R0; apply: bpow_ge_0.
+      by rewrite !Rsimp01; apply: bpow_ge_0.
     by apply: generic_format_round.
   - move=> e_eq0; rewrite round_generic //; last by apply: generic_format_round.
     have [->|tl_neq0] := Req_dec tl 0; first by interval.
@@ -521,8 +522,7 @@ have hB1 : e <> 0%Z -> Rabs h < 745.
   have ->: h = RND (th + z) by case: E1.
   set y := th + z in thzB1 *.
   apply: Rle_lt_trans (_ : Rabs y + ulp y < _).
-    suff: Rabs (RND y - y) <= ulp y by split_Rabs; lra.
-    by apply: error_le_ulp.
+    by apply: error_le_ulp_add.
   have {}thzB1 := thzB1 e_neq0.
   have ulp_B : ulp y <= pow (10 - p).
     apply: bound_ulp => //.
@@ -533,8 +533,7 @@ have hB2 : e = 0%Z -> Rabs h < 0.352.
   have ->: h = RND (th + z) by case: E1.
   set y := th + z in thzB2 *.
   apply: Rle_lt_trans (_ : Rabs y + ulp y < _).
-    suff: Rabs (RND y - y) <= ulp y by split_Rabs; lra.
-    by apply: error_le_ulp.
+    by apply: error_le_ulp_add.
   have {}thzB2 := thzB2 e_eq0.
   have ulp_B : ulp y <= pow (-1 - p).
     apply: bound_ulp => //.
@@ -657,24 +656,20 @@ split => //.
   have := hB2 e_eq0.
   by set xx := Rabs h => ?; interval.
 - split => [e_eq0|e_neq0]; last first.
-    apply: Rle_trans (_ : ulp (t1 + tl) <= _) => //.
-      by apply: error_le_ulp.
+    apply: Rle_trans (_ : ulp (t1 + tl) <= _); first by apply: error_le_ulp.
     by apply: ulp_t1tlB1.
-  apply: Rle_trans (_ : ulp (t1 + tl) <= _) => //.
-    by apply: error_le_ulp.
+  apply: Rle_trans (_ : ulp (t1 + tl) <= _); first by apply: error_le_ulp.
   by apply: ulp_t1tlB2.
 rewrite /l; set xx := t1 + tl.
 split => [e_eq0|e_neq0].
   apply: Rle_trans (_ : Rabs xx + ulp xx <= _).
-    have : Rabs (RND xx - xx) <= ulp xx by apply: error_le_ulp.
-    by clear; split_Rabs; lra.
+    by apply: error_le_ulp_add.
   have {}t1tlB2 := t1tlB2 e_eq0.
   have {}ulp_t1tlB2 := ulp_t1tlB2 e_eq0.
   rewrite -/xx in t1tlB2 ulp_t1tlB2.
   by interval.
 apply: Rle_trans (_ : Rabs xx + ulp xx <= _).
-  have : Rabs (RND xx - xx) <= ulp xx by apply: error_le_ulp.
-  by clear; split_Rabs; lra.
+  by apply: error_le_ulp_add.
 have {}t1tlB1 := t1tlB1 e_neq0.
 have {}ulp_t1tlB1 := ulp_t1tlB1 e_neq0.
 rewrite -/xx in t1tlB1 ulp_t1tlB1.
@@ -791,8 +786,7 @@ have err5B : err5 <= pow (-78).
   by apply: error_le_ulp.
 split => //.
 apply: Rle_lt_trans (_ : Rabs (l + pl) + ulp (l + pl) < _).
-  suff : Rabs (RND lp - (l + pl)) <= ulp (l + pl) by split_Rabs; nra.
-  by apply: error_le_ulp.
+  by apply: error_le_ulp_add.
 by set xx := Rabs (l + pl) in lplB; interval.
 Qed.
 
@@ -843,8 +837,7 @@ have [h_eq0|h_neq0] := Req_dec h 0.
     by apply: generic_format_round.
   have l'E : l' = RND lp.
     by rewrite /l' t'E Rsimp01 round_generic //; apply: generic_format_round.
-  rewrite /err4 h'E t'E h_eq0 !Rsimp01 Rminus_eq_0 !Rsimp01.
-  rewrite /err6 l'E t'E !Rsimp01 Rminus_eq_0 !Rsimp01.
+  rewrite /err4 /err6 h'E l'E t'E h_eq0 !Rsimp01.
   by interval.
 have Fz : format z by apply: generic_format_round.
 have Ft : format t by have := getRangeFormat Fx xB; rewrite E.
@@ -897,33 +890,7 @@ have fast_cond : h <> 0 -> Rabs ph <= Rabs h.
       by apply: generic_format_abs.
     by apply: round_le.
   have hE : h = RND (th + z) by case: E2.
-  
-  Search "error" "relative" FLT_exp.
-  apply: Rle_trans 
-
-    rewrite phE.
-    
-      Search 0.5.
-
-    rewrite /ph.
-      have -> : z ^ 2 = z * z by lra.
-      rewrite Rabs_mult.
-      suff : 0 <= Rabs z by nra.
-      by apply: Rabs_pos.
-    
-    
-      Search (Rabs (_ ^ 2)).
-    
-
-
-  
-    
-
-    rewrite /h'.
-
-
-apply: Rle_trans (_ : Rpower 2 (- 95.4589) + pow (- 78) <= _).
-
+Admitted.
 
 End Log1.
 
