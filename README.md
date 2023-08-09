@@ -18,7 +18,7 @@ Exponential in binary 64
 Progress
 
 Algorithm P1 : 
-- [Algotiyhm P1](./algoP1.v#L360-L368)
+- [Algotiyhm P1](./algoP1.v#L358-L366)
 - [Absolute error of Sollya polynomial](./algoP1.v#L151-L153)
 - [Relative error of Sollya polynomial](./algoP1.v#L342-L344)
 - [Bound of `ph` of algorithm P1](./algoP1.v#L1690-L1695)
@@ -51,7 +51,15 @@ Algorithm Log1 :
 
 ## Building and installation instructions
 
-To build and install manually, do:
+The easiest way to install the latest released version of ExpFloat
+is via [OPAM](https://opam.ocaml.org/doc/Install.html):
+
+```shell
+opam repo add coq-released https://coq.inria.fr/opam/released
+opam install coq-expfloat
+```
+
+To instead build and install manually, do:
 
 ``` shell
 git clone https://github.com/thery/expfloat.git

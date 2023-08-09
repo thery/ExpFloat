@@ -15,7 +15,7 @@ description: |-
   Progress
 
   Algorithm P1 : 
-  - [Algotiyhm P1](./algoP1.v#L360-L368)
+  - [Algotiyhm P1](./algoP1.v#L358-L366)
   - [Absolute error of Sollya polynomial](./algoP1.v#L151-L153)
   - [Relative error of Sollya polynomial](./algoP1.v#L342-L344)
   - [Bound of `ph` of algorithm P1](./algoP1.v#L1690-L1695)
