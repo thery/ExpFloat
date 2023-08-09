@@ -906,9 +906,25 @@ have fast_cond : h <> 0 -> Rabs ph <= Rabs h.
     apply: is_imul_pow_le (_ : is_imul _ (pow (- 61))) _ => //.
     apply: is_imul_add => //.
     by apply: is_imul_pow_le imul_th _.
+  have pow1p_gt_0 : 0 < 1 - pow (- p + 1) by interval.
   apply: Rle_trans (_ :  (Rabs th - Rabs z) * (1 - pow (- p + 1)) <= _); last first.
-    have: 0 < 1 - pow (- p + 1) by interval.
     by split_Rabs; nra.
+  apply: Rle_trans (_ : Rpower 2 (-16.9) <= _).
+    apply: Rlt_le.
+    have := ph_bound_p1 _ Fz zB imul_z.
+    by case: E3 => <- _; apply.
+  apply: Rle_trans (_ : (0.00587 - 33 * pow (- 13)) * (1 - pow (- p + 1)) <= _).
+    by interval.
+  suff : 0.00587 <= Rabs th  by nra.
+  have  [H1 H2 H3 H4]:= th_prop l1l2_in eB.
+  rewrite /fst in H3 H4.
+  rewrite /th round_generic //.
+  have [e_eq0|e_neq0] := Z.eq_dec e 0.
+    have {}H3 := H3 e_eq0.
+    case: H3; last by lra.
+    by move=> HH; rewrite /th HH round_0 in th_neq0.
+  have {}H4 := H4 e_neq0.
+  by lra.
 Admitted.
 
 End Log1.
