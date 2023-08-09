@@ -129,19 +129,16 @@ move=> Fx [x_gt_1 x_le_omega] ; split; last first.
     interval with (i_prec 54).
   - by apply: IZR_lt.
   by apply: IZR_lt.
-have sE : succ radix2 fexp 1 = 1 + Rpower 2 (-52).
+have sE : succ radix2 fexp 1 = 1 + pow (-52).
   rewrite /succ /=.
   (case: Rle_bool_spec; try lra) => _.
-  rewrite ulp_neq_0 //= /Generic_fmt.cexp mag_1 /fexp.
-  rewrite -[Z.max _ _]/(-52)%Z.
-  by rewrite bpow_powerRZ powerRZ_Rpower; last by apply: IZR_lt.
+  by rewrite ulp_neq_0 //= /Generic_fmt.cexp mag_1 /fexp.
 apply: Rle_trans (_ : ln (succ radix2 fexp 1) <= _).
   rewrite sE.
   by interval with (i_prec 54).
 apply: ln_le; last by apply: succ_le_lt => //; apply: format1.
-suff : 0 < Rpower 2 (- 52) by rewrite sE; lra.
-rewrite -powerRZ_Rpower; last by lra.
-apply: powerRZ_lt; lra.
+suff : 0 < pow (- 52) by rewrite sE; lra.
+by apply: bpow_gt_0.
 Qed.
 
 Lemma ln_pow1022_ge x : 
@@ -154,15 +151,12 @@ move=> Fx [x_ge_alpha x_lt_1] ; split.
   rewrite /alpha /omega !bpow_powerRZ !powerRZ_Rpower; try by apply: IZR_lt.
   rewrite -[IZR beta]/2 -[IZR (- p)]/(-53) -[IZR emax]/1024.
   interval with (i_prec 54).
-have sE : pred radix2 fexp 1 = 1 - Rpower 2 (-53).
+have sE : pred radix2 fexp 1 = 1 - pow (-53).
   rewrite /pred /= /succ.
   (case: Rle_bool_spec; try lra) => _.
   have -> : (- - (1) = 1)%R by lra.
   rewrite /pred_pos mag_1 /=.
-  (case: Req_bool_spec; try lra) => _.
-  rewrite /Z.pow_pos /=.
-  rewrite -powerRZ_Rpower; last by apply: IZR_lt.
-  by rewrite /powerRZ /=; lra.
+  by case: Req_bool_spec; lra.
 apply: Rle_trans (_ : ln (pred radix2 fexp 1) <= _); last first.
   rewrite sE.
   rewrite bpow_powerRZ powerRZ_Rpower; last by apply: IZR_lt.
@@ -178,6 +172,7 @@ apply: succ_le_lt.
 apply: pred_lt => //.
 by apply: format1.
 Qed.
+
 Local Notation ulp := (ulp beta fexp).
 
 Coercion F2R : float >-> R.

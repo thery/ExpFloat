@@ -57,7 +57,7 @@ Variable getRange : R -> R * Z.
 
 Hypothesis getRangeCorrect : 
   forall f,  format f -> alpha <= f <= omega -> 
-    sqrt 2 / 2 < (getRange f).1 < sqrt 2 /\ 
+    / sqrt 2 < (getRange f).1 < sqrt 2 /\ 
     f = ((getRange f).1) * pow (getRange f).2.
 
 Hypothesis getRangeFormat : 
@@ -68,23 +68,17 @@ Lemma getRange_bound f :
 Proof.
 move=> aF aB.
 have sqrt2B : 1.4 < sqrt 2 < 1.5 by split; interval.
+have sqrt2BI : 0.6 < / sqrt 2 < 0.8 by split; interval.
 have [tN eB] := getRangeCorrect aF aB.
 set t := (_).1 in eB tN; set e := (_).2 in eB *.
 suff:  (- 1075 < e < 1025)%Z by lia.
-suff : -1075 < IZR e < 1025 by case; split; apply/lt_IZR.
-suff:  Rpower 2 (- 1075) < Rpower 2 (IZR e) < Rpower 2 (1025).
-  have: IZR e <= - 1075 -> Rpower 2 (IZR e) <= Rpower 2 (- 1075).
-    by apply: Rle_Rpower; lra.
-  have: 1025 <= IZR e -> Rpower 2 1025 <= Rpower 2 (IZR e).
-    by apply: Rle_Rpower; lra.
-  by lra.
-have -> : Rpower 2 (IZR e) = pow e by rewrite pow_Rpower.
-suff : t * Rpower 2 (-1075) < t * pow e < t * Rpower 2 1025 by nra.
-suff : sqrt 2 * Rpower 2 (-1075) < t * pow e < sqrt 2 / 2 * Rpower 2 1025.
-  have : 0 < Rpower 2 (- 1075).
-    by rewrite -pow_Rpower //; apply: bpow_gt_0.
-  suff : 0 < Rpower 2 (1025) by nra.
-  by rewrite -pow_Rpower //; apply: bpow_gt_0.
+suff:  pow (- 1075) < pow e < pow (1025).
+  by move=> [? ?]; split; apply: (lt_bpow radix2).
+suff : t * pow (- 1075) < t * pow e < t * pow 1025 by nra.
+suff : sqrt 2 * pow (- 1075) < t * pow e < / sqrt 2 * pow 1025.
+  have : 0 < pow (- 1075) by apply: bpow_gt_0.
+  have : 0 < pow 1025 by apply: bpow_gt_0.
+  by nra.
 rewrite -eB; rewrite /alpha /omega in aB.
 split; interval with (i_prec 40).
 Qed.
@@ -178,6 +172,7 @@ Definition log1 x :=
 Lemma log1_1 :  log1 1 = DWR 0 0.
 Proof.
 have sqrt2B : 1.4 < sqrt 2 < 1.5 by split; interval.
+have sqrt2BI : 0.6 < / sqrt 2 < 0.8 by split; interval.
 have F1 : format 1 by apply: format1.
 have aL1 : alpha <= 1 <= omega by rewrite /alpha; interval.
 rewrite /log1; case: getRange (getRangeCorrect F1 aL1) => t e.
@@ -388,7 +383,7 @@ split => // err1.
 split.
   move=> e_eq0.
   rewrite /err1 /tl e_eq0 !Rsimp01.
-  have [_ f_x2] := format_LOGINV xIL.
+  have [_ f_x2] := format_LOGINV (refl_equal _) xIL.
   by rewrite round_generic // !Rsimp01.
 apply: Rle_trans (_ : ulp (IZR e * LOG2L + x.2) <= _) => //.
 by apply: error_le_ulp.
@@ -434,10 +429,6 @@ case: getRange (getRangeCorrect Fx aLxLo) (getRange_bound Fx aLxLo)
    => t e [Ht He] eB Ft.
 rewrite /fst in Ht Ft; rewrite /fst /snd in He; rewrite /snd in eB.
 move=> i r.
-have sqrt2E : sqrt 2 / 2 = / sqrt 2.
-  rewrite -{2}[2]pow2_sqrt; last by lra.
-  by field; lra.
-rewrite sqrt2E in Ht.
 have iB := getIndexBound Ht.
 rewrite -/i in iB.
 case E:  (nth (1, 1) LOGINV (i - 181)) => [l1 l2].
@@ -742,18 +733,13 @@ have imul_l : is_imul l (pow (-104)).
 have Fz : format z by apply: generic_format_round.
 have Ft : format t by have := getRangeFormat Fx xB; rewrite E.
 have tB : / sqrt 2 < t < sqrt 2.
-  have<- : sqrt 2 / 2 = / sqrt 2.
-    rewrite -{2}[2]pow2_sqrt; last by lra.
-    by field; interval.
   by have [] := getRangeCorrect Fx xB; rewrite E.
-have zB : Rabs z <= 33 * Rpower 2 (- 13).
-  rewrite - pow_Rpower //.
+have zB : Rabs z <= 33 * pow (- 13).
   have [] := rt_float _ Ft tB => //.
   rewrite -/r -/z => Frt1 rtB _.
   by rewrite /z round_generic.  
-have imul_z : is_imul z (Rpower 2 (-61)).
+have imul_z : is_imul z (pow (- 61)).
   have [] := rt_float _ Ft tB  => // _ _ F1.
-  rewrite - pow_Rpower //.
   by apply: is_imul_pow_round.
 have imul_pl : is_imul pl (pow (- 543)).
   have := @imul_pl_p1 _ rnd _ z Fz zB.
@@ -842,14 +828,14 @@ have [h_eq0|h_neq0] := Req_dec h 0.
 have Fz : format z by apply: generic_format_round.
 have Ft : format t by have := getRangeFormat Fx xB; rewrite E.
 have tB : / sqrt 2 < t < sqrt 2.
-  have<- : sqrt 2 / 2 = / sqrt 2.
-    rewrite -{2}[2]pow2_sqrt; last by lra.
-    by field; interval.
   by have [] := getRangeCorrect Fx xB; rewrite E.
-have zB : Rabs z <= 33 * Rpower 2 (- 13).
-  rewrite - pow_Rpower //.
+have zB : Rabs z <= 33 * pow (- 13).
   have [] := rt_float _ Ft tB => //.
   rewrite -/r -/z => Frt1 rtB _.
+  by rewrite /z round_generic.  
+have imul_z : is_imul z (pow (- 61)).
+  have [] := rt_float _ Ft tB => //.
+  rewrite -/r -/z => Frt1 rtB imul_rt.
   by rewrite /z round_generic.  
 have fast_cond : h <> 0 -> Rabs ph <= Rabs h.
   move=> _.
@@ -868,9 +854,6 @@ have fast_cond : h <> 0 -> Rabs ph <= Rabs h.
         case: E3 => <- _.
         rewrite -[round _ _ _]/RND round_generic //.
         have -> : -0.5 * RND (z * z) = - (0.5 * RND (z * z)) by lra.
-        have imul_z : is_imul (z) (pow (- 61)).
-          apply: is_imul_pow_round.
-          by have [] := rt_float _ Ft tB.
         have imul_zz : is_imul ((z * z)) (pow (- 122)).
           have -> : (- 122 = (- 61) + (- 61))%Z by [].
           by rewrite bpow_plus; apply: is_imul_mul.
@@ -890,6 +873,10 @@ have fast_cond : h <> 0 -> Rabs ph <= Rabs h.
       by apply: generic_format_abs.
     by apply: round_le.
   have hE : h = RND (th + z) by case: E2.
+  rewrite hE.
+  apply: Rle_trans (_ :  Rabs (th + z) * (1 - pow (- p + 1)) <= _); last first.
+    apply: relative_error_eps.
+    rewrite [(_ - _)%Z]/=.
 Admitted.
 
 End Log1.
