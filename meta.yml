@@ -19,7 +19,7 @@ description: |-
   - [Absolute error of Sollya polynomial](./algoP1.v#L151-L152)
   - [Relative error of Sollya polynomial](./algoP1.v#L340-L342)
   - [Bound of `ph` of algorithm P1](./algoP1.v#L1669-L1674)
-  - [Bound of `pl` of algorithm P1](./algoP1.v#L1691-L11696)
+  - [Bound of `pl` of algorithm P1](./algoP1.v#L1691-L1696)
   - [Absolute error of algorithm P1](./algoP1.v#L1702-L1707)
   - [Relative error of algorithm P1](./algoP1.v#L1713-L1719)
   - [Refined relative error of algorithm P1](./algoP1.v#L1726-L1732)
