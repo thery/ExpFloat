@@ -690,8 +690,8 @@ case E : getRange => [t e] i r.
 case E1 : nth => [l1 l2] z th tl.
 case E2 : fastTwoSum => [h t1] l err2 err3 err23.
 have F1 := err2_err3_l_bound Fx xB.
-  lazy zeta in F1.
-  rewrite E E1 E2 in F1.
+lazy zeta in F1.
+rewrite E E1 E2 in F1.
 have {}[[err2B1 err2B2] [err3B1 err3B2] [lB1 lB2] imul_l] := F1.
 rewrite -/th -/tl -/l -/err3 -/err2 in err2B1 err2B2 err3B1 err3B2 lB1 lB2 imul_l.
 split => [e_eq0|e_neq0].
@@ -786,6 +786,17 @@ have F1 :  Rabs (RND x - x) < pow (- p + 1) * Rabs x.
 by split_Rabs; nra.
 Qed.
 
+Lemma is_imul_pow_le_abs x y : is_imul x (pow y) -> x <> 0 -> pow y <= Rabs x.
+Proof.
+case=> [k ->] ke_neq0.
+have powy_gt_0 : 0 < pow y by apply: bpow_gt_0.
+rewrite Rabs_mult [Rabs (pow _)]Rabs_pos_eq; last by lra.
+suff : 1 <= Rabs (IZR k) by nra.
+rewrite -abs_IZR; apply: IZR_le.
+suff : k <> 0%Z by lia.
+by contradict ke_neq0; rewrite ke_neq0 Rsimp01.
+Qed.
+
 Lemma xxx_bound  x : 
   format x -> 
   alpha <= x <= omega ->
@@ -829,6 +840,12 @@ have Fz : format z by apply: generic_format_round.
 have Ft : format t by have := getRangeFormat Fx xB; rewrite E.
 have tB : / sqrt 2 < t < sqrt 2.
   by have [] := getRangeCorrect Fx xB; rewrite E.
+have iB := getIndexBound tB.
+have l1l2_in : (l1, l2) \in LOGINV.
+  rewrite -E1; apply: mem_nth.
+  rewrite size_LOGINV.
+  rewrite ltn_subLR; first by case/andP: iB.
+  by case/andP: iB.
 have zB : Rabs z <= 33 * pow (- 13).
   have [] := rt_float _ Ft tB => //.
   rewrite -/r -/z => Frt1 rtB _.
@@ -836,7 +853,11 @@ have zB : Rabs z <= 33 * pow (- 13).
 have imul_z : is_imul z (pow (- 61)).
   have [] := rt_float _ Ft tB => //.
   rewrite -/r -/z => Frt1 rtB imul_rt.
-  by rewrite /z round_generic.  
+  by rewrite /z round_generic.
+have eB := getRange_bound Fx xB; rewrite E /snd in eB.
+have imul_th : is_imul th (pow (- 42)).
+  apply: is_imul_pow_round.
+  by have [] := th_prop l1l2_in eB.
 have fast_cond : h <> 0 -> Rabs ph <= Rabs h.
   move=> _.
   have [th_eq0|th_neq0] := Req_dec th 0.
@@ -873,10 +894,21 @@ have fast_cond : h <> 0 -> Rabs ph <= Rabs h.
       by apply: generic_format_abs.
     by apply: round_le.
   have hE : h = RND (th + z) by case: E2.
+  have imul_h : is_imul h (pow (- 61)).
+    rewrite hE; apply: is_imul_pow_round.
+    apply: is_imul_add => //.
+    by apply: is_imul_pow_le imul_th _.
   rewrite hE.
   apply: Rle_trans (_ :  Rabs (th + z) * (1 - pow (- p + 1)) <= _); last first.
     apply: relative_error_eps.
-    rewrite [(_ - _)%Z]/=.
+    apply: is_imul_pow_le_abs; last first.
+      by contradict h_neq0; rewrite hE h_neq0 round_0.
+    apply: is_imul_pow_le (_ : is_imul _ (pow (- 61))) _ => //.
+    apply: is_imul_add => //.
+    by apply: is_imul_pow_le imul_th _.
+  apply: Rle_trans (_ :  (Rabs th - Rabs z) * (1 - pow (- p + 1)) <= _); last first.
+    have: 0 < 1 - pow (- p + 1) by interval.
+    by split_Rabs; nra.
 Admitted.
 
 End Log1.
