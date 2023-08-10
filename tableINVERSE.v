@@ -42,7 +42,7 @@ Local Notation fexp := (FLT_exp emin p).
 Local Notation format := (generic_format radix2 fexp).
 Local Notation cexp := (cexp beta fexp).
 Local Notation mant := (scaled_mantissa beta fexp).
-Local Notation RN := (round beta fexp rnd).
+Local Notation RND := (round beta fexp rnd).
 
 
 Definition INVERSE : list R := 
@@ -794,6 +794,17 @@ rewrite ulp_neq_0; last by split_Rabs; lra.
 apply: bpow_le.
 have <- : (fexp (- 43) = - 96)%Z by [].
 by apply: cexp_le_bpow; split_Rabs; lra.
+Qed.
+
+Lemma iN255_N256_r_neq_1 i : 
+  (181 <= i <= 362)%N -> i <> 255%N -> i <> 256%N ->
+  let r := nth 1 INVERSE (i - 181) in r <> 1.
+Proof.
+case/andP.
+do 74 (rewrite leq_eqVlt => /orP[/eqP<- _ _ _ /=|]; first by lra).
+do 2 (rewrite leq_eqVlt => /orP[/eqP<- //|]).
+do 106 (rewrite leq_eqVlt => /orP[/eqP<- _ _ _ /=|]; first by lra).
+by rewrite ltnNge; case: leq.
 Qed.
 
 End TableInverse.

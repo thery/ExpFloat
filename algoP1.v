@@ -45,7 +45,7 @@ Local Notation fexp := (FLT_exp emin p).
 Local Notation format := (generic_format radix2 fexp).
 Local Notation cexp := (cexp beta fexp).
 Local Notation mant := (scaled_mantissa beta fexp).
-Local Notation RN := (round beta fexp rnd).
+Local Notation RND := (round beta fexp rnd).
 
 Let alpha := pow (- 1074).
 Let omega := (1 - pow (-p)) * pow emax.
@@ -357,13 +357,13 @@ Notation exactMul := (exactMul rnd).
 
 Definition p1 (z : R) :=
   let: DWR wh wl := exactMul z z in 
-  let: t := RN (P8 * z + P7) in
-  let: u := RN (P6 * z + P5) in
-  let: v := RN (P4 * z + P3) in
-  let: u := RN (t * wh + u) in 
-  let: v := RN (u * wh + v) in 
-  let: u := RN (v * wh) in 
-  DWR (RN (- 0.5 * wh)) (RN (u * z - 0.5 * wl)).
+  let: t := RND (P8 * z + P7) in
+  let: u := RND (P6 * z + P5) in
+  let: v := RND (P4 * z + P3) in
+  let: u := RND (t * wh + u) in 
+  let: v := RND (u * wh + v) in 
+  let: u := RND (v * wh) in 
+  DWR (RND (- 0.5 * wh)) (RND (u * z - 0.5 * wl)).
 
 Lemma p1_0 : p1 0 = DWR 0 0. 
 Proof. by rewrite /p1 !(Rsimp01, exactMul0l, round_0). Qed.
@@ -381,16 +381,16 @@ Lemma absolute_rel_error_main (z : R) :
   (is_imul pl (pow (- 543)) /\ Rabs pl < Rpower 2 (-25.446))].
 Proof.
 move=> Fz zB Mz /=.
-set wh := RN (z * z).
-set wl := RN (z * z - wh).
-set t := RN (P8 * z + P7).
-set u := RN (P6 * z + P5).
-set v := RN (P4 * z + P3).
-set u' := RN (t * wh + u).
-set v' := RN (u' * wh + v).
-set u'' := RN (v' * wh).
-set ph := RN (-0.5 * wh).
-set pl := RN (u'' * z - 0.5 * wl).
+set wh := RND (z * z).
+set wl := RND (z * z - wh).
+set t := RND (P8 * z + P7).
+set u := RND (P6 * z + P5).
+set v := RND (P4 * z + P3).
+set u' := RND (t * wh + u).
+set v' := RND (u' * wh + v).
+set u'' := RND (v' * wh).
+set ph := RND (-0.5 * wh).
+set pl := RND (u'' * z - 0.5 * wl).
 have Fwh : format wh by apply: generic_format_round.
 have wh_ge_0 : 0 <= wh.
   have G1 : is_imul (z * z) (pow (-122)).
@@ -425,7 +425,7 @@ have whLe : Rabs wh <= Rpower 2 (-15.91) + pow (- 68).
   rewrite Rabs_pos_eq; last first.
     rewrite -(round_0 beta fexp).
     by apply: round_le; nra.
-  suff : Rabs (RN (z ^ 2) - z ^ 2) <= ulp(z ^ 2).
+  suff : Rabs (RND (z ^ 2) - z ^ 2) <= ulp(z ^ 2).
     by rewrite /wh -pow2_mult; split_Rabs; lra.
   by apply: error_le_ulp.
 rewrite Rabs_pos_eq in whLe; last by lra.
@@ -858,7 +858,7 @@ have phB : Rabs ph < Rpower 2 (-16.9).
     apply: generic_format_FLT.
     apply: FLT_spec (_ : _ = F2R f) _ _; try by rewrite /=; lia.
     by rewrite /F2R /= /Z.pow_pos /=; lra.
-  have : wh <= RN (33 ^ 2 * pow (-13) ^ 2).
+  have : wh <= RND (33 ^ 2 * pow (-13) ^ 2).
     apply: round_le.
     rewrite -pow2_mult -Rpow_mult_distr.
     by apply: pow_maj_Rabs.
@@ -1354,7 +1354,7 @@ have vGt : Rpower 2 (- 1.5894) < v.
   by split_Rabs; nra.
 pose v0 := Rpower 2 (- 1.5894) * (1 - pow (-52)).
 have v0Lv' : v0 <= v'.
-  apply: Rle_trans (_ : RN v <= _); last first.
+  apply: Rle_trans (_ : RND v <= _); last first.
     apply: round_le.
     by clear -u'B wh_gt_0; nra.
   rewrite round_generic; last by apply: generic_format_round.
@@ -1389,7 +1389,7 @@ have z1B : 1 <= Rabs z1 < 2.
   have -> : (1 - sf = mag beta z)%Z by rewrite /sf; lia.
   by apply: bpow_mag_gt; lra.
 pose wh1 := wh * (pow sf) ^ 2.
-have wh1E : wh1 = RN (z1 ^ 2).
+have wh1E : wh1 = RND (z1 ^ 2).
   rewrite Rpow_mult_distr -pow2M round_bpow_flt; last first .
     have z2_neq_0 : z ^ 2 <> 0 by clear -z_neq0; nra.
     rewrite /p /emin /emax -/beta.
@@ -1407,7 +1407,7 @@ pose v1' := v' * pow sf.
 *)
 have d6'E : u1'' = (v' * wh1) * (1 + d6).
   by rewrite /u1'' /wh1 d6E; lra.
-have u1''E : u1'' = RN (v' * wh1).
+have u1''E : u1'' = RND (v' * wh1).
   rewrite /wh1.
   have -> : v' * (wh * pow sf ^ 2) = v' *  wh * (pow (2 * sf)).
     by rewrite pow2M; lra.
@@ -1426,12 +1426,12 @@ have u1''E : u1'' = RN (v' * wh1).
 have z12B : 1 <= z1 ^ 2 < 4 by clear -z1B; split_Rabs; nra.
 have wh1B : 1 <= wh1 <= 4.
   split.
-    have -> : 1 = RN 1.
+    have -> : 1 = RND 1.
       rewrite -(pow0E beta) round_generic //.
       by apply: generic_format_FLT_bpow; first by rewrite /emin; lia.
     rewrite wh1E.
     by apply: round_le; lra.
-  have -> : 4 = RN (pow 2).
+  have -> : 4 = RND (pow 2).
     rewrite round_generic //.
     by apply: generic_format_FLT_bpow; first by rewrite /emin; lia.
   rewrite wh1E.
@@ -1546,7 +1546,7 @@ have [wh1_12|wh1_24] : (1 <= wh1 < 2) \/ (2 <= wh1 < 4) by lra.
       split; first by lra.
       suff : 2 <= z1 ^ 2 -> 2 <= wh1 by lra.
       move=> z1B'.
-      have <- : RN (pow 1) = 2 by rewrite round_generic.
+      have <- : RND (pow 1) = 2 by rewrite round_generic.
       rewrite wh1E.
       by apply: round_le; rewrite pow1E [IZR beta] /=; lra.
     by rewrite u_E1 /= /Z.pow_pos /=; lra.

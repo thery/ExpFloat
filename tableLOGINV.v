@@ -46,7 +46,7 @@ Local Notation fexp := (FLT_exp emin p).
 Local Notation format := (generic_format radix2 fexp).
 Local Notation cexp := (cexp beta fexp).
 Local Notation mant := (scaled_mantissa beta fexp).
-Local Notation RN := (round beta fexp rnd).
+Local Notation RND := (round beta fexp rnd).
 
 Definition LOG2H : float := Float _ 3048493539143 (- 42).
 
@@ -737,6 +737,17 @@ do 106 (case: i => [_|i]; first by
     move=> _; rewrite /F2R /= /Z.pow_pos /=; split_Rabs; lra |
     rewrite /F2R /= /Z.pow_pos /=; interval with (i_prec 150)]).
 by [].
+Qed.
+
+Lemma iN255_N256_l1_neq_1 i : 
+  (181 <= i <= 362)%N -> i <> 255%N -> i <> 256%N ->
+  let l1 := (nth (1,1) LOGINV (i - 181)).1 in l1 <> 0.
+Proof.
+case/andP.
+do 74 (rewrite leq_eqVlt => /orP[/eqP<- _ _ _ /=|]; first by lra).
+do 2 (rewrite leq_eqVlt => /orP[/eqP<- //|]).
+do 106 (rewrite leq_eqVlt => /orP[/eqP<- _ _ _ /=|]; first by lra).
+by rewrite ltnNge; case: leq.
 Qed.
 
 End TableLoginv.
