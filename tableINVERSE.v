@@ -807,5 +807,13 @@ do 106 (rewrite leq_eqVlt => /orP[/eqP<- _ _ _ /=|]; first by lra).
 by rewrite ltnNge; case: leq.
 Qed.
 
+Lemma r_gt_0 i : 
+  (181 <= i <= 362)%N -> let r := nth 1 INVERSE (i - 181) in 0 < r.
+Proof.
+case/andP.
+do 182 (rewrite leq_eqVlt => /orP[/eqP<- _ /=|]; first by lra).
+by rewrite ltnNge; case: leq.
+Qed.
+
 End TableInverse.
 
