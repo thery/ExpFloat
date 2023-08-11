@@ -375,7 +375,7 @@ Lemma absolute_rel_error_main (z : R) :
   Rabs((ph + pl) - (ln (1 + z) - z)) < Rpower 2 (-75.492), 
   z <> 0%R ->  
      (Rabs ((z + ph + pl) / ln (1 + z) -1) < Rpower 2 (- 67.2756)) /\
-     (Rabs z < 32 * pow (- 13) ->
+     (Rabs z <= 32 * pow (- 13) ->
         Rabs ((z + ph + pl) / ln (1 + z) -1) < Rpower 2 (- 67.441)),
   (is_imul ph (pow (- 123)) /\ Rabs ph < Rpower 2 (-16.9)) &
   (is_imul pl (pow (- 543)) /\ Rabs pl < Rpower 2 (-25.446))].
@@ -1726,7 +1726,7 @@ Qed.
 Lemma rel_error_32_p1 z :
   z <> 0 ->  
   format z -> 
-  Rabs z < 32 * pow (- 13) ->
+  Rabs z <= 32 * pow (- 13) ->
   is_imul z (pow (- 61)) ->
   let: DWR ph pl := p1 z in 
   Rabs ((z + ph + pl) / ln (1 + z) -1) < Rpower 2 (- 67.441).

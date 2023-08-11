@@ -1931,6 +1931,25 @@ have z_gt0 : 0 < Rabs z.
     by rewrite rE1 tEx in x_neq1; lra.
   have Ft : format t by have := getRangeFormat Fx xB; rewrite E.
   by have [] := rt_float _ Ft tB.
+pose delta := (z + ph + pl) / ln x - 1.
+have deltaE : z + ph + pl = ln x * (1 + delta).
+  rewrite /delta; field.
+  apply: ln_neq_0; [lra | interval].
+have zE : x = 1 + z.
+  rewrite /z round_generic; last first.
+    have Ft : format t by have := getRangeFormat Fx xB; rewrite E.
+    by have [] := rt_float _ Ft tB.
+  by rewrite ?rE1 ?tEx; lra.
+have z_neq0 : z <> 0 by lra.
+have deltaB : Rabs delta < Rpower 2 (- 67.441).
+  rewrite /delta zE.
+  have := @rel_error_32_p1 _ rnd _ z; rewrite E3.
+  apply => //.
+  have : 32 * bpow radix2 (- 13)
+
+  lra.
+  Search (ln _ = 0).
+  
 (*  
   
 
