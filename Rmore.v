@@ -26,7 +26,8 @@ Definition Rsimp01 := (Rmult_0_l, Rmult_0_r, Rmult_1_l, Rmult_1_r,
                        Rminus_0_l, Rminus_0_r, Rplus_0_l, Rplus_0_r, Ropp_0,
                        Rmult_N1_l, Rmult_N1_r,
                        Rinv_0, Rdiv_0_l, Rdiv_0_r, Rabs_R0,
-                       Rinv_1, Rdiv_1_l, Rdiv_1_r, Rabs_R1).
+                       Rinv_1, Rdiv_1_l, Rdiv_1_r, Rabs_R1,
+                       Rminus_eq_0).
 
 Ltac gsplit_Rabs := rewrite /Rabs; split_case_Rabs.
 
