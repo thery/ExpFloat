@@ -719,255 +719,6 @@ apply/generic_format_FLT/(FLT_spec _ _ _ _ (Float beta  (mb - 2 ^p) (-p)));
 by rewrite   minus_IZR (IZR_Zpower beta);last lia; lra.
 Qed.
 
-Lemma Fast2Sum_correct_bound_aux:
-  (a <> 0 -> (mag beta  b <= mag beta  a)%Z)->
-          pow (p - 1) <= a < pow p ->
-          let h := round beta fexp rnd (a + b) in
-          let z := round beta fexp rnd (h - a) in let l := round beta fexp rnd (b - z) in 
-          let eps := h + l - (a + b) in 
-Rabs eps <= 2 * (Rsqr u) * (Rabs (a + b)) /\ Rabs eps <= 2 * (Rsqr u) * Rabs h.
-Proof.
-move=> magaleb  aB.
-have apos: 0 < a  by move: (bpow_gt_0 beta (p - 1)); lra.
-have aneq0: a <> 0 by lra.
-have {} magaleb : (mag beta b <= mag beta a)%Z by apply:magaleb.
-have magaE: (mag beta a  = p :>Z)%Z by rewrite (mag_unique_pos beta _ p).
-have cea0:  (ce a = 0)%Z by rewrite /cexp /fexp; lia.
-have ulpa: ulp a = 1.
-  rewrite ulp_neq_0;last lra.
-  by rewrite cea0.
-have pow0 : pow 0 = 1 by [].
-have pow1: pow 1 = 2 by [].
-set Ma:= Ztrunc (mant a).
-have aE: a = IZR Ma.
-  rewrite Fa /F2R/= -/Ma /cexp (mag_unique_pos _ _ p) // /fexp  Z.max_l; 
-   last  lia.
-  by rewrite Z.sub_diag pow0; lra.
-have clea : (ce b <= ce a)%Z.
-  by rewrite /cexp/fexp; lia.
-
-case:(Req_dec b 0 )=>[-> /= | bneq0].
-  rewrite Rplus_0_r (round_generic _ _ _ a)// Rminus_eq_0 
-     !(round_0, Rminus_0_r,  Rplus_0_r ) Rminus_eq_0 Rabs_R0.
-  rewrite Rabs_pos_eq; last by lra.
-  by move:(Rle_0_sqr u); nra.
-case: (Z_lt_le_dec ( mag beta b + p)%Z (mag beta a))=>magabp; last first.
-rewrite /= Fast2Sum_correct_aux // Rminus_eq_0 Rabs_R0;  move:(Rle_0_sqr u) 
-    (Rabs_pos (a+b)) (Rabs_pos s); nra.
-have b2: Rabs b < /2.
-  apply/(Rlt_le_trans _ (pow (mag beta b))); first by apply/bpow_mag_gt.
-  have -> : /2 = pow (-1) by [].
-  by apply/bpow_le; lia.
-
-have b2' :  -/2 < b < /2 by split_Rabs; lra.
-
-
-have bB: Rabs b < pow p.
-  apply/(Rlt_le_trans _ (pow (mag beta b))).
-    by apply/bpow_mag_gt.
-  apply/(Rle_trans _ (pow (mag beta a))).
-    by apply/bpow_le.
-  by rewrite (mag_unique_pos _ _ p) //; lra.
-have aub: a <= pow p - 1.
-  have ->: pow p - 1 = pred beta fexp (pow p).
-    rewrite pred_bpow /fexp Zeq_minus//  Zmax_left ?pow0 //; lia.
-  apply/pred_ge_gt =>//; last lra.
-  apply/generic_format_bpow; rewrite /fexp; lia.
-have bub: Rabs b <= pow p - 1.
-  have ->: pow p - 1 = pred beta fexp (pow p).
-    rewrite pred_bpow /fexp Zeq_minus//  Zmax_left ?pow0 //; lia.
-  apply/pred_ge_gt =>//.
-    by apply/generic_format_abs.
-  by   apply/generic_format_bpow; rewrite /fexp; lia.
-have abB : Rabs (a + b) <= pow (p + 1) - 2.
-  apply/(Rle_trans _ _ _ (Rabs_triang _ _)).
-  rewrite bpow_plus pow1 Rabs_pos_eq; lra.
-have hrab: Rabs (round beta fexp rnd  (a + b)) <= (pow (p +1) - 2).
-  apply/format_Rabs_round_ge=>//.
-  have ->:  (pow (p + 1) - 2)= pred beta fexp (pow (p + 1)).
-    rewrite pred_bpow ; congr Rminus.
-    rewrite -pow1 /fexp; congr bpow; lia.
-  apply/generic_format_pred/generic_format_bpow; rewrite /fexp;lia.  
-move=> x.
-have ulph: ulp x <= 2.
-  have <- : ulp (pow (p+1) -2 ) = 2.
-    rewrite ulp_neq_0 /cexp /fexp.
-      rewrite (mag_unique_pos _ _  (p + 1)).
-        rewrite  -pow1 Z.max_l; last lia.
-        congr bpow; lia.
-      split; try lra.
-      rewrite (bpow_plus _ _ (-1)).
-      have->: pow (-1) = /2 by [].
-      suff: 4 <= pow (p  + 1) by lra.
-      have ->: 4 = pow 2 by [].
-      apply/bpow_le; lia.
-    suff : 2 < pow (p + 1) by lra.
-    rewrite -pow1; apply/bpow_lt; lia.
-  apply/ulp_le; rewrite (Rabs_pos_eq (_ -_)).
-    by rewrite /x.
-  suff : 2 < pow (p + 1) by lra.
-  rewrite -pow1; apply/bpow_lt; lia.
-
-case:(Req_dec (a + b) 0)=> [ /= ab0 | abn0].
-  rewrite  /x ab0 round_0 !Rsimp01 (round_generic _ _ _ (-a)).
-    have->: b - - a =   a + b by lra.
-    rewrite ab0 round_0 Rabs_R0; lra.
-  by apply/generic_format_opp.
-have hn0: x <> 0 by apply/round_plus_neq_0.
-set e := (a + b) - x.
-have eb: Rabs e < ulp  x.
-  have->: Rabs e = Rabs (x - (a + b)).
-    by rewrite -Rabs_Ropp /e ; congr Rabs; lra.
-  rewrite /x; apply/error_lt_ulp_round=>//.
-move=>z.
-have z_exact: z = x -a.
-  by rewrite /z round_generic //; apply/sma_exact.
-move=> y.
-have yE: y = round beta fexp rnd e by rewrite /y z_exact /e; congr round; lra.
-
-(* pose k := (mag beta  a -  mag beta  b)%Z. *)
-(* have kb: (0 <= k <= p)%Z by rewrite /k; lia. *)
-(* case : (ex_shift beta fexp b (-k) Fb); first by rewrite /cexp /fexp  /k; lia. *)
-(* move=>mb bE. *)
-(* case: (ex_shift beta fexp a (-k) Fa); first by lia. *)
-(* move=> ma aE. *)
-(* have imul_a: is_imul  a (bpow beta (-k)). *)
-(*   by exists ma. *)
-(* have imul_b : is_imul  b (pow (-k)) by exists mb. *)
-(* have imul_x: is_imul x (pow (-k)). *)
-(*   by apply/is_imul_pow_round/is_imul_add. *)
-(* have imul_e: is_imul e (pow (-k)). *)
-(*   by apply/is_imul_minus=>//; apply/is_imul_add. *)
-(* case: imul_e => m eE. *)
-(* case: (Rlt_le_dec  (Rabs x) (pow p) ) => xb. *)
-(*   have uhle1: (ulp x <= 1). *)
-(*     rewrite  -pow0 ulp_neq_0 //. *)
-(*     apply/bpow_le. *)
-(*     have : (mag beta x <= p)%Z . *)
-(*       apply/mag_le_bpow=>//; lia. *)
-(*     by rewrite /cexp /fexp; lia. *)
-(*   have eub: Rabs e < 1 by lra. *)
-(*   rewrite  /y  round_generic. *)
-(*     by rewrite z_exact; ring. *)
-(*   have->: b - z = e by rewrite z_exact /e; lra. *)
-(*   rewrite eE. *)
-(*   pose fe := Float beta m (-k).  *)
-(*   apply/generic_format_FLT/(FLT_spec _ _ _ _ fe). *)
-(*   - by rewrite  /fe/F2R/=. *)
-(*   - rewrite /fe/F2R/=. *)
-(*     move: eub ; rewrite eE Rabs_mult (Rabs_pos_eq (pow _)); last by apply/bpow_ge_0. *)
-(*     move/(Rmult_lt_compat_r (pow k) _ _ (bpow_gt_0 beta k)). *)
-(*     rewrite Rmult_assoc -bpow_plus. *)
-(*     have->: (-k + k = 0 )%Z by lia. *)
-(*     rewrite pow0 Rmult_1_l Rmult_1_r -abs_IZR -(IZR_Zpower beta); last lia. *)
-(*     move/lt_IZR. *)
-(*     suff : (beta ^ k <= 2 ^ p)%Z by lia. *)
-(*     by apply/Zpower_le; lia. *)
-(*   by rewrite /fe/F2R/=; lia. *)
-(* have ulpxE: ulp x = 2. *)
-(*   suff : 2 <= ulp x by lra. *)
-(*   rewrite ulp_neq_0 // /cexp /fexp. *)
-(*   have hmagx: ( p +1 <= mag beta x)%Z. *)
-(*     by apply/mag_ge_bpow; ring_simplify (p + 1 -1)%Z. *)
-(*   by rewrite -pow1; apply/bpow_le;  lia. *)
-(* have : (k <= p )%Z by lia. *)
-(* case/Z_le_lt_eq_dec=>kp. *)
-(*   rewrite yE round_generic;  first by rewrite /e ;  lra. *)
-(*   rewrite eE.   *)
-(*   pose fe := Float beta m (-k).  *)
-(*   apply/generic_format_FLT/(FLT_spec _ _ _ _ fe). *)
-(*   - by rewrite /F2R /=. *)
-(*   - rewrite /fe/F2R/=. *)
-(*     apply/(Z.lt_le_trans _ (2^(k+1))); last by apply/(Zpower_le beta); lia. *)
-(*     move: eb; rewrite ulpxE eE. *)
-(*     rewrite Rabs_mult (Rabs_pos_eq (pow _)); last by apply/bpow_ge_0. *)
-(*     move/(Rmult_lt_compat_r (pow (k)) _  _(bpow_gt_0 beta k)). *)
-(*     rewrite Rmult_assoc -bpow_plus;ring_simplify (-k + k)%Z. *)
-(*     rewrite pow0 -pow1 Rmult_1_r -bpow_plus. *)
-(*     rewrite -abs_IZR -IZR_Zpower; last lia. *)
-(*     by move/lt_IZR; rewrite Zplus_comm. *)
-(*   by rewrite /fe /F2R /=; lia. *)
-(* (* k = p *) *)
-(* have magb0: (mag beta b = 0 :>Z )%Z by lia. *)
-(* have blub: /2 <= Rabs  b < 1. *)
-(*   split. *)
-(*     have ->: /2 = pow (-1) by []. *)
-(*     have ->: (-1 = mag beta b - 1)%Z by lia. *)
-(*     by apply/bpow_mag_le. *)
-(*   by rewrite -pow0  -magb0; apply/bpow_mag_gt. *)
-(* have abpos: 0 <= a + b. *)
-(*   suff : 2 <= pow (p - 1) by split_Rabs;  lra. *)
-(*   by rewrite -pow1; apply/bpow_le; lia. *)
-(* have:  round beta fexp rnd 0 <= x by apply/round_le. *)
-(* rewrite round_0. *)
-(* case/Rle_lt_or_eq_dec=> xpos; last lra. *)
-(* have bpos: 0 < b. *)
-(*   case: (Rlt_le_dec 0 b)=> // hb0. *)
-(*   have xa: x <= a . *)
-(*     have ->: a =  round beta fexp rnd a. *)
-(*       by rewrite round_generic. *)
-(*     apply/round_le; lra. *)
-(*   suff:  Rabs x <= Rabs a. *)
-(*     by move/(ulp_le beta fexp); lra. *)
-(*   by rewrite !Rabs_pos_eq ; lra. *)
-(* rewrite Rabs_pos_eq in blub; last lra. *)
-(* case: aub=> ha. *)
-(* (* a < pow p -1 *) *)
-(*   have Fpm1: format (pow p - 1). *)
-(*     apply/generic_format_FLT/(FLT_spec _ _ _ _ (Float beta (2^p - 1) 0));  *)
-(*       rewrite /F2R /=; try lia. *)
-(*     by rewrite /F2R /= minus_IZR (IZR_Zpower beta); last lia; lra. *)
-(*   have aub: a <= pow p - 2. *)
-(*     move: Fa ha; rewrite /generic_format /F2R /= cea0 pow0 Rmult_1_r=> ->. *)
-(*     rewrite -IZR_Zpower -?minus_IZR; last lia. *)
-(*     by move/lt_IZR=> h; apply/IZR_le; lia. *)
-(*   have : a+b < pow p - 1 by lra. *)
-(*   have : x <= round beta fexp rnd (pow p - 1). *)
-(*     apply/round_le; lra. *)
-(*   rewrite  (round_generic  _ _ _ (pow p -1)) //. *)
-(*   move : ulpxE; rewrite ulp_neq_0 /cexp /fexp -?pow1; last lra. *)
-(*   move/bpow_inj=>  h. *)
-(*   have h': (mag beta x = p + 1 :>Z)%Z by lia. *)
-(*   have: bpow beta  (mag beta x - 1) <= Rabs x. *)
-(*     apply/bpow_mag_le;  lra. *)
-(*   rewrite h' (Rabs_pos_eq x); try lra. *)
-(*   ring_simplify(p + 1 - 1)%Z; lra. *)
-
-(* (* a = pow p  - 1 *) *)
-(* rewrite Rabs_pos_eq in xb; last lra. *)
-(* have {} xE: x = pow p. *)
-(*   suff : x <= pow p by lra. *)
-(*   have ->: pow p = round beta fexp rnd (pow p). *)
-(*     rewrite  round_generic //. *)
-(*     apply/generic_format_bpow; rewrite /fexp; lia. *)
-(*   apply/round_le; lra. *)
-(* have zE: x - a = 1 by lra. *)
-(* have he: e = b - 1 by rewrite /e ; lra. *)
-(* rewrite /y round_generic ; first lra. *)
-(* have h: (2^(p -1) <= mb < 2^p)%Z. *)
-(*   move: blub; rewrite bE kp. *)
-(*   have ->: /2 = pow (-1) by []. *)
-(*   move=> [h1 h2]. *)
-(*   have h3: pow (p - 1) <= IZR mb . *)
-(*     apply/(Rmult_le_reg_r (pow (-p))); first by apply /bpow_gt_0. *)
-(*     by rewrite -bpow_plus; ring_simplify (p - 1 + - p)%Z. *)
-(*   have h4: IZR mb < pow p. *)
-(*     apply/(Rmult_lt_reg_r (pow (-p))); first by apply /bpow_gt_0. *)
-(*     by rewrite -bpow_plus; ring_simplify (p  + - p)%Z. *)
-(*   split;[apply/le_IZR|apply/lt_IZR]; rewrite (IZR_Zpower beta)//; lia. *)
-(* have -> : b -z = e by rewrite z_exact /e ; ring. *)
-
-(* rewrite he bE kp. *)
-(* have ->: IZR mb * pow (-p)  - 1 = (IZR mb - pow p) * (pow (-p)). *)
-(*   rewrite Rmult_minus_distr_r -bpow_plus. *)
-(*   have ->: (p + -p = 0)%Z by ring. *)
-(*   by rewrite pow0. *)
-(* apply/generic_format_FLT/(FLT_spec _ _ _ _ (Float beta  (mb - 2 ^p) (-p)));  *)
-(*     rewrite /F2R/=; try lia. *)
-(* by rewrite   minus_IZR (IZR_Zpower beta);last lia; lra. *)
-Abort.
-
-
 
 End F2Sum_pre.
 
@@ -1235,9 +986,6 @@ case: (Rlt_le_dec 0 b)=> // hb0; last first.
 
 rewrite Rabs_pos_eq in blub; last lra.
 
-(* have: b <= pred beta fexp (pow t). *)
-(* apply/pred_ge_gt=>//;last lra. *)
-(*   apply/generic_format_FLT_bpow; lia. *)
 case:   alepred=> ha.
 have :  a + b < succ beta fexp a.
 rewrite succ_eq_pos; lra.
@@ -1481,62 +1229,77 @@ case:(Z_lt_le_dec (t + 1) emin)=> ht_emin.
 
     by rewrite -pow1 -bpow_plus; apply/bpow_le; lia.
   rewrite xE !(Rminus_eq_0, round_0, Rplus_0_r) Rabs_R0; nra.
-
 case:blea =>blea; last first.
-suff: (mag beta b = (mag beta a):>Z)%Z by lia.
-rewrite (mag_unique beta b maga)=>//.
-rewrite  (Rabs_pos_eq a) in blea; lra.
+  suff: (mag beta b = (mag beta a):>Z)%Z by lia.
+  rewrite (mag_unique beta b maga)=>//.
+  rewrite  (Rabs_pos_eq a) in blea; lra.
 have ab_pos: 0 < a + b by  split_Rabs; lra.
+have hn0:  x <> 0  by rewrite /x; apply/round_plus_neq_0=>//; lra.
+have xpos: 0 < x .
+  suff : 0 <= x by rewrite -/x in hn0;  lra.
+  have->: 0 = round beta fexp rnd 0 by rewrite round_0.
+  by apply/round_le; lra.
 
-case: (Req_dec x a)=> [xa | xneqa].
-rewrite xa; ring_simplify(a + b -a); rewrite (round_generic _ _ _ b) // 
+have casexE: x = a \/ x = a + pow t \/ x = a - pow t \/ 
+   (x = a - (pow t) /2 /\ a = pow (t + p - 1) /\ (b < 0)).
+  case :(Rle_lt_dec b 0)=>bcmp0; last first.
+    have  {} abB_bpos : a < a + b < a + pow t / 2 by lra.
+    have : round beta fexp rnd a <= x by apply/round_le; lra.
+    rewrite round_generic //.
+    case =>hxa; last first.
+      by left.
+    right;left.
+    have succa: a + pow t = succ beta fexp a by rewrite succ_eq_pos; lra.
+    rewrite succa; apply/Rle_antisym.
+      have : a  + b <= a + pow t by lra.
+      move/(round_le beta fexp rnd).
+      by rewrite -/x succa round_generic //; apply/generic_format_succ.
+    by apply/succ_le_lt=>//; apply/generic_format_round.
+  have {} abB_bneg : a - pow t / 2 < a + b < a by lra.
+  have : x <= round beta fexp rnd a by apply/round_le; lra.
+  rewrite round_generic //.
+  case =>hxa; last first.
+    by left.
+  right;right.
+  have: pow (t + p - 1 ) <= a.
+    suff ->: (t + p -1 = maga - 1)%Z by lra.
+    lia.
+  case=> hpa.
+    left.
+    have magpreda: pow (maga - 1) <= pred beta fexp a < pow maga.
+      split.
+        apply/pred_ge_gt=>//.
+          apply/generic_format_bpow; rewrite  /fexp; lia.
+        suff->:  (maga - 1 = t + p -1)%Z by lra.
+        lia.
+      apply/(Rlt_trans _ a); first (by apply/pred_lt_id); lra.
+    have preda: a - pow t = pred beta fexp a .
+      suff: pred beta fexp a + pow t = a by lra.
+      suff ->: pow t = ulp (pred beta fexp a).
+        by rewrite pred_plus_ulp.
+      rewrite -ua !ulp_neq_0 /cexp; try lra.
+        by congr bpow; congr fexp; rewrite !(mag_unique_pos _ _ maga).
+      move: (bpow_gt_0 beta (maga -1)); lra.
+    rewrite preda; apply/Rle_antisym.
+      by apply/pred_ge_gt=>//; apply/generic_format_round.
+    have: a - pow t <= a + b by lra.
+    move/(round_le beta fexp rnd).
+    by rewrite -/x preda round_generic //; apply/generic_format_pred.
+  right.
+  suff: x = a - pow t/2 by lra.
+
+  have preda: a - pow t / 2= pred beta fexp a .
+    rewrite -hpa pred_bpow /fexp Z.max_l; last lia.
+    congr Rminus; rewrite /Rdiv  -powm1 -bpow_plus; congr bpow; lia.
+   rewrite preda; apply/Rle_antisym.
+      by apply/pred_ge_gt=>//; apply/generic_format_round.
+    have: a - pow t /2 <= a + b by lra.
+    move/(round_le beta fexp rnd).
+    by rewrite -/x preda round_generic //; apply/generic_format_pred.
+case: casexE=>[xa|casexE].
+  rewrite xa; ring_simplify(a + b -a); rewrite (round_generic _ _ _ b) // 
 Rminus_eq_0 Rabs_R0 (Rabs_pos_eq a); nra.
-
-
-
-
-
-(*   case:(Z_lt_le_dec  (t - p)  emin)=> t_emin. *)
-(* pose z:= x - a. *)
-
-(* have : format (b - z). *)
-
-(* apply/Hauser =>//. *)
-
-(* apply/generic_format_opp/sma_exact=>//. *)
-(* rewrite /cexp;apply/FLT_exp_monotone; lia. *)
-(* have->: b +- z = a+b -x by rewrite /z;lra. *)
-(* rewrite -Rabs_Ropp. *)
-(* have->: (- (a + b - x))= x - (a +b) by ring. *)
-(* apply/(Rle_trans _ (ulp (a + b))). *)
-(*   rewrite /x; apply/Rlt_le/error_lt_ulp=>//; try lra. *)
-
-(* rewrite ulp_neq_0. *)
-(* apply/bpow_le. *)
-(* rewrite /cexp/fexp; try lia. *)
-(* rewrite Z.max_l; try lia. *)
-(* Search a. *)
-
-
-(* aB: pow (maga - 1) <= a < pow maga *)
-
-(* apply/( Rle_trans  _ (pow (t + 1)));last first. *)
-(* apply/bpow_le; lia. *)
-(*  apply/(Rle_trans  _ _ _ (Rabs_triang _ _)). *)
-(* rewrite bpow_plus pow1. *)
-
-(* have ->: pow t * 2 = pow t + pow t by lra. *)
-(* rewrite Rabs_pos_eq; last lra. *)
-(* try lra. *)
-
-
-(* have hab: Rabs b < a. *)
-(* apply/(lt_mag beta)=>//. *)
-(* rewrite mag_abs; lia. *)
-(* rewrite Rabs_pos_eq; last by split_Rabs; lra. *)
-
-
-case: (Req_dec x (a + pow t))=> [xa | xneqapowt].
+case: casexE=>[xa|casexE].
   have bpos: 0 < b.
     case (Rle_lt_dec b 0)=>b0=>//.
     have :  a + b < a by lra.
@@ -1582,14 +1345,7 @@ case: (Req_dec x (a + pow t))=> [xa | xneqapowt].
   rewrite pow0 Rmult_1_l xa /ex /cexp /fexp (mag_unique  _ _ t)// Z.max_l; last lia.
   have -> :  (- (1 - 2 * p) + (t - p) =  maga - 1)%Z by lia.
   lra.
-
-
-have hn0:  x <> 0  by rewrite /x; apply/round_plus_neq_0=>//; lra.
-have xpos: 0 < x .
-suff : 0 <= x by rewrite -/x in hn0;  lra.
-have->: 0 = round beta fexp rnd 0 by rewrite round_0.
-  by apply/round_le; lra.
-case: (Req_dec x (a - pow t))=> [xa | xneqampowt].
+case: casexE=>[xa|casexE].
   have bpos:  b < 0.
     case (Rle_lt_dec 0 b)=>b0=>//.
     have : a <=  a + b   by lra.
@@ -1655,6 +1411,34 @@ move=> {} ha.
     ring_simplify(-ex + ex)%Z; rewrite pow0 Rmult_1_l /ex;
     (have->:  (- (1 - 2 * p) + (t - p) = t + p - 1)%Z by ring);
     by rewrite Rabs_pos_eq; lra.
+pose z := x - a.
+have zE: z = - (pow t)/2  by rewrite /z ; lra.
+have abx: a + b - x = b + pow t /2 by lra.
+have {} abB_bneg :  a - pow t / 2 < a + b < a by lra.
+have bB: - pow t /2 < b < 0 by lra.
+have eB: 0 < b + pow t / 2 < pow t /2 by lra.
+rewrite abx.
+have ->: (x + round beta fexp rnd (b + pow t / 2) - (a + b)) = 
+          round beta fexp rnd (b + pow t / 2)  - ( b + pow t /2) by lra.
+
+case:(Rle_lt_dec   (Rabs (b + pow t / 2)) (pow  (emin + p)))=> hab.
+
+  have Fbp2: format (b + pow t / 2).
+    apply/Hauser=>//.
+      rewrite /Rdiv -powm1 -bpow_plus.
+      apply/generic_format_bpow; rewrite /fexp; lia.
+
+  rewrite round_generic // Rminus_eq_0 Rabs_R0.
+      move:(bpow_ge_0 beta ex) (Rabs_pos (a + b)) (Rabs_pos x); nra.
+
+ split;
+  apply/(Rle_trans _ (ulp ( b + pow t /2))); try apply/error_le_ulp; 
+  rewrite ulp_neq_0; try lra;
+    apply/(Rmult_le_reg_l (pow (-ex))); try (by apply/bpow_gt_0);
+    rewrite -!Rmult_assoc -!bpow_plus;
+    ring_simplify(-ex + ex)%Z; rewrite pow0 Rmult_1_l /ex /cexp/fexp Z.max_l.
+ici
+
 
 
 
