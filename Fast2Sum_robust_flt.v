@@ -1073,6 +1073,7 @@ Qed.
 
 Notation R_DN := (round beta fexp Zfloor).
 Notation R_UP := (round beta fexp Zceil).
+Notation u := (pow (-p)).
 
 Lemma fastTwoSum_bound a b (Fa: format a) (Fb : format b) rnd 
                    (valid_rnd: Valid_rnd rnd )(rndD: round_direct rnd) :
@@ -1421,41 +1422,47 @@ rewrite abx.
 have ->: (x + round beta fexp rnd (b + pow t / 2) - (a + b)) = 
           round beta fexp rnd (b + pow t / 2)  - ( b + pow t /2) by lra.
 
-case:(Rle_lt_dec   (Rabs (b + pow t / 2)) (pow  (emin + p)))=> hab.
-
+case:(Z_lt_le_dec  (t - p -1) emin)=>htpmin.
   have Fbp2: format (b + pow t / 2).
     apply/Hauser=>//.
       rewrite /Rdiv -powm1 -bpow_plus.
       apply/generic_format_bpow; rewrite /fexp; lia.
-
+    apply/(Rle_trans _ ((pow t) /2))=>//.
+      by rewrite Rabs_pos_eq; lra.
+    rewrite /Rdiv -powm1 -bpow_plus; apply/bpow_le; lia.
   rewrite round_generic // Rminus_eq_0 Rabs_R0.
-      move:(bpow_ge_0 beta ex) (Rabs_pos (a + b)) (Rabs_pos x); nra.
+  by move:(bpow_ge_0 beta ex) (Rabs_pos (a + b)) (Rabs_pos x); nra.
+have ut4: ulp (pow t /4) = pow (t - p -1).
+  rewrite ulp_neq_0; last by move: (bpow_gt_0 beta t); lra.
+  have hpt4: pow t /4 = pow (t -2) by rewrite (bpow_plus _ t)  bpow_opp.
+  rewrite hpt4/cexp/fexp mag_bpow; congr bpow.
+  rewrite Z.max_l; lia.
 
- split;
-  apply/(Rle_trans _ (ulp ( b + pow t /2))); try apply/error_le_ulp; 
-  rewrite ulp_neq_0; try lra;
-    apply/(Rmult_le_reg_l (pow (-ex))); try (by apply/bpow_gt_0);
-    rewrite -!Rmult_assoc -!bpow_plus;
-    ring_simplify(-ex + ex)%Z; rewrite pow0 Rmult_1_l /ex /cexp/fexp Z.max_l.
-ici
-
-
-
-
-have: x = a \/ x = a + pow t \/ x = a - pow t \/ x = a - (pow t) /2.
-
-
-
-
-
-
-format_mag_ge_emin
-
-
-
-
-
-
+have haux: Rabs (round beta fexp rnd (b + pow t / 2) - (b + pow t / 2)) <= ulp (pow t /4).
+  apply/(Rle_trans _ (ulp (b + pow t / 2))).
+    by apply/error_le_ulp.
+  rewrite ut4  ulp_neq_0; last by lra.
+  apply/bpow_le; rewrite /cexp /fexp ; try lia.
+  suff:  (mag beta (b + pow t / 2) <= t - 1)%Z by lia.
+  apply/mag_le_bpow; try lra.
+  rewrite (bpow_plus _ t) powm1 Rabs_pos_eq; lra.
+suff:  ulp (pow t / 4) <= pow ex * Rabs (a + b) /\  
+       ulp (pow t / 4) <=  pow ex * Rabs x by lra.
+have xlB: pow (t + p - 2) <= x <= a + b.
+  split; last lra.
+  case:( casexE ) => -> [-> b0].
+  suff:   pow (t + p - 2) +  pow t / 2 <=  pow (t + p - 1) by lra.
+  have->:  pow (t + p - 2) = pow (t + p -1) /2 .
+    rewrite /Rdiv -powm1 -bpow_plus; congr bpow; lia.
+  suff : pow t <= pow (t + p - 1) by lra.
+  apply/bpow_le; lia.
+have hint: (- (1 - 2 * p) + (t - p - 1) = t + p - 2)%Z by ring.
+by split;
+  apply/(Rmult_le_reg_l (pow (-ex))); try (by apply/bpow_gt_0);
+  rewrite -!Rmult_assoc -!bpow_plus;
+  ring_simplify(-ex + ex)%Z; rewrite pow0 Rmult_1_l ut4 -bpow_plus /ex; 
+  rewrite hint !Rabs_pos_eq; lra.
+Qed.
 
 End F2Sum.
 End Main.
