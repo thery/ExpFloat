@@ -731,7 +731,7 @@ Definition round_direct (rnd: R -> Z):=
 Notation ulp := (ulp beta fexp).
 
 
-Lemma fastTwoSum_correct_mag a b (Fa: format a) (Fb : format b) rnd 
+Lemma FastTwoSum_correct_mag a b (Fa: format a) (Fb : format b) rnd 
                    (valid_rnd: Valid_rnd rnd ) (rndD: round_direct rnd) :
   (Rabs b <= Rabs a) -> (mag beta  a <=  mag beta b + p)%Z ->
 let h := round beta fexp rnd (a + b) in 
@@ -1047,7 +1047,7 @@ Notation R_DN := (round beta fexp Zfloor).
 Notation R_UP := (round beta fexp Zceil).
 Notation u := (pow (-p)).
 
-Lemma fastTwoSum_bound a b (Fa: format a) (Fb : format b) rnd 
+Lemma FastTwoSum_bound a b (Fa: format a) (Fb : format b) rnd 
                    (valid_rnd: Valid_rnd rnd )(rndD: round_direct rnd) :
   (a <> 0 -> Rabs b <= Rabs a) ->
 let h := round beta fexp rnd (a + b) in 
@@ -1131,7 +1131,7 @@ case: (Z_lt_le_dec (mag beta b + p) (mag beta  a))=> hmagabp; last first.
     rewrite (round_generic _ _ _ (_ -a)); first lra.
     apply/sma_exact =>//.
     by rewrite /cexp;apply/FLT_exp_monotone/mag_le_abs. 
- rewrite fastTwoSum_correct_mag // Rminus_eq_0 Rabs_R0.
+ rewrite FastTwoSum_correct_mag // Rminus_eq_0 Rabs_R0.
   by move: (bpow_ge_0 beta ex) (Rabs_pos (a + b)) 
      (Rabs_pos (round beta fexp rnd (a + b))); nra.
 have pow0 : pow 0 = 1 by [].
@@ -1400,6 +1400,27 @@ by split;
   rewrite -!Rmult_assoc -!bpow_plus;
   ring_simplify(-ex + ex)%Z; rewrite pow0 Rmult_1_l ut4 -bpow_plus /ex; 
   rewrite hint !Rabs_pos_eq; lra.
+Qed.
+Lemma FastTwoSum_bound1 a b (Fa: format a) (Fb : format b) rnd 
+                   (valid_rnd: Valid_rnd rnd )(rndD: round_direct rnd) :
+  (a <> 0 -> Rabs b <= Rabs a) ->
+let h := round beta fexp rnd (a + b) in 
+let z := round beta fexp rnd (h - a) in 
+let l := round beta fexp rnd (b - z) in 
+  Rabs (h + l - (a + b)) <= pow (1 - 2 * p) * Rabs (a + b).
+Proof.
+ by move=>*; case:(FastTwoSum_bound Fa Fb).
+Qed.
+
+Lemma FastTwoSum_bound_round a b (Fa: format a) (Fb : format b) rnd 
+                   (valid_rnd: Valid_rnd rnd )(rndD: round_direct rnd) :
+  (a <> 0 -> Rabs b <= Rabs a) ->
+let h := round beta fexp rnd (a + b) in 
+let z := round beta fexp rnd (h - a) in 
+let l := round beta fexp rnd (b - z) in 
+ Rabs (h + l - (a + b)) <= pow (1 - 2 * p) * Rabs h.
+Proof.
+ by move=>*; case:(FastTwoSum_bound Fa Fb).
 Qed.
 
 End F2Sum.
