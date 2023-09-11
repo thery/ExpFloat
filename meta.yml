@@ -32,7 +32,7 @@ description: |-
   - [Lemma 3](./tableINVERSE.v#L284-L289)   
   - [Definition of the `LOGINV` table](./tableLOGINV.v#L108-L292)
   - [Definition of Log1](./algoLog1.v#L172-L183)
-  - [Lemma 4](./algoLog1.v#L2885-L2891)
+  - [Lemma 4](./algoLog1.v#L2883-L2889)
 authors:
 - name: Laurent Théry
 - name: Laurence Rideau
