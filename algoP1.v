@@ -368,10 +368,27 @@ Definition p1 (z : R) :=
 Lemma p1_0 : p1 0 = DWR 0 0. 
 Proof. by rewrite /p1 !(Rsimp01, exactMul0l, round_0). Qed.
 
+
 Lemma absolute_rel_error_main (z : R) :
   format z -> Rabs z <= 33 * pow (- 13) -> is_imul z (pow (- 61)) ->
   let: DWR ph pl := p1 z in 
   [/\
+    let wh := RND (z * z) in
+    let wl := RND (z * z - wh) in
+    let t := RND (P8 * z + P7) in
+    let u := RND (P6 * z + P5) in
+    let v := RND (P4 * z + P3) in
+    let u' := RND (t * wh + u) in
+    let v' := RND (u' * wh + v) in 
+    let u'' := RND (v' * wh) in
+    let e5 := v' - (u' * wh + v) in
+    [/\ 
+      [/\ wl = z * z - wh, pl = RND (u'' * z - 0.5 * wl) & 
+      u'' = RND(v' * RND (z * z))],
+      Rabs e5 <= pow (- 54),
+      v' <= Rpower 2 (- 1.58058) + pow (- 54), 
+      0 < v' < Rpower 2 (- 1.5805) & 
+      is_imul v' (pow (- 360))],
   Rabs((ph + pl) - (ln (1 + z) - z)) < Rpower 2 (-75.492), 
   z <> 0%R ->  
      (Rabs ((z + ph + pl) / ln (1 + z) -1) < Rpower 2 (- 67.2756)) /\
@@ -864,11 +881,12 @@ have phB : Rabs ph < Rpower 2 (-16.9).
     by apply: pow_maj_Rabs.
   rewrite round_generic // Rabs_pos_eq; last by lra.
   by lra.
-split => //; first 2 last.
+split => //; first 3 last.
 - split=> //.
   rewrite phE.
   have -> : -0.5 * wh = -(0.5 * wh) by lra.
   by apply: is_imul_opp.
+- by split => //; split => //; lra.
 - apply: Rle_lt_trans (_ : E + Rabs (ln (1 + z) - P z) < _).
     by rewrite /E; clear; split_Rabs; nra.
   apply: Rle_lt_trans (_ : Rpower 2 (- 75.513) + Rpower 2 (- 81.63) < _); 
@@ -1655,6 +1673,30 @@ rewrite -d0'E.
 by rewrite /= /Z.pow_pos /= in v'wh_N1N0; lra.
 Qed.
 
+Lemma e5_error_bound (z : R) :
+  format z -> Rabs z <= 33 * pow (- 13) -> is_imul z (pow (- 61)) ->
+  let: DWR ph pl := p1 z in 
+  let wh := RND (z * z) in
+let wl := RND (z * z - wh) in
+let t := RND (P8 * z + P7) in
+let u := RND (P6 * z + P5) in
+let v := RND (P4 * z + P3) in
+let u' := RND (t * wh + u) in
+let v' := RND (u' * wh + v) in 
+let u'' := RND (v' * wh) in
+let e5 := v' - (u' * wh + v) in
+  [/\ 
+    [/\ wl = z * z - wh, pl = RND (u'' * z - 0.5 * wl) & 
+    u'' = RND(v' * RND (z * z))],
+    Rabs e5 <= pow (- 54),
+    v' <= Rpower 2 (- 1.58058) + pow (- 54), 
+    0 < v' < Rpower 2 (- 1.5805) & 
+    is_imul v' (pow (- 360))].
+Proof.
+move=> Fz zB Mz.
+by have [H _ _ _ _] := absolute_rel_error_main Fz zB Mz.
+Qed.
+
 Lemma imul_ph_p1 z :
   format z -> 
   Rabs z <= 33 * pow (- 13) ->
@@ -1663,7 +1705,7 @@ Lemma imul_ph_p1 z :
   is_imul ph (pow (- 123)).
 Proof.
 move=> Fz zB Mz.
-by have [_ _ [H _] _] := absolute_rel_error_main Fz zB Mz.
+by have [_ _ _ [H _] _] := absolute_rel_error_main Fz zB Mz.
 Qed.
 
 Lemma ph_bound_p1 z :
@@ -1674,7 +1716,7 @@ Lemma ph_bound_p1 z :
   Rabs ph < Rpower 2 (-16.9).
 Proof.
 move=> Fz zB Mz.
-by have [_ _ [_ H] _] := absolute_rel_error_main Fz zB Mz.
+by have [_ _ _ [_ H] _] := absolute_rel_error_main Fz zB Mz.
 Qed.
 
 Lemma imul_pl_p1 z :
@@ -1685,7 +1727,7 @@ Lemma imul_pl_p1 z :
   is_imul pl (pow (- 543)).
 Proof.
 move=> Fz zB Mz.
-by have [_ _ _ [H _]] := absolute_rel_error_main Fz zB Mz.
+by have [_ _ _ _ [H _]] := absolute_rel_error_main Fz zB Mz.
 Qed.
 
 Lemma pl_bound_p1 z :
@@ -1696,7 +1738,7 @@ Lemma pl_bound_p1 z :
   Rabs pl < Rpower 2 (-25.446).
 Proof.
 move=> Fz zB Mz.
-by have [_ _ _ [_ H]] := absolute_rel_error_main Fz zB Mz.
+by have [_ _ _ _ [_ H]] := absolute_rel_error_main Fz zB Mz.
 Qed.
 
 Lemma absolute_error_p1 z :
@@ -1707,7 +1749,7 @@ Lemma absolute_error_p1 z :
   Rabs((ph + pl) - (ln (1 + z) - z)) < Rpower 2 (-75.492).
 Proof.
 move=> Fz zB Mz.
-by have [H _ _ _] := absolute_rel_error_main Fz zB Mz.
+by have [_ H _ _ _] := absolute_rel_error_main Fz zB Mz.
 Qed.
 
 Lemma rel_error_p1 z :
@@ -1719,7 +1761,7 @@ Lemma rel_error_p1 z :
   Rabs ((z + ph + pl) / ln (1 + z) -1) < Rpower 2 (- 67.2756).
 Proof.
 move=> z_neq0 Fz zB Mz.
-have [_ H _ _] := absolute_rel_error_main Fz zB Mz.
+have [_ _ H _ _] := absolute_rel_error_main Fz zB Mz.
 by have [H1 _] := H z_neq0.
 Qed.
 
@@ -1733,7 +1775,7 @@ Lemma rel_error_32_p1 z :
 Proof.
 move=> z_neq0 Fz zB Mz.
 have zB1 : Rabs z <= 33 * pow (- 13) by interval.
-have [_ H _ _] := absolute_rel_error_main Fz zB1 Mz.
+have [_ _ H _ _] := absolute_rel_error_main Fz zB1 Mz.
 have [_ H1] := H z_neq0.
 by apply: H1.
 Qed.
