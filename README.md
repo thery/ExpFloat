@@ -24,18 +24,18 @@ Algorithm P1 :
 - [Algotiyhm P1](./algoP1.v#L358-L366)
 - [Absolute error of Sollya polynomial](./algoP1.v#L151-L152)
 - [Relative error of Sollya polynomial](./algoP1.v#L340-L342)
-- [Bound of `ph` of algorithm P1](./algoP1.v#L1669-L1674)
-- [Bound of `pl` of algorithm P1](./algoP1.v#L1691-L1696)
-- [Absolute error of algorithm P1](./algoP1.v#L1702-L1707)
-- [Relative error of algorithm P1](./algoP1.v#L1713-L1719)
-- [Refined relative error of algorithm P1](./algoP1.v#L1726-L1732)
+- [Bound of `ph` of algorithm P1](./algoP1.v#L1711-L1716)
+- [Bound of `pl` of algorithm P1](./algoP1.v#L1733-L1738)
+- [Absolute error of algorithm P1](./algoP1.v#L1744-L1749)
+- [Relative error of algorithm P1](./algoP1.v#L1755-L1761)
+- [Refined relative error of algorithm P1](./algoP1.v#L1768-L1774)
 
 Algorithm Log1 :
 - [Definition of the `INVERSE` table](./tableINVERSE.v#L48-L79)
 - [Lemma 3](./tableINVERSE.v#L284-L289)   
 - [Definition of the `LOGINV` table](./tableLOGINV.v#L108-L292)
 - [Definition of Log1](./algoLog1.v#L172-L183)
-- [Lemma 4](./algoLog1.v#L2883-L2889)
+- [Lemma 4](./algoLog1.v#L2585-L2591)
 
 ## Meta
 
