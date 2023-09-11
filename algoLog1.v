@@ -1319,8 +1319,7 @@ have imul_thz : is_imul (th + z) (pow (- 61)).
   apply: is_imul_add => //.
   by apply: is_imul_pow_le imul_th _.
 have imul_h : is_imul h (pow (- 61)).
-  have ->: h = RND (th + z) by case: E1.
-  by apply: is_imul_pow_round.
+  by rewrite hE; apply: is_imul_pow_round.
 have imul_ph : is_imul ph (pow (- 123)).
   have := @imul_ph_p1 _ rnd _ _ Fz zB.
   by rewrite E3; apply.
@@ -1675,8 +1674,7 @@ have imul_thz : is_imul (th + z) (pow (- 61)).
   apply: is_imul_add => //.
   by apply: is_imul_pow_le imul_th _.
 have imul_h : is_imul h (pow (- 61)).
-  have ->: h = RND (th + z) by case: E1.
-  by apply: is_imul_pow_round.
+  by rewrite hE; apply: is_imul_pow_round.
 have imul_ph : is_imul ph (pow (- 123)).
   have := @imul_ph_p1 _ rnd _ _ Fz zB.
   by rewrite E3; apply.

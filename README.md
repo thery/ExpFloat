@@ -17,6 +17,9 @@ Exponential in binary 64
 
 Progress
 
+Algorithm FastTwoSum : 
+- [Bounds on the error of FastTwoSum](./Fast2Sum_robust_flt.v#L1050-L1057)
+
 Algorithm P1 : 
 - [Algotiyhm P1](./algoP1.v#L358-L366)
 - [Absolute error of Sollya polynomial](./algoP1.v#L151-L152)
@@ -31,8 +34,8 @@ Algorithm Log1 :
 - [Definition of the `INVERSE` table](./tableINVERSE.v#L48-L79)
 - [Lemma 3](./tableINVERSE.v#L284-L289)   
 - [Definition of the `LOGINV` table](./tableLOGINV.v#L108-L292)
-- [Definition of Log1](./algoLog1.v#L165-L176)
-- [Lemma 4](./algoLog1.v#L2878-L2884)
+- [Definition of Log1](./algoLog1.v#L172-L183)
+- [Lemma 4](./algoLog1.v#L2885-L2891)
 
 ## Meta
 
@@ -60,7 +63,7 @@ opam repo add coq-released https://coq.inria.fr/opam/released
 opam install coq-expfloat
 ```
 
-To build and install manually, do:
+To instead build and install manually, do:
 
 ``` shell
 git clone https://github.com/thery/expfloat.git
