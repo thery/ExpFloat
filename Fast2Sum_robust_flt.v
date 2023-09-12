@@ -6,6 +6,7 @@ From Flocq Require Import Core Plus_error Mult_error Relative Sterbenz Operation
 From Flocq Require Import  Round.
 Require Import mathcomp.ssreflect.ssreflect.
 Require Import Rmore MULTmore.
+Require Import F2SumFLT.
 
 Set Implicit Arguments.
 
@@ -726,6 +727,8 @@ End F2Sum_pre.
 Definition round_direct (rnd: R -> Z):=
 (forall x, round beta fexp rnd x = round beta fexp Zfloor x) \/
 (forall x, round beta fexp rnd x = round beta fexp Zceil x).
+Definition round_direct_orN (rnd: R -> Z) choice:=
+round_direct rnd \/ rnd = Znearest choice.
 
 
 Notation ulp := (ulp beta fexp).
@@ -1401,7 +1404,8 @@ by split;
   ring_simplify(-ex + ex)%Z; rewrite pow0 Rmult_1_l ut4 -bpow_plus /ex; 
   rewrite hint !Rabs_pos_eq; lra.
 Qed.
-Lemma FastTwoSum_bound1 a b (Fa: format a) (Fb : format b) rnd 
+
+Lemma FastTwoSum_bound1_D a b (Fa: format a) (Fb : format b) rnd 
                    (valid_rnd: Valid_rnd rnd )(rndD: round_direct rnd) :
   (a <> 0 -> Rabs b <= Rabs a) ->
 let h := round beta fexp rnd (a + b) in 
@@ -1412,7 +1416,7 @@ Proof.
  by move=>*; case:(FastTwoSum_bound Fa Fb).
 Qed.
 
-Lemma FastTwoSum_bound_round a b (Fa: format a) (Fb : format b) rnd 
+Lemma FastTwoSum_bound_round_D a b (Fa: format a) (Fb : format b) rnd 
                    (valid_rnd: Valid_rnd rnd )(rndD: round_direct rnd) :
   (a <> 0 -> Rabs b <= Rabs a) ->
 let h := round beta fexp rnd (a + b) in 
@@ -1422,6 +1426,39 @@ let l := round beta fexp rnd (b - z) in
 Proof.
  by move=>*; case:(FastTwoSum_bound Fa Fb).
 Qed.
+
+Lemma FastTwoSum_bound1_D_N a b (Fa: format a) (Fb : format b) rnd 
+                   (valid_rnd: Valid_rnd rnd ) choice (rndDN: round_direct_orN rnd choice) :
+  (a <> 0 -> Rabs b <= Rabs a) ->
+let h := round beta fexp rnd (a + b) in 
+let z := round beta fexp rnd (h - a) in 
+let l := round beta fexp rnd (b - z) in 
+  Rabs (h + l - (a + b)) <= pow (1 - 2 * p) * Rabs (a + b).
+Proof.
+case: rndDN=> rndDN; first by apply/FastTwoSum_bound1_D.
+move=> hab.
+case:(Req_dec a 0)=>[->|aneq0].
+  set  ex:= pow _.
+  rewrite /= !(Rsimp01,(round_generic _ _ _ b), round_0) // /ex.
+  move: (Rabs_pos b) (bpow_ge_0  beta (1 - 2 * p)); nra.
+have {} hab : Rabs b <= Rabs a by lra.
+case:(Req_dec b 0)=>[->|nneq0].
+  set  ex:= pow _.
+  rewrite /= !(Rsimp01,(round_generic _ _ _ a), round_0) // /ex.
+  move: (Rabs_pos b) (bpow_ge_0  beta (1 - 2 * p)); nra.
+rewrite rndDN; clear rndDN.
+move=> h z l.
+have->:  l = a + b -h.
+rewrite /l /z/h
+  (@Fast2Sum_correct_proof_flt _ _ _ choice _ _ _ _ (Float beta  (Ztrunc (mant a))  (ce a))) /F2R=>//=.
+  split; first by rewrite {1}Fa /F2R/=.
+  split; first by apply/FLT_mant_le.
+  by apply/cexp_le.
+ring_simplify (h + (a + b - h) - (a + b)).
+rewrite Rabs_R0.
+move: (Rabs_pos (a +b)) (bpow_ge_0  beta (1 - 2 * p)); nra.
+Qed.
+
 
 End F2Sum.
 End Main.

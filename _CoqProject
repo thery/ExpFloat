@@ -10,4 +10,5 @@ tableINVERSE.v
 tableLOGINV.v
 algoLog1.v
 MULTmore.v
+F2SumFLT.v 
 Fast2Sum_robust_flt.v
