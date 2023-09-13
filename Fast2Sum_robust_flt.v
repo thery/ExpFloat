@@ -722,14 +722,12 @@ Qed.
 
 
 End F2Sum_pre.
+Definition round_direct_oo  (rnd: R -> Z):= rnd = Zfloor \/ rnd = Zceil.
+Definition round_direct (rnd: R -> Z):= (round_direct_oo rnd ) \/ rnd = Ztrunc.
 
 
-Definition round_direct (rnd: R -> Z):=
-(forall x, round beta fexp rnd x = round beta fexp Zfloor x) \/
-(forall x, round beta fexp rnd x = round beta fexp Zceil x).
 Definition round_direct_orN (rnd: R -> Z) choice:=
 round_direct rnd \/ rnd = Znearest choice.
-
 
 Notation ulp := (ulp beta fexp).
 
@@ -763,6 +761,22 @@ wlog apos: a b Fa Fb  blea rnd valid_rnd rndD/ 0 <= a.
   set Rm:= round _ _ _ _.
   have ->: b = - (-b) by ring.
   rewrite -/mb  (E2 _ a) -/ma E1 /Rm.
+  case:rndD=>[rndD|rndE]; last first.
+    rewrite rndE !round_ZR_opp.
+    set Rmab:= round _ _ _ _.
+    set Rl:= round _ _ _ _.
+    suff: Rmab + Rl = ma + mb by lra.
+    rewrite -[RHS]Hwlog  /ma /mb; first last; try lra.
+    + by rewrite !mag_opp.
+    + by right.
+    + by rewrite !Rabs_Ropp.
+    + by  apply/generic_format_opp.
+    + by  apply/generic_format_opp.
+    congr Rplus; first by rewrite /Rmab rndE -/ma -/mb.
+    rewrite -/ma -/mb /Rl.
+    have->: - Rmab + ma = - (Rmab - ma ) by  lra.
+    congr round; rewrite // round_ZR_opp.
+    by rewrite /Rmab rndE ; lra.
   case: rndD=> RNE; rewrite !RNE;
   rewrite  !(round_DN_opp , round_UP_opp) (E3 _ ma) 
      !(round_DN_opp, round_UP_opp) -E2 E1;
@@ -771,13 +785,13 @@ wlog apos: a b Fa Fb  blea rnd valid_rnd rndD/ 0 <= a.
   + by apply/generic_format_opp.
   +  by apply/generic_format_opp.
   + by rewrite !Rabs_Ropp.
-  + by right.
+  + by left; right.
   + rewrite /ma ;lra.
   + by rewrite !mag_opp.
   + by apply/generic_format_opp.
   +  by apply/generic_format_opp.
   + by rewrite !Rabs_Ropp.
-  + by left.
+  + by left ;left.
   + rewrite /ma ;lra.
   by rewrite !mag_opp.
 
@@ -1080,6 +1094,26 @@ wlog apos: a b Fa Fb  blea a_neq0 b_neq0  rnd valid_rnd rndD/ 0 <= a.
   move=> Hwlog.
   case: (Rle_lt_dec 0 a) =>[apos | aneg].
     by apply/Hwlog.
+
+  case:rndD=>[rndD|rndE]; last first.
+  have apbE : (a + b ) = - ((-a) + (-b)) by ring.
+  have E1: forall x y, - x -  y = - (x + y) by move=> *; ring.
+  have E2: forall x y, x -  y = x + -y by move=> *; ring.
+  have E3 : forall x y , - x + y = - (x - y ) by move=>*; ring.
+  rewrite apbE.
+  set ma := -a.
+  set mb := -b.
+  rewrite rndE round_ZR_opp.
+
+  set Rm:= round _ _ _ (ma + mb).
+ring_simplify  (- (ma + mb) - - Rm).
+have->: - ma - mb + Rm = - (ma + mb - Rm) by lra.
+rewrite round_ZR_opp Rabs_Ropp -E2 !E1 -E2 !Rabs_Ropp /Rm.
+apply/Hwlog; rewrite  /ma /mb; try lra.
+    + by  apply/generic_format_opp.
+    + by  apply/generic_format_opp.
+    + by rewrite !Rabs_Ropp.
+    + by right.
   have HwlogUP:  forall a b : R,
           format a ->
           format b ->
@@ -1095,7 +1129,7 @@ wlog apos: a b Fa Fb  blea a_neq0 b_neq0  rnd valid_rnd rndD/ 0 <= a.
             (round beta fexp Zceil(a + b) +
              round beta fexp Zceil (a + b - round beta fexp Zceil (a + b)) -
              (a + b)) <= pow ex * Rabs (round beta fexp Zceil (a + b)).
-    by move=>*; apply/Hwlog=>//; right.
+    by move=>*; apply/Hwlog=>//; left;right.
   have HwlogDN:  forall a b : R,
           format a ->
           format b ->
@@ -1111,7 +1145,7 @@ wlog apos: a b Fa Fb  blea a_neq0 b_neq0  rnd valid_rnd rndD/ 0 <= a.
             (round beta fexp Zfloor(a + b) +
              round beta fexp Zfloor (a + b - round beta fexp Zfloor (a + b)) -
              (a + b)) <= pow ex * Rabs (round beta fexp Zfloor (a + b)).
-    by move=>*; apply/Hwlog=>//; left.
+    by move=>*; apply/Hwlog=>//; left;left.
   have Fma : format (-a) by apply/generic_format_opp.
   have Fmb : format (-b) by apply/generic_format_opp.
   have Rb_le_Ra: Rabs (-b) <= Rabs (-a) by rewrite !Rabs_Ropp.

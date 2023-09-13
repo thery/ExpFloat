@@ -123,7 +123,7 @@ Local Notation ulp := (ulp beta fexp).
 
 Definition fastSum (a bh bl : R) := 
   let: DWR h t := fastTwoSum a bh in DWR h (RND (t + bl)).
-Hypothesis rndD: (round_direct emin p rnd).
+Hypothesis rndD: (round_direct rnd).
 
 (* Check underflow *)
 Lemma fastTwoSum_correct a b : 
