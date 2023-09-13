@@ -131,7 +131,7 @@ Lemma fastTwoSum_correct a b :
   let: DWR h l := fastTwoSum a b in 
   Rabs (h + l - (a + b)) <= pow (- 105) * Rabs h.
 Proof.
-by move=> Fa Fb b_le_a; apply/FastTwoSum_bound_round.
+by move=> Fa Fb b_le_a; apply/FastTwoSum_bound_round_D.
 Qed.
 
 Lemma fastTwoSum_correct1 a b : 
@@ -139,7 +139,7 @@ Lemma fastTwoSum_correct1 a b :
   let: DWR h l := fastTwoSum a b in 
   Rabs (h + l - (a + b)) <= pow (- 105) * Rabs (a + b).
 Proof.
-by move=> Fa Fb b_le_a ; apply/FastTwoSum_bound1.
+by move=> Fa Fb b_le_a ; apply/FastTwoSum_bound1_D.
 Qed.
 
 
