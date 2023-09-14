@@ -2,7 +2,7 @@ Require Import ZArith Reals  Psatz.
 From mathcomp Require Import all_ssreflect all_algebra.
 From Flocq Require Import Core Relative Sterbenz Operations Mult_error.
 From Coquelicot Require Import Coquelicot.
-From Interval Require Import  Tactic.
+From Interval Require Import Tactic.
 Require Import Nmore Rmore Fmore Rstruct MULTmore prelim.
 Require Import tableINVERSE tableLOGINV algoP1.
 Require Import Fast2Sum_robust_flt.
@@ -123,15 +123,13 @@ Local Notation ulp := (ulp beta fexp).
 
 Definition fastSum (a bh bl : R) := 
   let: DWR h t := fastTwoSum a bh in DWR h (RND (t + bl)).
-Hypothesis rndD: (round_direct rnd).
 
-(* Check underflow *)
 Lemma fastTwoSum_correct a b : 
   format a -> format b -> (a <> 0 -> Rabs b <= Rabs a) ->
   let: DWR h l := fastTwoSum a b in 
   Rabs (h + l - (a + b)) <= pow (- 105) * Rabs h.
 Proof.
-by move=> Fa Fb b_le_a; apply/FastTwoSum_bound_round_D.
+by move=> Fa Fb b_le_a; apply/FastTwoSum_bound_round.
 Qed.
 
 Lemma fastTwoSum_correct1 a b : 
@@ -139,9 +137,8 @@ Lemma fastTwoSum_correct1 a b :
   let: DWR h l := fastTwoSum a b in 
   Rabs (h + l - (a + b)) <= pow (- 105) * Rabs (a + b).
 Proof.
-by move=> Fa Fb b_le_a ; apply/FastTwoSum_bound1_D.
+by move=> Fa Fb b_le_a ; apply/FastTwoSum_bound1.
 Qed.
-
 
 Lemma error_le_ulp_add x : Rabs (RND x) <= Rabs x + ulp x.
 Proof.
