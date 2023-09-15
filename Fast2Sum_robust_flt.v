@@ -6,7 +6,6 @@ From Flocq Require Import Core Plus_error Mult_error Relative Sterbenz Operation
 From Flocq Require Import  Round.
 Require Import mathcomp.ssreflect.ssreflect.
 Require Import Rmore MULTmore.
-Require Import F2SumFLT.
 
 Set Implicit Arguments.
 
