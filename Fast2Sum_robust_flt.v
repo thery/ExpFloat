@@ -681,21 +681,22 @@ wlog apos: a b Fa Fb  blea rnd valid_rnd / 0 <= a.
   case: (Rle_lt_dec 0 a) =>[apos | aneg]; first by apply/Hwlog.
   move=> /= bleap.
   have apbE : (a + b) = - ((- a) + (- b)) by lra.
-  have E1 x y : - x - y = - (x + y) by lra.
-  have E2 x y : x - y = x + - y by lra.
-  have E3 x y : - x + y = - (x - y) by lra.
+  (* have E1 x y : - x - y = - (x + y) by lra. *)
+  (* have E2 x y : x - y = x + - y by lra. *)
+  (* have E3 x y : - x + y = - (x - y) by lra. *)
   rewrite apbE.
   set ma := - a; set mb := - b.
-  rewrite round_opp E1 round_opp.
-  rewrite -[b -- _]Ropp_involutive round_opp.
-  rewrite [in LHS]Ropp_plus_distr Ropp_involutive -/mb.
-  rewrite -[a]Ropp_involutive -/ma [LHS]E1; congr (- _).
-  apply: Hwlog; rewrite /ma /mb //.
-  + by apply/generic_format_opp.
-  + by apply/generic_format_opp.
-  + by split_Rabs; lra.
-  + by lra.
-  by rewrite !mag_opp.
+  have Fma: format ma by apply/generic_format_opp.
+  have Fmb: format mb by apply/generic_format_opp.
+  rewrite round_opp 
+      -[in RHS](Hwlog ma mb _ _ _ (Zrnd_opp rnd))//;
+      try (rewrite /ma /mb; lra); last first.
+  + by rewrite /ma /mb !mag_opp; lia.
+  + by rewrite /ma /mb !Rabs_Ropp.  
+  rewrite Ropp_plus_distr; congr Rplus.
+   set rmab := round _ _ _ (ma + mb).
+   by rewrite /Rminus  -round_opp -Ropp_plus_distr round_opp 
+       Ropp_plus_distr /ma !Ropp_involutive.
 have [{}apos| <-] := apos; last first.
   by rewrite /= !(round_generic _ _ _ b Fb, Rsimp01, round_0).
 have [-> h1 /=|bneq0] := Req_dec b 0.
@@ -956,7 +957,7 @@ move=> blea.
 set ex:= (1 - _)%Z.
 have [->|a_neq0] := Req_dec a 0.
   rewrite /= !(Rsimp01, round_generic _ _ _ b, round_0) //.
-  by move:(bpow_gt_0 beta ex); split_Rabs; nra.
+  by move:(bpow_gt_0 beta ex) (Rabs_pos b); nra.
 have {} blea :  Rabs b <= Rabs a by apply/blea.
 have [->|b_neq0] := Req_dec b 0.
   rewrite /= !(Rsimp01, round_generic _ _ _ a, round_0) //.
@@ -973,19 +974,15 @@ wlog apos: a b Fa Fb  blea a_neq0 b_neq0  rnd valid_rnd / 0 <= a.
   move=> Hwlog.
   have [apos|aneg] := Rle_lt_dec 0 a; first by apply/Hwlog.
   have apbE : a + b  = - ((- a) + (- b)) by lra.
-  have E1 x y : - x -  y = - (x + y) by lra.
-  have E2 x y : x -  y = x + -y by lra.
-  have E3 x y : - x + y = - (x - y ) by lra.
   rewrite apbE.
   set ma := -a; set mb := -b.
+  have Fma: format ma by apply/generic_format_opp.
+  have Fmb: format mb by apply/generic_format_opp.
   rewrite round_opp.
   set Rm:= round _ _ _ (ma + mb).
-  have -> : - (ma + mb) - - Rm = - (ma + mb - Rm) by lra.
-  rewrite round_opp Rabs_Ropp -E2 !E1 -E2 !Rabs_Ropp /Rm.
-  apply/Hwlog; rewrite /ma /mb; try lra.
-  + by apply/generic_format_opp.
-  + by apply/generic_format_opp.
-  by rewrite !Rabs_Ropp.
+  by rewrite  /Rminus -Ropp_plus_distr round_opp  -2!Ropp_plus_distr 
+   !Rabs_Ropp -/Rminus /Rm; apply/Hwlog; 
+    rewrite // /mb /ma ?Rabs_Ropp; lra.
 have {}apos : 0 < a by lra.
 case: (Z_lt_le_dec (mag beta b + p) (mag beta a))=> hmagabp; last first.
   have-> : (a + b - round beta fexp rnd (a + b)) = 
@@ -1027,9 +1024,8 @@ have b_uB : Rabs b < (pow t) / 2.
 set x := round _ _ _ (a + b).
 have powt_pos : 0 < pow t by apply/bpow_gt_0.
 have powex_pos := (bpow_gt_0 beta ex).
-have Rabpos:= (Rabs_pos (a +b)).
-have ab_B : a - pow t / 2 < a + b < a + (pow t) / 2.
-  by split_Rabs; lra.
+have abpos: 0 <= a + b by split_Rabs; try lra.
+have ab_B : a - pow t / 2 < a + b < a + (pow t) / 2 by split_Rabs; lra.
 have abB_bpos : 0 < b -> a < a + b < a + pow t / 2 by lra.
 have abB_bneg :  b < 0 ->  a - pow t / 2 < a + b < a  by lra.
 case:(Z_lt_le_dec (t + 1) emin)=> ht_emin.
@@ -1043,7 +1039,7 @@ case:(Z_lt_le_dec (t + 1) emin)=> ht_emin.
       have-> : (t + p = maga)%Z by lia.
       by lra.
     by rewrite -pow1 -bpow_plus; apply/bpow_le; lia.
-  by rewrite xE !(Rsimp01, round_0); nra.
+  by rewrite xE !(Rsimp01, round_0) Rabs_pos_eq; nra.
 case: blea => blea; last first.
   suff: (mag beta b = (mag beta a):>Z)%Z by lia.
   rewrite (mag_unique beta b maga)=>//.
@@ -1108,7 +1104,8 @@ have casexE: x = a \/ x = a + pow t \/ x = a - pow t \/
   by rewrite -/x preda round_generic //; apply/generic_format_pred.
 case: casexE => [xa|casexE].
   rewrite xa; ring_simplify(a + b - a).
-  by rewrite (round_generic _ _ _ b) // !Rsimp01 (Rabs_pos_eq a); nra.
+  by rewrite (round_generic _ _ _ b) // !Rsimp01 
+   (Rabs_pos_eq a); move: (Rabs_pos(a + b)); nra.
 case: casexE=>[xa|casexE].
   have bpos : 0 < b.
     case (Rle_lt_dec b 0) => b0 //.
@@ -1173,7 +1170,7 @@ case: casexE=>[xa|casexE].
         apply/generic_format_bpow.
         by rewrite/fexp; lia.
       apply/(Rle_trans _ (pow t)); last by apply/bpow_le; lia.
-      by split_Rabs; lra.
+      by rewrite Rabs_pos_eq; lra.
     rewrite round_generic // !Rsimp01.
     by move:(bpow_ge_0 beta ex) (Rabs_pos (a + b)) (Rabs_pos x); nra.
   have uE: ulp (b + pow t) = pow (t - p).
