@@ -31,8 +31,8 @@ description: |-
   - [Definition of the `INVERSE` table](./tableINVERSE.v#L48-L79)
   - [Lemma 3](./tableINVERSE.v#L284-L289)   
   - [Definition of the `LOGINV` table](./tableLOGINV.v#L108-L292)
-  - [Definition of Log1](./algoLog1.v#L169-L180)
-  - [Lemma 4](./algoLog1.v#L2582-L2588)
+  - [Definition of Log1](./algoLog1.v#L309-L320)
+  - [Lemma 4](./algoLog1.v#L2722-L2728)
 authors:
 - name: Laurent Théry
 - name: Laurence Rideau
