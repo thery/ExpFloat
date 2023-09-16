@@ -54,15 +54,155 @@ Local Notation p1 := (p1 rnd).
 Let alpha := pow (- 1074).
 Let omega := (1 - pow (-p)) * pow emax.
 
-Variable getRange : R -> R * Z.
+Definition getRange x : (R * Z) := 
+  let: m := mag beta x in 
+  let x1 := x * pow (- m) in 
+  if (Rle_bool x1 (/ sqrt 2)) then (2 * x1, (m - 1)%Z) else (x1, (m : Z)).
 
-Hypothesis getRangeCorrect : 
-  forall f,  format f -> alpha <= f <= omega -> 
+(* Back to basic *)
+Lemma sqrt2_irr x y : IZR x / IZR y <> sqrt 2.
+Proof.
+have s2G : 1 < sqrt 2.
+  by rewrite -sqrt_1; apply: sqrt_lt_1_alt; lra.
+elim/Z_lt_abs_induction: x y => x IH y xyE.
+have xxE : (x * x = 2 * y * y)%Z.
+  apply: eq_IZR; rewrite !mult_IZR.
+  have -> : 2 = sqrt 2 * sqrt 2.
+    by have /sqrt_sqrt Hf : 0 <= 2 by lra.
+  rewrite -xyE; field => yE.
+  by rewrite yE Rdiv_0_r in xyE; lra.
+have Ex : Z.even x.
+  have := Z.even_mul x x.
+  rewrite xxE.
+  by rewrite -Zmult_assoc Z.even_mul /=; case: Z.even.
+case: (Zeven_ex x) => x1; rewrite Ex Zplus_0_r => xE.
+have Ey : Z.even y.
+  have := Z.even_mul y y.
+  have -> : (y * y = 2 * x1 * x1)%Z by lia.
+  by rewrite -Zmult_assoc Z.even_mul /=; case: Z.even.
+case: (Zeven_ex y) => y1; rewrite Ey Zplus_0_r => yE.
+have [x_eq0|x_neq0] := Z.eq_dec x 0.
+  have y_eq0 : y = 0%Z by lia.
+  suff : sqrt 2 = 0 by lra.
+  by rewrite -xyE x_eq0 y_eq0; lra.
+have [y_eq0|y_neq0] := Z.eq_dec y 0.
+  have x_eq0 : x = 0%Z by lia.
+  suff : sqrt 2 = 0 by lra.
+  by rewrite -xyE x_eq0 y_eq0; lra.
+case: (IH x1 _ y1); first by lia.
+rewrite -xyE xE yE !mult_IZR; field.
+apply: not_0_IZR; lia.
+Qed.
+
+Lemma getRangeCorrect f : 
+    format f -> alpha <= f <= omega -> 
     / sqrt 2 < (getRange f).1 < sqrt 2 /\ 
     f = ((getRange f).1) * pow (getRange f).2.
-
-Hypothesis getRangeFormat : 
-  forall f,  format f -> alpha <= f <= omega -> format (getRange f).1. 
+Proof.
+move=> Ff fB; rewrite /getRange.
+have alpha_gt_0 : 0 < alpha by apply: alpha_gt_0.
+have fE : pow (mag beta f) * pow (- mag beta f) = 1.
+  by rewrite -bpow_plus -(pow0E beta); congr (pow _); lia.
+have fG : f * pow (-mag beta f) < 1.
+  rewrite -fE.
+  suff : f < pow (mag beta f).
+    suff : 0 < pow (- mag beta f) by nra.
+    by apply: bpow_gt_0. 
+  rewrite -{1}[f]Rabs_pos_eq; last by lra.
+  by apply: bpow_mag_gt.
+have s2G : 1 < sqrt 2.
+  by rewrite -sqrt_1; apply: sqrt_lt_1_alt; lra.
+have fL : /2 <= f * pow (- mag beta f).
+  have <- : /2 * pow (mag beta f) * pow (- mag beta f) = /2 by lra.
+  suff : / 2 * pow (mag beta f) <= f.
+    suff : 0 < pow (- mag beta f) by nra.
+    by apply: bpow_gt_0.
+  have -> : /2 * pow (mag beta f) = pow (mag beta f - 1).
+    by rewrite bpow_plus powN1; lra.
+  rewrite -{3}[f]Rabs_pos_eq; last by lra.
+  by apply: (bpow_mag_le beta); lra.
+have [fB1|fB1] := Rle_bool_spec => /=; last first.
+  split; last first.
+    suff : pow (- mag beta f) * pow (mag beta f) = 1 by nra.
+    by rewrite -bpow_plus -(pow0E beta); congr (pow _); lia.
+  by split; lra.
+split; last first.
+  rewrite bpow_plus powN1.
+  suff : pow (- mag beta f) * pow (mag beta f) = 1 by nra.
+  by rewrite -bpow_plus -(pow0E beta); congr (pow _); lia.
+split.
+  suff : / sqrt 2 < 1 by lra.
+  rewrite -Rinv_1.
+  by apply: Rinv_1_lt_contravar; lra.
+suff : f * pow (- mag beta f) < sqrt 2 / 2 by lra.
+have -> : sqrt 2 / 2 = /sqrt 2.
+  have {2}-> : 2 = sqrt 2 * sqrt 2.
+    by have /sqrt_sqrt Hf : 0 <= 2 by lra.
+  by field; lra.
+suff : f * pow (- mag beta f) <> / sqrt 2 by lra.
+suff : 2 * f * pow (- mag beta f) <> sqrt 2.
+  suff -> : / sqrt 2 = sqrt 2 / 2 by lra.
+  have {3}-> : 2 = sqrt 2 * sqrt 2.
+    by have /sqrt_sqrt Hf : 0 <= 2 by lra.
+  by field; lra.
+rewrite Ff.
+set m := Ztrunc _; set m1 := mag _ _; set e := cexp _.
+rewrite /F2R /= -{1}[2](pow1E beta).
+rewrite !Rmult_assoc Rmult_comm !Rmult_assoc -!bpow_plus.
+have [eP|eN] := Z_lt_le_dec 0 (e + (- m1 + 1)).
+  rewrite -IZR_Zpower; last by set xx := (e + _)%Z in eP *; lia.
+  rewrite -mult_IZR -[X in X <> _]Rdiv_1.
+  by apply: sqrt2_irr.
+rewrite -[(e + _)%Z]Z.opp_involutive bpow_opp.
+rewrite -IZR_Zpower.
+  by apply: sqrt2_irr.
+by set xx := (e + _)%Z in eN *; lia.
+Qed.
+Lemma getRangeFormat f : 
+  format f -> alpha <= f <= omega -> format (getRange f).1.
+Proof.
+move=> Ff fB.
+have := getRangeCorrect Ff fB.
+rewrite /getRange.
+have alpha_gt_0 : 0 < alpha by apply: alpha_gt_0.
+have fE : pow (mag beta f) * pow (- mag beta f) = 1.
+  by rewrite -bpow_plus -(pow0E beta); congr (pow _); lia.
+have fG : f * pow (-mag beta f) < 1.
+  rewrite -fE.
+  suff : f < pow (mag beta f).
+    suff : 0 < pow (- mag beta f) by nra.
+    by apply: bpow_gt_0. 
+  rewrite -{1}[f]Rabs_pos_eq; last by lra.
+  by apply: bpow_mag_gt.
+have s2G : 1 < sqrt 2.
+  by rewrite -sqrt_1; apply: sqrt_lt_1_alt; lra.
+have fL : /2 <= f * pow (- mag beta f).
+  have <- : /2 * pow (mag beta f) * pow (- mag beta f) = /2 by lra.
+  suff : / 2 * pow (mag beta f) <= f.
+    suff : 0 < pow (- mag beta f) by nra.
+    by apply: bpow_gt_0.
+  have -> : /2 * pow (mag beta f) = pow (mag beta f - 1).
+    by rewrite bpow_plus powN1; lra.
+  rewrite -{3}[f]Rabs_pos_eq; last by lra.
+  by apply: (bpow_mag_le beta); lra.
+have [fB1|fB1] := Rle_bool_spec => /=; last first.
+  move=> _.
+  apply: generic_format_FLT_FLX.
+    apply: Rle_trans (_ : / sqrt 2 <= _); first by interval.
+    by rewrite Rabs_pos_eq; lra.
+  apply: mult_bpow_exact_FLX.
+  by apply: generic_format_FLX_FLT Ff.
+move=> _.
+have -> : 2 * (f * pow (- mag beta f)) = f * pow (- mag beta f + 1).
+  by rewrite bpow_plus pow1E -[IZR _]/2; lra.
+apply: generic_format_FLT_FLX.
+  apply: Rle_trans (_ : 2 * /2 <= _); first by interval.
+  rewrite Rabs_pos_eq.
+    by rewrite bpow_plus pow1E -[IZR _]/2; lra.
+  by rewrite bpow_plus pow1E -[IZR beta]/2; lra.
+apply: mult_bpow_exact_FLX.
+by apply: generic_format_FLX_FLT Ff.
+Qed.
 
 Lemma getRange_bound f : 
   format f -> alpha <= f <= omega -> (- 1074 <= (getRange f).2 <= 1024)%Z.
