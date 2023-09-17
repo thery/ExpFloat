@@ -56,11 +56,11 @@ Definition mul1 x y :=
   let: DWR r_h s := exactMul y h in
   let r_l := RND (y * l + s) in DWR r_h r_l.
 
-Lemma fprmat_decomp_prod x1 x2 : 
+Lemma format_decomp_prod x1 x2 : 
   generic_format beta (FLX_exp p) x1 -> 
   generic_format beta (FLX_exp p) x2 -> 
   exists m1, exists e1, x1 * x2 = IZR m1 * pow e1 /\
-                        Rabs (IZR m1) <= pow (2 * p).
+                        Rabs (IZR m1) < pow (2 * p).
 Proof.
 move=> x1F x2F.
 exists ((Ztrunc (scaled_mantissa beta (FLX_exp p) x1)) * 
@@ -80,16 +80,16 @@ split.
 rewrite mult_IZR.
 have -> : (2 * p = p + p)%Z by lia.
 rewrite bpow_plus Rabs_mult.
-apply: Rmult_le_compat; try by apply: Rabs_pos.
+apply: Rmult_lt_compat; try by apply: Rabs_pos.
   rewrite -scaled_mantissa_generic //.
   have [x1_eq0|x1_neq0] := Req_dec x1 0.
-    by rewrite x1_eq0 scaled_mantissa_0 Rabs_R0; apply: bpow_ge_0.
+    by rewrite x1_eq0 scaled_mantissa_0 Rabs_R0; apply: bpow_gt_0.
   suff : bpow beta (p - 1) <= Rabs (scaled_mantissa beta (FLX_exp p) x1) <=
           bpow beta p - 1 by lra.
   by apply: mant_bound_le.
 rewrite -scaled_mantissa_generic //.
 have [x2_eq0|x2_neq0] := Req_dec x2 0.
-  by rewrite x2_eq0 scaled_mantissa_0 Rabs_R0; apply: bpow_ge_0.
+  by rewrite x2_eq0 scaled_mantissa_0 Rabs_R0; apply: bpow_gt_0.
 suff : bpow beta (p - 1) <= Rabs (scaled_mantissa beta (FLX_exp p) x2) <=
         bpow beta p - 1 by lra.
 by apply: mant_bound_le.
@@ -98,18 +98,18 @@ Qed.
 Lemma is_imul_bound_pow e1 e2 p1 x1 m1 : 
    pow e1 <= Rabs x1 -> 
    x1 = IZR m1 * pow e2 -> Rabs (IZR m1) < pow p1 ->
-   is_imul x1 (pow (e1 - p1)).
+   is_imul x1 (pow (e1 - p1 + 1)).
 Proof.
 move=> x1B x1E m1B.
-exists (m1 * (2 ^ (e2 - (e1 - p1))))%Z.
+exists (m1 * (2 ^ (e2 - (e1 - p1 + 1))))%Z.
   rewrite mult_IZR (IZR_Zpower beta).
     rewrite Rmult_assoc -bpow_plus x1E.
     by congr (_ * pow _); lia.   
-suff: (e1 <= p1 + e2)%Z by lia.
-apply: (le_bpow beta).
+suff: (e1 < p1 + e2)%Z by lia.
+apply: (lt_bpow beta).
 rewrite bpow_plus.
-suff : Rabs x1 <= pow p1 * pow e2 by lra.
-have pe2_ge0 : 0 <= pow e2 by apply: bpow_ge_0.
+suff : Rabs x1 < pow p1 * pow e2 by lra.
+have pe2_gt0 : 0 < pow e2 by apply: bpow_gt_0.
 by rewrite x1E Rabs_mult [Rabs (pow _)]Rabs_pos_eq //; nra.
 Qed.
 
@@ -190,6 +190,15 @@ have eps1B1 : ~ / sqrt 2 < x < sqrt 2 ->
   apply/Rle_div_r; first by interval.
   by lra.
 set A := pow _ in yhB; set B := 709.7827 in yhB.
+have hl : is_imul (y * h) alpha.
+  have -> : alpha = pow (- 969 - 2 * p + 1) by [].
+  case: (@format_decomp_prod y h) => [||m1 [e1 [yhE m1B]]].
+  - by apply: generic_format_FLX_FLT yF.
+  - suff /generic_format_FLX_FLT : format h by [].
+    have := @log1_format_h (refl_equal _) _ valid_rnd _ xF.
+    by rewrite log1E.
+  apply: is_imul_bound_pow yhE m1B.
+  by rewrite -/A; lra.
 Admitted.
 
 End Mul1.

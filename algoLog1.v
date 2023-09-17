@@ -2767,4 +2767,24 @@ suff : Rpower 2 (-73.527) <= Rpower 2 (-67.0544).
 by interval.
 Qed.
 
+Lemma log1_format_h x : 
+  format x -> let: DWR h l := log1 x in format h.
+Proof.
+move=> xF.
+rewrite /log1 /=.
+case E : getRange => [t e]. 
+case E1 : nth => [l1 l2]. 
+by case: Z.eqb_spec => /= _; apply: generic_format_round.
+Qed.
+
+Lemma log1_format_l x : 
+  format x -> let: DWR h l := log1 x in format l.
+Proof.
+move=> xF.
+rewrite /log1 /=.
+case E : getRange => [t e]. 
+case E1 : nth => [l1 l2]. 
+by case: Z.eqb_spec => /= _; apply: generic_format_round.
+Qed.
+
 End Log1.
