@@ -148,5 +148,14 @@ Definition q1 (z : dwR) :=
   let l1 := RND(zh * l0 + t) in
   fastSum Q0 h1 l1.
 
+Lemma err_lem6 z :
+  let: DWR zh zl := z in 
+  let: DWR qh ql := q1 z in 
+  Rabs (zh + zl) <= 0.000130273 -> Rabs zl <= Rpower 2 (- 42.7260) ->
+  Rabs ((qh - ql) / exp (zh + zl) - 1) < Rpower 2 (- 74.169053) /\ 
+  Rabs ql <= Rpower 2 (- 42.7096).
+Proof.
+Admitted.
+
 End algoQ1.
 
