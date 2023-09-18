@@ -37,6 +37,10 @@ Algorithm Log1 :
 - [Definition of Log1](./algoLog1.v#L309-L320)
 - [Lemma 4](./algoLog1.v#L2722-L2728)
 
+Algorithm Mul1 :
+- [Definition of Mul1](./algoMul1.v#L119-L122)
+- [Lemma 5](./algoMul1.v#L189-L200)
+
 ## Meta
 
 - Author(s):

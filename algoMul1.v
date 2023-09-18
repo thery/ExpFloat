@@ -178,6 +178,13 @@ have pe2_gt0 : 0 < pow e2 by apply: bpow_gt_0.
 by rewrite x1E Rabs_mult [Rabs (pow _)]Rabs_pos_eq //; nra.
 Qed.
 
+Ltac boundDMI := 
+  (apply: Rle_trans (Rabs_triang _ _) _ ;
+   apply: Rplus_le_compat) ||
+  (rewrite Rabs_mult;
+   apply: Rmult_le_compat; (try by apply: Rabs_pos)) ||
+  (rewrite Rabs_inv; apply: Rinv_le).
+
 (* This is lemma 5 *)
 Lemma err_lem5 x y : 
   format x -> alpha <= x <= omega -> format y ->
@@ -188,9 +195,9 @@ Lemma err_lem5 x y :
       Rabs r_l <= Rpower 2 (-14.4187),
       Rabs (r_l / r_h) <= Rpower 2 (- 23.8899) /\ Rabs (r_h + r_l) <= 709.79,
       Rabs (h + l - ln x) <= Rpower 2 (- 67.0544 ) * Rabs (ln x) & 
-      Rabs (r_h + r_l - y * ln x) <= Rpower 2 (- 67.0544) /\
-      ~(/ sqrt 2 < x < sqrt 2) -> 
-      Rabs (r_h + r_l - y * ln x) <= Rpower 2 (- 63.799)].
+      Rabs (r_h + r_l - y * ln x) <= Rpower 2 (- 57.580) /\
+      (~(/ sqrt 2 < x < sqrt 2) -> 
+       Rabs (r_h + r_l - y * ln x) <= Rpower 2 (- 63.799))].
 Proof.
 move=> xF xB yF.
 have := @err_lem4 (refl_equal _) _ valid_rnd _ xF xB.
@@ -322,20 +329,13 @@ have rlB : Rabs r_l <= Rpower 2 (- 14.4187).
   rewrite rlE1.
   apply: Rle_trans (_ : 
      B * (Rpower 2 (- 23.89) + pow (- 52)) * (1 + pow (- 52)) + alpha <= _);
-      last first.
-    by interval.
-  apply: Rle_trans (_ : 
-     Rabs (y * h * (lambda + d1) * (1 + d2)) + Rabs e2 <= _).
-    by clear; split_Rabs; lra.
-  apply: Rplus_le_compat; last by lra.
-  rewrite Rabs_mult.
-  apply: Rmult_le_compat; (try by apply: Rabs_pos); last first.
-    by clear -d2B; split_Rabs; lra.
-  rewrite Rabs_mult.
-  apply: Rmult_le_compat; (try by apply: Rabs_pos); first by lra.
-  apply: Rle_trans (_ : Rabs lambda + Rabs d1 <= _).
-    by clear; split_Rabs; lra.
-  by lra.
+      last by interval.
+  boundDMI; last by lra.
+  boundDMI; last first.
+    boundDMI; first by rewrite Rabs_pos_eq; lra.
+    by lra.
+  boundDMI; first by lra.
+  by boundDMI; lra.  
 have rhrlB : Rabs (r_l / r_h) <= Rpower 2 (- 23.8899).
   have -> : r_l / r_h = 
         (lambda + d1) * (1 + d2 ) * /(1 - d1) + e2 / (y * h) * /(1 - d1). 
@@ -345,38 +345,16 @@ have rhrlB : Rabs (r_l / r_h) <= Rpower 2 (- 23.8899).
     (Rpower 2 (- 23.89) + pow (- 52)) * (1 + pow (- 52)) * 
        / (1 - pow (- 52)) + 
       pow (- 1074 + 969) * /(1 - pow (- 52)) <= _); last by interval.
-  apply: Rle_trans (_ : 
-    Rabs ((lambda + d1) * (1 + d2) * / (1 - d1)) + 
-    Rabs (e2 / (y * h) * / (1 - d1)) <= _).
-    clear; split_Rabs; lra.
-  apply: Rplus_le_compat.
-    rewrite Rabs_mult.
-    apply: Rmult_le_compat; (try by apply: Rabs_pos).
-      rewrite Rabs_mult.
-      apply: Rmult_le_compat; (try by apply: Rabs_pos).
-        by apply: Rle_trans (Rabs_triang _ _) _; lra.
-      apply: Rle_trans (Rabs_triang _ _) _.
-      apply: Rplus_le_compat; last by lra.
-      by rewrite Rabs_pos_eq; lra.
-    rewrite Rabs_inv.
-    apply: Rinv_le; first by interval.
-    apply: Rle_trans (_ : Rabs 1 - Rabs d1 <= _).
+  do !boundDMI; try (interval || lra).
+  - apply: Rle_trans (_ : Rabs 1 - Rabs d1 <= _).
       by rewrite Rabs_pos_eq; lra.
     by clear; split_Rabs; lra.
-  rewrite Rabs_mult Rabs_inv.
-  apply: Rmult_le_compat; (try by apply: Rabs_pos).
-  - apply: Rinv_0_le_compat.
-    by apply: Rabs_pos.
-  - rewrite Rabs_mult Rabs_inv bpow_plus.
-    apply: Rmult_le_compat; (try by apply: Rabs_pos).
-    - apply: Rinv_0_le_compat.
-      by apply: Rabs_pos.
-    - by rewrite -[pow _]/alpha; lra.
-    have -> : (969 = - - 969)%Z by lia.
+  - rewrite bpow_plus; boundDMI.
+      by rewrite -[pow _]/alpha; lra.
+  - have -> : (969 = - - 969)%Z by lia.
     rewrite bpow_opp -/A.
-    apply: Rinv_le; first by interval.
+    boundDMI; first by interval.
     by lra.
-  apply: Rinv_le; first by interval.
   apply: Rle_trans (_ : Rabs 1 - Rabs d1 <= _).
     by rewrite Rabs_pos_eq; lra.
   by clear; split_Rabs; lra.
@@ -387,23 +365,43 @@ have rhrlB1 : Rabs (r_h + r_l) <= 709.79.
     709.7827 * (1 + Rpower 2 (- 23.89) * (1 + pow (- 52)) + pow (- 104)) +
     alpha <= _); last by interval.
   rewrite rhrlE.
-  apply: Rle_trans (Rabs_triang _ _) _.
-  apply: Rplus_le_compat; last by lra.
-  rewrite Rabs_mult.
-  apply: Rmult_le_compat; (try by apply: Rabs_pos).
-    by rewrite -/B; lra.
-  apply: Rle_trans (Rabs_triang _ _) _.
-  apply: Rplus_le_compat; last first.
-    rewrite Rabs_mult.
-    have ->: (- 104 = - 52 + - 52)%Z by lia.
-    rewrite bpow_plus.
-    by apply: Rmult_le_compat; (try by apply: Rabs_pos); lra.
-  apply: Rle_trans (Rabs_triang _ _) _.
-  apply: Rplus_le_compat; first by rewrite Rabs_pos_eq; lra.
-  rewrite Rabs_mult.
-  apply: Rmult_le_compat; (try by apply: Rabs_pos); first by lra.
-  apply: Rle_trans (Rabs_triang _ _) _.
-  by rewrite Rabs_pos_eq; lra.
-Admitted.
+  boundDMI; last by lra.
+  boundDMI; first by rewrite -/B; lra.
+  boundDMI.
+    boundDMI; first by rewrite Rabs_pos_eq; lra.
+    boundDMI; first by lra.
+    boundDMI; first by rewrite Rabs_pos_eq; lra.
+    by lra.
+  have ->: (- 104 = - 52 + - 52)%Z by lia.
+  rewrite bpow_plus.
+  by boundDMI; lra.
+have ylnxE : y * ln x = (y * h) * (1 + lambda) * (1 + eps1).
+  by rewrite eps1E1; lra.
+have rhrlylnxE : r_h + r_l - y * ln x = 
+                 y * h  * (- (1 + lambda) * eps1 + (lambda + d1 ) * d2) + e2.
+  by lra.
+pose C := B * ((1 + Rpower 2 (- 23.89)) * Rabs eps1 +
+               (Rpower 2 (- 23.89) + pow (- 52)) * pow (- 52)) + alpha.
+have rhrlylnxB : Rabs (r_h + r_l - y * ln x) <= C.
+  rewrite rhrlylnxE.
+  boundDMI; last by lra.
+  boundDMI; first by lra.
+  boundDMI.
+    boundDMI; last by lra.
+    rewrite Rabs_Ropp.
+    boundDMI; first by rewrite Rabs_pos_eq; lra.
+    by lra.
+  boundDMI; last by lra.
+  by boundDMI; lra.
+split => //; split.
+  apply: Rle_trans rhrlylnxB _.
+  rewrite /C /alpha /B.
+  by interval with (i_prec 100).
+move=> xInsqrt.
+have {}eps1B := eps1B1 xInsqrt.
+apply: Rle_trans rhrlylnxB _.
+rewrite /C /alpha /B.
+by interval with (i_prec 100).
+Qed.
 
 End Mul1.
