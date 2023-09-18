@@ -357,12 +357,12 @@ Notation exactMul := (exactMul rnd).
 
 Definition p1 (z : R) :=
   let: DWR wh wl := exactMul z z in 
-  let: t := RND (P8 * z + P7) in
-  let: u := RND (P6 * z + P5) in
-  let: v := RND (P4 * z + P3) in
-  let: u := RND (t * wh + u) in 
-  let: v := RND (u * wh + v) in 
-  let: u := RND (v * wh) in 
+  let t := RND (P8 * z + P7) in
+  let u := RND (P6 * z + P5) in
+  let v := RND (P4 * z + P3) in
+  let u := RND (t * wh + u) in 
+  let v := RND (u * wh + v) in 
+  let u := RND (v * wh) in 
   DWR (RND (- 0.5 * wh)) (RND (u * z - 0.5 * wl)).
 
 Lemma p1_0 : p1 0 = DWR 0 0. 

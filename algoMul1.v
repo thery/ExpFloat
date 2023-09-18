@@ -118,8 +118,8 @@ Qed.
 
 Definition mul1 x y := 
   let: DWR h l := x in
-  let: DWR r_h s := exactMul y h in
-  let r_l := RND (y * l + s) in DWR r_h r_l.
+  let: DWR rh s := exactMul y h in
+  let rl := RND (y * l + s) in DWR rh rl.
 
 Lemma format_decomp_prod x1 x2 : 
   generic_format beta (FLX_exp p) x1 -> 
@@ -189,20 +189,20 @@ Ltac boundDMI :=
 Lemma err_lem5 x y : 
   format x -> alpha <= x <= omega -> format y ->
   let: DWR h l := log1 x in
-  let: DWR r_h r_l := mul1 (DWR h l) y in
+  let: DWR rh rl := mul1 (DWR h l) y in
   pow (- 969) <= Rabs (y * h) <= 709.7827 ->
-  [/\ pow (- 970) <= Rabs r_h <= 709.79,
-      Rabs r_l <= Rpower 2 (-14.4187),
-      Rabs (r_l / r_h) <= Rpower 2 (- 23.8899) /\ Rabs (r_h + r_l) <= 709.79,
+  [/\ pow (- 970) <= Rabs rh <= 709.79,
+      Rabs rl <= Rpower 2 (-14.4187),
+      Rabs (rl / rh) <= Rpower 2 (- 23.8899) /\ Rabs (rh + rl) <= 709.79,
       Rabs (h + l - ln x) <= Rpower 2 (- 67.0544 ) * Rabs (ln x) & 
-      Rabs (r_h + r_l - y * ln x) <= Rpower 2 (- 57.580) /\
+      Rabs (rh + rl - y * ln x) <= Rpower 2 (- 57.580) /\
       (~(/ sqrt 2 < x < sqrt 2) -> 
-       Rabs (r_h + r_l - y * ln x) <= Rpower 2 (- 63.799))].
+       Rabs (rh + rl - y * ln x) <= Rpower 2 (- 63.799))].
 Proof.
 move=> xF xB yF.
 have := @err_lem4 (refl_equal _) _ valid_rnd _ xF xB.
 case log1E : log1 => [h l].
-case mul1E : mul1 => [r_h r_l] [lB hlE hE] yhB.
+case mul1E : mul1 => [rh rl] [lB hlE hE] yhB.
 have h_neq0 : h <> 0.
   move=> hE1; rewrite hE1 !Rsimp01 in yhB.
   have: 0 < pow (- 969) by interval.
@@ -299,9 +299,9 @@ have d1B : Rabs d1 < pow (- 52).
   rewrite yhE1.
   apply: relative_error_FLT_F2R_emin => //.
   by rewrite -yhE1; clear -h_neq0 y_neq0; nra.
-have rhE1 : r_h = (y * h) * (1 - d1).
+have rhE1 : rh = (y * h) * (1 - d1).
   by rewrite -rhE; lra.
-have rhB : pow (- 970) <= Rabs (r_h) <= 709.79.
+have rhB : pow (- 970) <= Rabs (rh) <= 709.79.
   split.
     apply: Rle_trans (_ : A * (1 - pow (- 52)) <= _); first by interval.
     rewrite rhE1 Rabs_mult.
@@ -323,9 +323,9 @@ have ylsB : Rabs (y * l + s) <= pow (- 13).
   by clear; split_Rabs; lra.
 have [d2 [e2 [d2e2E d2e2_eq0 e2B d2B]]] := error_round_general (y * l + s).
 rewrite rlE in d2e2E.
-have rlE1 : r_l = (y * h) * (lambda + d1 ) * (1 + d2 ) + e2.
+have rlE1 : rl = (y * h) * (lambda + d1 ) * (1 + d2 ) + e2.
   by rewrite d2e2E lambdaE d1E; lra.
-have rlB : Rabs r_l <= Rpower 2 (- 14.4187).
+have rlB : Rabs rl <= Rpower 2 (- 14.4187).
   rewrite rlE1.
   apply: Rle_trans (_ : 
      B * (Rpower 2 (- 23.89) + pow (- 52)) * (1 + pow (- 52)) + alpha <= _);
@@ -336,8 +336,8 @@ have rlB : Rabs r_l <= Rpower 2 (- 14.4187).
     by lra.
   boundDMI; first by lra.
   by boundDMI; lra.  
-have rhrlB : Rabs (r_l / r_h) <= Rpower 2 (- 23.8899).
-  have -> : r_l / r_h = 
+have rhrlB : Rabs (rl / rh) <= Rpower 2 (- 23.8899).
+  have -> : rl / rh = 
         (lambda + d1) * (1 + d2 ) * /(1 - d1) + e2 / (y * h) * /(1 - d1). 
     rewrite rlE1 rhE1; field; repeat split => //.
     by interval.
@@ -358,9 +358,9 @@ have rhrlB : Rabs (r_l / r_h) <= Rpower 2 (- 23.8899).
   apply: Rle_trans (_ : Rabs 1 - Rabs d1 <= _).
     by rewrite Rabs_pos_eq; lra.
   by clear; split_Rabs; lra.
-have rhrlE : r_h + r_l = (y * h) * (1 + lambda * (1 + d2) + d1 * d2) + e2.
+have rhrlE : rh + rl = (y * h) * (1 + lambda * (1 + d2) + d1 * d2) + e2.
   by lra.
-have rhrlB1 : Rabs (r_h + r_l) <= 709.79.
+have rhrlB1 : Rabs (rh + rl) <= 709.79.
   apply: Rle_trans (_ : 
     709.7827 * (1 + Rpower 2 (- 23.89) * (1 + pow (- 52)) + pow (- 104)) +
     alpha <= _); last by interval.
@@ -377,12 +377,12 @@ have rhrlB1 : Rabs (r_h + r_l) <= 709.79.
   by boundDMI; lra.
 have ylnxE : y * ln x = (y * h) * (1 + lambda) * (1 + eps1).
   by rewrite eps1E1; lra.
-have rhrlylnxE : r_h + r_l - y * ln x = 
+have rhrlylnxE : rh + rl - y * ln x = 
                  y * h  * (- (1 + lambda) * eps1 + (lambda + d1 ) * d2) + e2.
   by lra.
 pose C := B * ((1 + Rpower 2 (- 23.89)) * Rabs eps1 +
                (Rpower 2 (- 23.89) + pow (- 52)) * pow (- 52)) + alpha.
-have rhrlylnxB : Rabs (r_h + r_l - y * ln x) <= C.
+have rhrlylnxB : Rabs (rh + rl - y * ln x) <= C.
   rewrite rhrlylnxE.
   boundDMI; last by lra.
   boundDMI; first by lra.
