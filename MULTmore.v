@@ -119,7 +119,7 @@ rewrite  Rmult_assoc -bpow_plus.
 congr (_ * pow _); lia.
 Qed.
 
-Lemma exactMul (a b : R) :
+Lemma format_err_mul (a b : R) :
   format a -> format b -> is_imul (a * b) (pow emin) ->
   format (RN (a * b) - a * b).
 move=> Fa Fb [z zE].

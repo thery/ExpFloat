@@ -200,7 +200,7 @@ Proof.
 move=> Fa Fb Mab /=.
 rewrite -Ropp_minus_distr round_opp.
 rewrite [X in -X]round_generic //; first by lra.
-by apply: MULTmore.exactMul.
+by apply: format_err_mul.
 Qed.
 
 Lemma format_exactMul (a b : float) : 

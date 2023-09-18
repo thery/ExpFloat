@@ -47,9 +47,74 @@ Local Notation fastTwoSum := (fastTwoSum rnd).
 Local Notation RND := (round beta fexp rnd).
 Local Notation log1 := (log1 rnd).
 Local Notation exactMul := (exactMul rnd).
+Local Notation ulp := (ulp beta fexp).
+
+Lemma ulp_subnormal f : 
+  format f -> pow emin <= Rabs f < pow (emin + p) -> ulp f = pow emin.
+Proof.
+move=> Ff fB.
+have f_neq_0 : f <> 0.
+  suff : 0 < Rabs f by split_Rabs; lra.
+  suff : 0 < pow emin by lra.
+  by apply: bpow_gt_0.
+rewrite ulp_neq_0; last by lra.
+rewrite /cexp /fexp Z.max_r //.
+suff : (mag beta f <= emin + p)%Z by lia.
+apply: mag_le_bpow; first by lra.
+by lra.
+Qed.
+
+Lemma ulp_norm f : 
+  format f -> pow (emin + p) <= Rabs f -> ulp f = pow (mag beta f - p).
+Proof.
+move=> Ff fB.
+have f_neq_0 : f <> 0.
+  suff : 0 < Rabs f by split_Rabs; lra.
+  suff : 0 < pow (emin + p) by lra.
+  by apply: bpow_gt_0.
+rewrite ulp_neq_0; last by lra.
+rewrite /cexp /fexp Z.max_l //.
+suff : (emin + p <= mag beta f)%Z by lia.
+apply: mag_ge_bpow.
+apply: Rle_trans fB.
+apply: bpow_le; lia.
+Qed.
 
 Let alpha := pow (- 1074).
 Let omega := (1 - pow (-p)) * pow emax.
+
+Lemma error_round_general f : 
+  exists d, exists e,
+  [/\ 
+    RND f = f * (1 + d) + e,
+    e * d = 0,
+    Rabs e <= alpha &
+    Rabs d <= pow (- 52)].
+Proof.
+have [->|f_neq0] := Req_dec f 0.
+  by exists 0; exists 0; rewrite round_0 !Rsimp01; 
+     split => //; apply: bpow_ge_0.
+have [pLf|fLp] := Rle_lt_dec (pow (emin + p)) (Rabs f); last first.
+  exists 0; exists (RND f - f); split; rewrite ?Rsimp01 //.
+  - by lra.
+  - apply: Rle_trans (_ : ulp f <= _); first by apply: error_le_ulp.
+    rewrite /alpha -[(- 1074)%Z]/emin.
+    rewrite ulp_neq_0 // /cexp /fexp Z.max_r; first by lra.
+    suff : (mag beta f <= emin + p)%Z by lia.
+    apply: mag_le_bpow; first by lra.
+    by lra.
+  by apply: bpow_ge_0.
+exists ((RND f - f) / f); exists 0; split.
+- by field.
+- by lra.
+- by rewrite Rabs_R0; apply: bpow_ge_0.
+rewrite Rabs_div //.
+apply/Rle_div_l; first by clear -f_neq0; split_Rabs; lra.
+apply: Rlt_le.
+apply: relative_error_FLT => //.
+apply: Rle_trans pLf.
+by apply: bpow_le; lia.
+Qed.
 
 Definition mul1 x y := 
   let: DWR h l := x in
@@ -135,6 +200,10 @@ have h_neq0 : h <> 0.
   move=> hE1; rewrite hE1 !Rsimp01 in yhB.
   have: 0 < pow (- 969) by interval.
   by lra.
+have y_neq0 : y <> 0.
+  move=> yE1; rewrite yE1 !Rsimp01 in yhB.
+  have: 0 < pow (- 969) by interval.
+  by lra.
 pose lambda := l / h.
 have lambdaE : l = lambda * h by rewrite /lambda; field.
 have lambdaB : Rabs lambda <= Rpower 2 (- 23.89).
@@ -190,6 +259,9 @@ have eps1B1 : ~ / sqrt 2 < x < sqrt 2 ->
   apply/Rle_div_r; first by interval.
   by lra.
 set A := pow _ in yhB; set B := 709.7827 in yhB.
+have hF : format h.
+  have := @log1_format_h (refl_equal _) _ valid_rnd _ xF.
+  by rewrite log1E. 
 have hl : is_imul (y * h) alpha.
   have -> : alpha = pow (- 969 - 2 * p + 1) by [].
   case: (@format_decomp_prod y h) => [||m1 [e1 [yhE m1B]]].
@@ -199,6 +271,139 @@ have hl : is_imul (y * h) alpha.
     by rewrite log1E.
   apply: is_imul_bound_pow yhE m1B.
   by rewrite -/A; lra.
+move: mul1E; rewrite /mul1 /exactMul.
+rewrite -[round _ _ _ _]/(RND _) -[round _ _ _ (_ - _)]/(RND _) => [] [rhE rlE].
+set s := RND(_ - _) in rlE.
+have sE : s = y * h - RND (y * h).
+  apply: round_generic.
+  rewrite -Ropp_minus_distr.
+  apply: generic_format_opp.
+  by apply: format_err_mul.
+pose d1 := s / (y * h).
+have d1E : s = d1 * (y * h) by rewrite /d1; field; lra.
+have d1B : Rabs d1 < pow (- 52).
+  rewrite Rabs_div; last by clear - y_neq0 h_neq0; nra.
+  apply/Rlt_div_l.
+    by clear - y_neq0 h_neq0; split_Rabs; nra.
+  rewrite sE -Rabs_Ropp Ropp_minus_distr.
+  case: hl => m1 m1E.
+  pose x1 := Float beta m1 emin.
+  have yhE1 : y * h = x1 by rewrite m1E /F2R /=.
+  rewrite yhE1.
+  apply: relative_error_FLT_F2R_emin => //.
+  by rewrite -yhE1; clear -h_neq0 y_neq0; nra.
+have rhE1 : r_h = (y * h) * (1 - d1).
+  by rewrite -rhE; lra.
+have rhB : pow (- 970) <= Rabs (r_h) <= 709.79.
+  split.
+    apply: Rle_trans (_ : A * (1 - pow (- 52)) <= _); first by interval.
+    rewrite rhE1 Rabs_mult.
+    apply: Rmult_le_compat; try by interval.
+      by lra.
+    by clear -d1B; split_Rabs; lra.
+  apply: Rle_trans (_ : B * (1 + pow (- 52)) <= _); last by interval.
+  rewrite rhE1 Rabs_mult.
+  apply: Rmult_le_compat; try by interval.
+    by lra.
+  by clear -d1B; split_Rabs; lra.
+have ylsB : Rabs (y * l + s) <= pow (- 13).
+  have -> : y * l + s = (y * h) * (lambda + d1).
+    by rewrite lambdaE d1E; lra.
+  rewrite Rabs_mult.
+  apply: Rle_trans (_ : B * (Rabs lambda + Rabs d1) <= _); last by interval.
+  apply: Rmult_le_compat; try by apply: Rabs_pos.
+    by lra.
+  by clear; split_Rabs; lra.
+have [d2 [e2 [d2e2E d2e2_eq0 e2B d2B]]] := error_round_general (y * l + s).
+rewrite rlE in d2e2E.
+have rlE1 : r_l = (y * h) * (lambda + d1 ) * (1 + d2 ) + e2.
+  by rewrite d2e2E lambdaE d1E; lra.
+have rlB : Rabs r_l <= Rpower 2 (- 14.4187).
+  rewrite rlE1.
+  apply: Rle_trans (_ : 
+     B * (Rpower 2 (- 23.89) + pow (- 52)) * (1 + pow (- 52)) + alpha <= _);
+      last first.
+    by interval.
+  apply: Rle_trans (_ : 
+     Rabs (y * h * (lambda + d1) * (1 + d2)) + Rabs e2 <= _).
+    by clear; split_Rabs; lra.
+  apply: Rplus_le_compat; last by lra.
+  rewrite Rabs_mult.
+  apply: Rmult_le_compat; (try by apply: Rabs_pos); last first.
+    by clear -d2B; split_Rabs; lra.
+  rewrite Rabs_mult.
+  apply: Rmult_le_compat; (try by apply: Rabs_pos); first by lra.
+  apply: Rle_trans (_ : Rabs lambda + Rabs d1 <= _).
+    by clear; split_Rabs; lra.
+  by lra.
+have rhrlB : Rabs (r_l / r_h) <= Rpower 2 (- 23.8899).
+  have -> : r_l / r_h = 
+        (lambda + d1) * (1 + d2 ) * /(1 - d1) + e2 / (y * h) * /(1 - d1). 
+    rewrite rlE1 rhE1; field; repeat split => //.
+    by interval.
+  apply: Rle_trans (_ : 
+    (Rpower 2 (- 23.89) + pow (- 52)) * (1 + pow (- 52)) * 
+       / (1 - pow (- 52)) + 
+      pow (- 1074 + 969) * /(1 - pow (- 52)) <= _); last by interval.
+  apply: Rle_trans (_ : 
+    Rabs ((lambda + d1) * (1 + d2) * / (1 - d1)) + 
+    Rabs (e2 / (y * h) * / (1 - d1)) <= _).
+    clear; split_Rabs; lra.
+  apply: Rplus_le_compat.
+    rewrite Rabs_mult.
+    apply: Rmult_le_compat; (try by apply: Rabs_pos).
+      rewrite Rabs_mult.
+      apply: Rmult_le_compat; (try by apply: Rabs_pos).
+        by apply: Rle_trans (Rabs_triang _ _) _; lra.
+      apply: Rle_trans (Rabs_triang _ _) _.
+      apply: Rplus_le_compat; last by lra.
+      by rewrite Rabs_pos_eq; lra.
+    rewrite Rabs_inv.
+    apply: Rinv_le; first by interval.
+    apply: Rle_trans (_ : Rabs 1 - Rabs d1 <= _).
+      by rewrite Rabs_pos_eq; lra.
+    by clear; split_Rabs; lra.
+  rewrite Rabs_mult Rabs_inv.
+  apply: Rmult_le_compat; (try by apply: Rabs_pos).
+  - apply: Rinv_0_le_compat.
+    by apply: Rabs_pos.
+  - rewrite Rabs_mult Rabs_inv bpow_plus.
+    apply: Rmult_le_compat; (try by apply: Rabs_pos).
+    - apply: Rinv_0_le_compat.
+      by apply: Rabs_pos.
+    - by rewrite -[pow _]/alpha; lra.
+    have -> : (969 = - - 969)%Z by lia.
+    rewrite bpow_opp -/A.
+    apply: Rinv_le; first by interval.
+    by lra.
+  apply: Rinv_le; first by interval.
+  apply: Rle_trans (_ : Rabs 1 - Rabs d1 <= _).
+    by rewrite Rabs_pos_eq; lra.
+  by clear; split_Rabs; lra.
+have rhrlE : r_h + r_l = (y * h) * (1 + lambda * (1 + d2) + d1 * d2) + e2.
+  by lra.
+have rhrlB1 : Rabs (r_h + r_l) <= 709.79.
+  apply: Rle_trans (_ : 
+    709.7827 * (1 + Rpower 2 (- 23.89) * (1 + pow (- 52)) + pow (- 104)) +
+    alpha <= _); last by interval.
+  rewrite rhrlE.
+  apply: Rle_trans (Rabs_triang _ _) _.
+  apply: Rplus_le_compat; last by lra.
+  rewrite Rabs_mult.
+  apply: Rmult_le_compat; (try by apply: Rabs_pos).
+    by rewrite -/B; lra.
+  apply: Rle_trans (Rabs_triang _ _) _.
+  apply: Rplus_le_compat; last first.
+    rewrite Rabs_mult.
+    have ->: (- 104 = - 52 + - 52)%Z by lia.
+    rewrite bpow_plus.
+    by apply: Rmult_le_compat; (try by apply: Rabs_pos); lra.
+  apply: Rle_trans (Rabs_triang _ _) _.
+  apply: Rplus_le_compat; first by rewrite Rabs_pos_eq; lra.
+  rewrite Rabs_mult.
+  apply: Rmult_le_compat; (try by apply: Rabs_pos); first by lra.
+  apply: Rle_trans (Rabs_triang _ _) _.
+  by rewrite Rabs_pos_eq; lra.
 Admitted.
 
 End Mul1.
