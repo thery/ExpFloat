@@ -57,7 +57,7 @@ Definition Q0 := 1.
 Definition Q1 := 1.
 Definition Q2 := 0.5.
 Definition Q3 := 0x1.5555555997996p-3.
-Definition Q4 := 0x1.55555558489dcp-5.
+Definition Q4 := 0x1.5555555849d8dp-5.
 
 Definition Qf0 : float := 
   Float _ 1 0.
@@ -69,10 +69,10 @@ Definition Qf2 : float :=
   Float _ 1 (-1).
 
 Definition Qf3 : float := 
-  Float _ 6004799507619127 (-55).
+  Float _ 6004799507626390 (-55).
 
 Definition Qf4 : float := 
-  Float _ (6004799506254300) (-57).
+  Float _ 6004799506259341 (-57).
 
 Fact Qf0E : F2R Qf0 = Q0.
 Proof. by rewrite /Q0 /F2R /Q2R /= /Z.pow_pos /=; field. Qed.
@@ -105,7 +105,7 @@ apply: FLT_spec (refl_equal _) _ _ => /=; lia.
 Qed.
 
 Fact Qf3E : F2R Qf3 = Q3.
-Proof. rewrite /Q3 /F2R /Q2R /= /Z.pow_pos /=; field. Qed.
+Proof. by rewrite /Q3 /F2R /Q2R /= /Z.pow_pos /=; field. Qed.
 
 Lemma format_Q3 : format Q3.
 Proof.
@@ -115,7 +115,7 @@ apply: FLT_spec (refl_equal _) _ _ => /=; lia.
 Qed.
 
 Fact Qf4E : F2R Qf4 = Q4.
-Proof. rewrite /Q4 /F2R /Q2R /= /Z.pow_pos /=. field. Qed.
+Proof. by rewrite /Q4 /F2R /Q2R /= /Z.pow_pos /=; field. Qed.
 
 Lemma format_Q4 : format Q4.
 Proof.
@@ -128,8 +128,8 @@ Definition Q z :=
   Q0 + Q1 * z + Q2 * z ^ 2 + Q3 * z ^ 3 + Q4 * z ^ 4.
 
 Lemma Q_abs_error z :
-  Rabs z <= 0.000130273 -> 
-  Rabs (exp z - Q z) <= Rpower 2 (- 74.346).
+  Rabs z <= Rpower 2 (- 12.905) -> 
+  Rabs (exp z - Q z) <= Rpower 2 (- 74.34).
 Proof.
 move=> *; rewrite /Q /Q0 /Q1 /Q2 /Q3 /Q4.
 interval with (i_prec 90, i_bisect z, i_taylor z).
@@ -137,15 +137,11 @@ Qed.
 
 (* L'algo q_1 *)
 
-Definition q1 (z : dwR) :=
-  let: DWR zh zl := z in 
-  let z := RND (zh + zl) in 
+Definition q1 (z : R) :=
   let q := RND (Q4 * zh + Q3) in
   let q := RND (q * z + Q2) in
-  let: DWR h0 l0 := fastTwoSum Q1 (RND (q * z)) in
-  let: DWR h1 s := exactMul zh h0 in
-  let t := RND(zl * h0 + s) in
-  let l1 := RND(zh * l0 + t) in
+  let: h0 := RND (q * z + Q1) in
+  let: DWR h1 l1 := exactMul z h0 in
   fastSum Q0 h1 l1.
 
 Lemma err_lem6 z :
