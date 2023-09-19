@@ -275,8 +275,42 @@ have h0B1 : pow (emin + p - 1) <= h0.
   apply: format_Rabs_round_le => //.
   apply: generic_format_bpow => //.
   by rewrite Rabs_pos_eq //; apply: Rle_trans (bpow_ge_0 _ _) q'zQ1B1.
-have l0_pos : 0 < h0 by apply: Rlt_le_trans (bpow_gt_0 _ _) h0B1.
-
+have h0_pos : 0 < h0 by apply: Rlt_le_trans (bpow_gt_0 _ _) h0B1.
+have h0B : Rabs h0 <= 1.0001.
+  apply: Rle_trans (_ : 
+          (0.50003 * Rpower 2 (- 12.905) + 1) * (1 + pow (- 52)) <= _);
+      last by interval.
+  apply: Rle_trans (_ : Rabs (q' * z + Q1) * (1 + pow (- 52)) <= _).
+    suff: Rabs (h0 - (q' * z + Q1)) < pow (- 52) * Rabs (q' * z + Q1).
+      by split_Rabs; lra.
+    apply: relative_error_FLT => //.
+    by rewrite Rabs_pos_eq //; apply: Rle_trans (bpow_ge_0 _ _) q'zQ1B1.
+  apply: Rmult_le_compat_r; try (by apply: Rabs_pos); first by interval.
+  boundDMI; last by rewrite Rabs_pos_eq /Q1; lra.
+  boundDMI; last by lra.
+  by lra.
+pose H0 := Q1 + Q' * z.
+have h0H0B : Rabs (h0 - H0) <= Rpower 2 (- 51.999905).
+  apply:  Rle_trans 
+     (_ : pow (- 52) + Rpower 2 (- 52.999952) * Rpower 2 (- 12.905) <= _); 
+     last by interval.
+  apply: Rle_trans (_ : ulp h0 + Rabs (q' - Q') * Rabs z <= _).
+    have -> : h0 - H0 = (h0 - (q' * z + Q1)) + (q' - Q') * z.
+      by rewrite /H0 /Q' /Q1 /Q; lra.
+    boundDMI; last by rewrite Rabs_mult; lra.
+    by apply: error_le_ulp_round.
+  boundDMI; last first.
+    by apply: Rmult_le_compat; try (by apply: Rabs_pos; lra); lra.
+  rewrite ulp_neq_0; last by lra.
+  rewrite /cexp /fexp Z.max_l.
+    apply: bpow_le.
+    suff : (mag beta h0 <= 1)%Z by lia.
+    apply: mag_le_bpow; first by lra.
+    apply: Rle_lt_trans h0B _.
+    by interval.
+  suff : (emin + p <= mag beta h0)%Z by lia.
+  apply: mag_ge_bpow.
+  by rewrite Rabs_pos_eq; lra.  
 Admitted.
 
 End algoQ1.
