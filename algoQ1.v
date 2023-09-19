@@ -56,7 +56,7 @@ Local Notation ulp := (ulp beta fexp).
 Definition Q0 := 1.
 Definition Q1 := 1.
 Definition Q2 := 0.5.
-Definition Q3 := 0x1.5555555995d37p-3.
+Definition Q3 := 0x1.5555555997996p-3.
 Definition Q4 := 0x1.55555558489dcp-5.
 
 Definition Qf0 : float := 
@@ -155,6 +155,25 @@ Lemma err_lem6 z :
   Rabs ((qh - ql) / exp (zh + zl) - 1) < Rpower 2 (- 74.169053) /\ 
   Rabs ql <= Rpower 2 (- 42.7096).
 Proof.
+move: z => z1.
+case Ez1 : z1 => [zh zl].
+case Eq : q1 => [qh ql].
+set Z := zh + zl => ZB zlB.
+move: Eq.
+rewrite /q1; set z := RND (zh + zl).
+set q := RND (Q4 * _ + _); set q1 := RND (q * _ + _).
+case Ef : fastTwoSum => [h0 l0].
+case Em : exactMul => [h1 s].
+set t := RND(zl * _ + _); set l1 := RND(zh * _ + _) => Es.
+have zB : Rabs z < Rpower 2 (- 12.80).
+  apply: Rle_lt_trans (_ : 0.000130273 * (1 + pow (- 52)) < _); last first.
+    by interval.
+    Search "rel" "err"  FLT_exp.
+  Search (_ * (_ + _)).
+
+
+
+
 Admitted.
 
 End algoQ1.

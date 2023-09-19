@@ -193,8 +193,8 @@ Lemma err_lem5 x y :
   pow (- 969) <= Rabs (y * h) <= 709.7827 ->
   [/\ pow (- 970) <= Rabs rh <= 709.79,
       Rabs rl <= Rpower 2 (-14.4187),
-      Rabs (rl / rh) <= Rpower 2 (- 23.8899) /\ Rabs (rh + rl) <= 709.79,
-      Rabs (h + l - ln x) <= Rpower 2 (- 67.0544 ) * Rabs (ln x) & 
+      Rabs (rl / rh) <= Rpower 2 (- 23.8899),
+      Rabs (rh + rl) <= 709.79 &
       Rabs (rh + rl - y * ln x) <= Rpower 2 (- 57.580) /\
       (~(/ sqrt 2 < x < sqrt 2) -> 
        Rabs (rh + rl - y * ln x) <= Rpower 2 (- 63.799))].
