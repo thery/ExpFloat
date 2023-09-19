@@ -138,18 +138,17 @@ Qed.
 (* L'algo q_1 *)
 
 Definition q1 (z : R) :=
-  let q := RND (Q4 * zh + Q3) in
+  let q := RND (Q4 * z + Q3) in
   let q := RND (q * z + Q2) in
   let: h0 := RND (q * z + Q1) in
   let: DWR h1 l1 := exactMul z h0 in
   fastSum Q0 h1 l1.
 
 Lemma err_lem6 z :
-  let: DWR zh zl := z in 
   let: DWR qh ql := q1 z in 
-  Rabs (zh + zl) <= 0.000130273 -> Rabs zl <= Rpower 2 (- 42.7260) ->
-  Rabs ((qh - ql) / exp (zh + zl) - 1) < Rpower 2 (- 74.169053) /\ 
-  Rabs ql <= Rpower 2 (- 42.7096).
+  Rabs z <= Rpower 2 (- 12.905) ->
+  Rabs ((qh - ql) / exp z - 1) < Rpower 2 (- 64.902632) /\ 
+  Rabs ql <= Rpower 2 (- 51.999).
 Proof.
 move: z => z1.
 case Ez1 : z1 => [zh zl].
