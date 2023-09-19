@@ -1,7 +1,6 @@
 Require Import ZArith Reals  Psatz.
 From mathcomp Require Import all_ssreflect all_algebra.
 From Flocq Require Import Core Relative Sterbenz Operations Mult_error.
-From Coquelicot Require Import Coquelicot.
 From Interval Require Import  Tactic.
 Require Import Nmore Rmore Fmore Rstruct MULTmore prelim.
 Require Import tableINVERSE.

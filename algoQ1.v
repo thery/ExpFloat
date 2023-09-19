@@ -1,9 +1,8 @@
 Require Import ZArith Reals  Psatz.
 From mathcomp Require Import all_ssreflect all_algebra.
 From Flocq Require Import Core Relative Sterbenz Operations Mult_error.
-From Coquelicot Require Import Coquelicot.
-From Interval Require Import  Tactic.
-Require Import Nmore Rmore Fmore Rstruct MULTmore prelim algoLog1.
+From Interval Require Import Tactic.
+Require Import Nmore Rmore Fmore Rstruct MULTmore prelim algoLog1 algoMul1.
 
 Delimit Scope R_scope with R.
 Delimit Scope Z_scope with Z.
@@ -141,8 +140,7 @@ Definition q1 (z : R) :=
   let q := RND (Q4 * z + Q3) in
   let q := RND (q * z + Q2) in
   let: h0 := RND (q * z + Q1) in
-  let: DWR h1 l1 := exactMul z h0 in
-  fastSum Q0 h1 l1.
+  let: DWR h1 l1 := exactMul z h0 in fastSum Q0 h1 l1.
 
 Lemma err_lem6 z :
   let: DWR qh ql := q1 z in 
@@ -152,10 +150,137 @@ Lemma err_lem6 z :
 Proof.
 case Eq : q1 => [qh ql].
 move: Eq; rewrite /q1.
-set q := RND (Q4 * _ + _); set q1 := RND (q * _ + _).
-set l0 := RND (q1 * _ + _).
+set q := RND (Q4 * _ + _); set q' := RND (q * _ + _).
+set l0 := RND (q' * _ + _).
 case Em : exactMul => [h1 l1].
-move=> Ef.
+move=> Ef zB.
+have Q4B1 : Rpower 2 (- 4.59) < Q4 by interval.
+have Q4B : 0 < Q4 < Rpower 2 (- 4.58) by split; interval.
+have Q3B1 : Rpower 2 (- 2.59) < Q3 by interval.
+have Q3B : 0 < Q3 < Rpower 2 (- 2.58) by split; interval.
+have Q4zQ3B : pow (emin + p - 1) <= (Q4 * z + Q3).
+  apply: Rle_trans (_: Q3 - Q4 * Rabs z <= _); last by split_Rabs; nra.
+  apply: Rle_trans (_: 
+    Rpower 2 (-2.59) - Rpower 2 (-4.58) * Rpower 2 (-12.905) <= _); last first.
+    boundDMI; first by lra.
+    boundDMI.
+    apply: Rmult_le_compat; (try by interval).
+    by lra.
+  by interval.
+have qB : Rabs q <= Rpower 2 (- 2.579).
+  have FB : pow (emin + p - 1) <= Rabs (Q4 * z + Q3).
+    rewrite Rabs_pos_eq //.
+    by apply: Rle_trans (bpow_ge_0 _ _) Q4zQ3B.
+  apply: Rle_trans (_ : (Q4 * Rpower 2 (-12.905) + Q3) *
+      (1 + pow (- 52)) <= _); last by interval.
+  apply: Rle_trans (_ : Rabs (Q4 * z + Q3) * (1 + pow (- 52)) <= _).
+    suff: Rabs (q - (Q4 * z + Q3)) < pow (- 52) * Rabs (Q4 * z + Q3).
+      by split_Rabs; lra.
+    by apply: relative_error_FLT.
+  apply: Rmult_le_compat_r; try (by apply: Rabs_pos); first by interval.
+  boundDMI; last by rewrite Rabs_pos_eq; lra.
+  boundDMI; last by lra.
+  by rewrite Rabs_pos_eq; lra.
+pose Q := Q4 * z + Q3.
+have qB1 : pow (emin + p - 1) <= q.
+  rewrite -[q]Rabs_pos_eq; last first.
+    rewrite -[0](round_0 beta fexp) //.
+    apply: round_le.
+    by apply: Rle_trans (bpow_ge_0 _ _) Q4zQ3B. 
+  apply: format_Rabs_round_le => //.
+  apply: generic_format_bpow => //.
+  by rewrite Rabs_pos_eq //; apply: Rle_trans (bpow_ge_0 _ _) Q4zQ3B.
+have q_pos : 0 < q by apply: Rlt_le_trans (bpow_gt_0 _ _) qB1.
+have qQB : Rabs (q - Q) <= pow (- 55).
+  apply: Rle_trans (_ : ulp q <= _); first by apply: error_le_ulp_round.
+  rewrite ulp_neq_0; last by lra.
+  rewrite /cexp /fexp Z.max_l.
+    apply: bpow_le.
+    suff : (mag beta q <= - 2)%Z by lia.
+    apply: mag_le_bpow; first by lra.
+    apply: Rle_lt_trans qB _.
+    by interval.
+  suff : (emin + p <= mag beta q)%Z by lia.
+  apply: mag_ge_bpow.
+  by rewrite Rabs_pos_eq; lra.
+have qzQ2B : pow (emin + p - 1) <= (q * z + Q2).
+  apply: Rle_trans (_: Q2 - q * Rabs z <= _); last by split_Rabs; nra.
+  apply: Rle_trans (_: 
+    /2 - Rpower 2  (- 2.579) * Rpower 2 (-12.905) <= _); last first.
+    boundDMI; first by rewrite /Q2; lra.
+    boundDMI.
+    apply: Rmult_le_compat; (try by interval); last by lra.
+    by rewrite -[q]Rabs_pos_eq; lra.
+  by interval.
+have q'B : Rabs q' <= 0.50003.
+  have FB : pow (emin + p - 1) <= Rabs (q * z + Q2).
+    rewrite Rabs_pos_eq //.
+    by apply: Rle_trans (bpow_ge_0 _ _) qzQ2B.
+  apply: Rle_trans (_ : 
+   (Rpower 2 (-2.579) * Rpower 2 (-12.905) + /2) *
+      (1 + pow (- 52)) <= _); last by interval.
+  apply: Rle_trans (_ : Rabs (q * z + Q2) * (1 + pow (- 52)) <= _).
+    suff: Rabs (q' - (q * z + Q2)) < pow (- 52) * Rabs (q * z + Q2).
+      by split_Rabs; lra.
+    by apply: relative_error_FLT.
+  apply: Rmult_le_compat_r; try (by apply: Rabs_pos); first by interval.
+  boundDMI; last by rewrite Rabs_pos_eq /Q2; lra.
+  boundDMI; last by lra.
+  by lra.
+pose Q' := Q4 * z ^ 2 + Q3 * z + Q2.
+have q'B1 : pow (emin + p - 1) <= q'.
+  rewrite -[q']Rabs_pos_eq; last first.
+    rewrite -[0](round_0 beta fexp) //.
+    apply: round_le.
+    by apply: Rle_trans (bpow_ge_0 _ _) qzQ2B. 
+  apply: format_Rabs_round_le => //.
+  apply: generic_format_bpow => //.
+  by rewrite Rabs_pos_eq //; apply: Rle_trans (bpow_ge_0 _ _) qzQ2B.
+have q'_pos : 0 < q' by apply: Rlt_le_trans (bpow_gt_0 _ _) q'B1.
+have q'Q'B : Rabs (q' - Q') <= Rpower 2 (- 52.999952).
+  apply:  Rle_trans 
+     (_ : pow (- 53) + pow (- 55) * Rpower 2 (- 12.905) <= _); 
+     last by interval.
+  apply: Rle_trans (_ : ulp q' + Rabs (q - Q) * Rabs z <= _).
+    have -> : q' - Q' = (q' - (q * z + Q2)) + (q - Q) * z.
+      by rewrite /Q' /Q; lra.
+    boundDMI; last by rewrite Rabs_mult; lra.
+    by apply: error_le_ulp_round.
+  boundDMI; last first.
+    by apply: Rmult_le_compat; try (by apply: Rabs_pos; lra); lra.
+  rewrite ulp_neq_0; last by lra.
+  rewrite /cexp /fexp Z.max_l.
+    apply: bpow_le.
+    suff : (mag beta q' <= 0)%Z by lia.
+    suff <- : mag beta (pred beta fexp (pow 0)) = 0%Z :> Z.
+      apply: mag_le => //.
+      rewrite pred_bpow pow0E /fexp Z.max_l //.
+      apply: Rle_trans (_ : 0.50003 <= _); last by interval.
+      by rewrite -[q']Rabs_pos_eq //; lra.
+    rewrite pred_bpow pow0E /fexp Z.max_l //.
+    apply: mag_unique_pos.
+    by split; interval with (i_prec 100).
+  suff : (emin + p <= mag beta q')%Z by lia.
+  apply: mag_ge_bpow.
+  by rewrite Rabs_pos_eq; lra.
+have q'zQ1B1 : pow (emin + p - 1) <= q' * z + Q1.
+  apply: Rle_trans (_: Q1 - q' * Rabs z <= _); last by split_Rabs; nra.
+  apply: Rle_trans (_: 
+    1 - 0.50003 * Rpower 2 (-12.905) <= _); last first.
+    boundDMI; first by rewrite /Q1; lra.
+    boundDMI.
+    apply: Rmult_le_compat; (try by interval); last by lra.
+    by rewrite -[q']Rabs_pos_eq; lra.
+  by clear; interval.
+have l0B1 : pow (emin + p - 1) <= l0.
+  rewrite -[l0]Rabs_pos_eq; last first.
+    rewrite -[0](round_0 beta fexp) //.
+    apply: round_le.
+    by apply: Rle_trans (bpow_ge_0 _ _) q'zQ1B1. 
+  apply: format_Rabs_round_le => //.
+  apply: generic_format_bpow => //.
+  by rewrite Rabs_pos_eq //; apply: Rle_trans (bpow_ge_0 _ _) q'zQ1B1.
+have l0_pos : 0 < l0 by apply: Rlt_le_trans (bpow_gt_0 _ _) l0B1.
 Admitted.
 
 End algoQ1.

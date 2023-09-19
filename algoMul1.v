@@ -12,6 +12,15 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
+Ltac boundDMI := 
+  (apply: Rle_trans (Rabs_triang _ _) _ ;
+   apply: Rplus_le_compat) ||
+  (rewrite Rabs_mult;
+   apply: Rmult_le_compat; (try by apply: Rabs_pos)) ||
+  (rewrite Rabs_inv; apply: Rinv_le) || 
+  (apply: Rplus_le_compat) ||
+  (apply: Ropp_le_contravar).
+
 Section Mul1.
 
 Let p := 53%Z.
@@ -177,13 +186,6 @@ suff : Rabs x1 < pow p1 * pow e2 by lra.
 have pe2_gt0 : 0 < pow e2 by apply: bpow_gt_0.
 by rewrite x1E Rabs_mult [Rabs (pow _)]Rabs_pos_eq //; nra.
 Qed.
-
-Ltac boundDMI := 
-  (apply: Rle_trans (Rabs_triang _ _) _ ;
-   apply: Rplus_le_compat) ||
-  (rewrite Rabs_mult;
-   apply: Rmult_le_compat; (try by apply: Rabs_pos)) ||
-  (rewrite Rabs_inv; apply: Rinv_le).
 
 (* This is lemma 5 *)
 Lemma err_lem5 x y : 
