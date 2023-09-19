@@ -150,25 +150,12 @@ Lemma err_lem6 z :
   Rabs ((qh - ql) / exp z - 1) < Rpower 2 (- 64.902632) /\ 
   Rabs ql <= Rpower 2 (- 51.999).
 Proof.
-move: z => z1.
-case Ez1 : z1 => [zh zl].
 case Eq : q1 => [qh ql].
-set Z := zh + zl => ZB zlB.
-move: Eq.
-rewrite /q1; set z := RND (zh + zl).
+move: Eq; rewrite /q1.
 set q := RND (Q4 * _ + _); set q1 := RND (q * _ + _).
-case Ef : fastTwoSum => [h0 l0].
-case Em : exactMul => [h1 s].
-set t := RND(zl * _ + _); set l1 := RND(zh * _ + _) => Es.
-have zB : Rabs z < Rpower 2 (- 12.80).
-  apply: Rle_lt_trans (_ : 0.000130273 * (1 + pow (- 52)) < _); last first.
-    by interval.
-    Search "rel" "err"  FLT_exp.
-  Search (_ * (_ + _)).
-
-
-
-
+set l0 := RND (q1 * _ + _).
+case Em : exactMul => [h1 l1].
+move=> Ef.
 Admitted.
 
 End algoQ1.
