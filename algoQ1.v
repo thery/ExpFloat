@@ -151,7 +151,7 @@ Proof.
 case Eq : q1 => [qh ql].
 move: Eq; rewrite /q1.
 set q := RND (Q4 * _ + _); set q' := RND (q * _ + _).
-set l0 := RND (q' * _ + _).
+set h0 := RND (q' * _ + _).
 case Em : exactMul => [h1 l1].
 move=> Ef zB.
 have Q4B1 : Rpower 2 (- 4.59) < Q4 by interval.
@@ -252,14 +252,9 @@ have q'Q'B : Rabs (q' - Q') <= Rpower 2 (- 52.999952).
   rewrite /cexp /fexp Z.max_l.
     apply: bpow_le.
     suff : (mag beta q' <= 0)%Z by lia.
-    suff <- : mag beta (pred beta fexp (pow 0)) = 0%Z :> Z.
-      apply: mag_le => //.
-      rewrite pred_bpow pow0E /fexp Z.max_l //.
-      apply: Rle_trans (_ : 0.50003 <= _); last by interval.
-      by rewrite -[q']Rabs_pos_eq //; lra.
-    rewrite pred_bpow pow0E /fexp Z.max_l //.
-    apply: mag_unique_pos.
-    by split; interval with (i_prec 100).
+    apply: mag_le_bpow; first by lra.
+    apply: Rle_lt_trans q'B _.
+    by interval.
   suff : (emin + p <= mag beta q')%Z by lia.
   apply: mag_ge_bpow.
   by rewrite Rabs_pos_eq; lra.
@@ -272,15 +267,16 @@ have q'zQ1B1 : pow (emin + p - 1) <= q' * z + Q1.
     apply: Rmult_le_compat; (try by interval); last by lra.
     by rewrite -[q']Rabs_pos_eq; lra.
   by clear; interval.
-have l0B1 : pow (emin + p - 1) <= l0.
-  rewrite -[l0]Rabs_pos_eq; last first.
+have h0B1 : pow (emin + p - 1) <= h0.
+  rewrite -[h0]Rabs_pos_eq; last first.
     rewrite -[0](round_0 beta fexp) //.
     apply: round_le.
     by apply: Rle_trans (bpow_ge_0 _ _) q'zQ1B1. 
   apply: format_Rabs_round_le => //.
   apply: generic_format_bpow => //.
   by rewrite Rabs_pos_eq //; apply: Rle_trans (bpow_ge_0 _ _) q'zQ1B1.
-have l0_pos : 0 < l0 by apply: Rlt_le_trans (bpow_gt_0 _ _) l0B1.
+have l0_pos : 0 < h0 by apply: Rlt_le_trans (bpow_gt_0 _ _) h0B1.
+
 Admitted.
 
 End algoQ1.
