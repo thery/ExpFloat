@@ -150,12 +150,13 @@ Definition q1 (z : R) :=
   let: DWR h1 l1 := exactMul z h0 in fastSum Q0 h1 l1.
 
 Lemma err_lem6 z :
+  format z ->
   let: DWR qh ql := q1 z in 
   Rabs z <= Rpower 2 (- 12.905) ->
   Rabs ((qh - ql) / exp z - 1) < Rpower 2 (- 64.902632) /\ 
   Rabs ql <= Rpower 2 (- 51.999).
 Proof.
-case Eq : q1 => [qh ql].
+move=> Fz; case Eq : q1 => [qh ql].
 move: Eq; rewrite /q1.
 set q := RND (Q4 * _ + _); set q' := RND (q * _ + _).
 set h0 := RND (q' * _ + _).
@@ -318,12 +319,11 @@ have h0H0B : Rabs (h0 - H0) <= Rpower 2 (- 51.999905).
   suff : (emin + p <= mag beta h0)%Z by lia.
   apply: mag_ge_bpow.
   by rewrite Rabs_pos_eq; lra.
-have h1l1E : h1 + l1 = z * h0 by admit.
-
-Locate exac
-
-tMul_correct.
-Check expfloat.prelim.exactMul_correct.
+have h1l1E : Rabs (h1 + l1) <= Rabs (z * h0) + alpha.
+  suff : let 'DWR h l := exactMul z h0 in Rabs (h + l - z * h0) < alpha.
+    by rewrite Em; clear; split_Rabs; lra.
+  apply: error_exactMul => //.
+  by apply: generic_format_round.
 Admitted.
 
 End algoQ1.
