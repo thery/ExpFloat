@@ -134,6 +134,13 @@ move=> *; rewrite /Q /Q0 /Q1 /Q2 /Q3 /Q4.
 interval with (i_prec 90, i_bisect z, i_taylor z).
 Qed.
 
+
+Lemma error_exactMul (a b : R) :
+  format a -> format b ->
+  let: DWR h l := exactMul a b in Rabs ((h + l) - (a * b)) < alpha.
+Proof.
+Admitted.
+
 (* L'algo q_1 *)
 
 Definition q1 (z : R) :=
@@ -310,7 +317,13 @@ have h0H0B : Rabs (h0 - H0) <= Rpower 2 (- 51.999905).
     by interval.
   suff : (emin + p <= mag beta h0)%Z by lia.
   apply: mag_ge_bpow.
-  by rewrite Rabs_pos_eq; lra.  
+  by rewrite Rabs_pos_eq; lra.
+have h1l1E : h1 + l1 = z * h0 by admit.
+
+Locate exac
+
+tMul_correct.
+Check expfloat.prelim.exactMul_correct.
 Admitted.
 
 End algoQ1.
