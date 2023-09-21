@@ -149,6 +149,8 @@ Definition q1 (z : R) :=
   let: h0 := RND (q * z + Q1) in
   let: DWR h1 l1 := exactMul z h0 in fastSum Q0 h1 l1.
 
+(* This is lemma 6 *)
+
 Lemma err_lem6 z :
   format z ->
   let: DWR qh ql := q1 z in 

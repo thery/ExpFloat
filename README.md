@@ -44,6 +44,8 @@ Algorithm Mul1 :
 Algorithm Q1 :
 - [Definition of the polynomial Q](./algoQ1.v#L127-L128)
 - [Absolute error of the polynomial Q](./algoQ1.v#L130-L132)
+- [Algorithm Q1](./algoQ1.v#L146-L150)
+- [Lemma 6](./algoQ1.v#L154-L159)
 
 ## Meta
 
