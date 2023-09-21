@@ -319,11 +319,88 @@ have h0H0B : Rabs (h0 - H0) <= Rpower 2 (- 51.999905).
   suff : (emin + p <= mag beta h0)%Z by lia.
   apply: mag_ge_bpow.
   by rewrite Rabs_pos_eq; lra.
-have h1l1E : Rabs (h1 + l1) <= Rabs (z * h0) + alpha.
+pose dh1l1 := h1 + l1 - z * h0.
+have dh1l1E : h1 + l1 = z * h0 + dh1l1 by rewrite /dh1l1; lra.
+have dh1l1B : Rabs dh1l1 < alpha.
   suff : let 'DWR h l := exactMul z h0 in Rabs (h + l - z * h0) < alpha.
-    by rewrite Em; clear; split_Rabs; lra.
+    by rewrite /dh1l1 Em; clear; split_Rabs; lra.
   apply: error_exactMul => //.
   by apply: generic_format_round.
+have h1E : h1 = RND (z * h0) by case: Em => <-.
+have h1B : Rabs h1 < Rpower 2 (- 12.904).
+  have [d2 [e2 [d2e2E _ d2B e2B]]]:=
+       @error_round_general (refl_equal _) rnd valid_rnd (z * h0).
+    rewrite h1E d2e2E.
+  apply: Rle_lt_trans (Rabs_triang _ _) _.
+  rewrite 2!Rabs_mult.
+  by interval.
+have l1E : l1 = RND (z * h0 - h1) by case: Em => <- <-.
+have l1B : Rabs l1 <= pow (- 65).
+  rewrite l1E.
+  apply: Rabs_round_le => //.
+  apply: Rle_trans (_ : ulp h1 <= _).
+    rewrite -Rabs_Ropp Ropp_minus_distr.
+    by rewrite h1E; apply: error_le_ulp_round.
+  apply: bound_ulp => //; try lia.
+  by interval.
+pose e1 := Rpower 2 (-64.9049049).
+have h1l1zH0B : Rabs (h1 + l1 - z * H0) <= e1.
+  rewrite dh1l1E.
+  have -> : z * h0 + dh1l1 - z * H0 = z * (h0 - H0) + dh1l1 by lra.
+  apply: Rle_trans (Rabs_triang _ _) _.
+  rewrite Rabs_mult.
+  interval_intro (Rabs z * Rabs (h0 - H0) + Rabs dh1l1).
+  apply: Rle_trans (_ : 
+      Rpower 2 (-12.905) * Rpower 2 (-51.999905) + alpha <= _).
+    apply: Rplus_le_compat; last by lra.
+    by apply: Rmult_le_compat; try (by apply: Rabs_pos); lra.
+  by interval.
+move: Ef; rewrite /fastSum.
+case Ef2 : fastTwoSum => [qh' v] Ef.
+have qlE: ql = RND(v + l1) by case: Ef.
+have qh'E : qh' = qh by case: Ef.
+rewrite qh'E in Ef2.
+have qhqlQ0z0B : Rabs (qh + ql - (Q0 + z * H0)) <= 
+                 pow (- 105) * Rabs qh + ulp ql + e1.
+  have -> : qh + ql - (Q0 + z * H0) = 
+           (qh + ql - (Q0 + h1 + l1)) + (h1 + l1 - z * H0) by lra.
+  apply: Rle_trans (Rabs_triang _ _) _.
+  apply: Rplus_le_compat; last by lra.
+  have -> : qh + ql - (Q0 + h1 + l1) = 
+             (qh + v - (Q0 + h1)) + (ql - (v + l1)) by lra.
+  apply: Rle_trans (Rabs_triang _ _) _.
+  apply: Rplus_le_compat.
+    suff : let
+        'DWR h l := fastTwoSum Q0 h1 in
+         Rabs (h + l - (Q0 + h1)) <= bpow radix2 (-105) * Rabs h.
+      by rewrite Ef2.
+    apply: fastTwoSum_correct => //; first by apply: format_Q0.
+      by case: Em => <- _; apply: generic_format_round.
+    move=> Q0_neq0.
+    by interval.
+  rewrite qlE.
+  by apply: error_le_ulp_round.
+have qhE : qh = RND (Q0 + h1) by case: Ef2 => <-.
+have Q0h1B1 : pow (emin + p - 1) <= Q0 + h1 by interval.
+have qhQ : Rabs qh <= 1.0002.
+  apply: Rle_trans (_ : Rabs (Q0 + h1) * (1 + pow (- 52)) <= _).
+    suff: Rabs (qh - (Q0 + h1)) < pow (- 52) * Rabs (Q0 + h1).
+      by clear; split_Rabs; lra.
+    rewrite qhE; apply: relative_error_FLT => //.
+    by interval.
+  apply: Rle_trans (_ : (1 + Rpower 2 (- 12.904)) * (1 + pow (- 52)) <= _).
+    apply: Rmult_le_compat_r; first by interval.
+    boundDMI; first by interval.
+    by lra.
+  by interval.
+have qh105B : pow (- 105) * Rabs qh <= Rpower 2 (- 104.99).
+  by interval.
+
+     
+
+  apply: format_Rabs_round_le => //.
+  apply: generic_format_bpow => //.
+  by interval.
 Admitted.
 
 End algoQ1.
