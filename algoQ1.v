@@ -3,6 +3,7 @@ From mathcomp Require Import all_ssreflect all_algebra.
 From Flocq Require Import Core Relative Sterbenz Operations Mult_error.
 From Interval Require Import Tactic.
 Require Import Nmore Rmore Fmore Rstruct MULTmore prelim algoLog1 algoMul1.
+Require Import Fast2Sum_robust_flt.
 
 Delimit Scope R_scope with R.
 Delimit Scope Z_scope with Z.
@@ -138,8 +139,7 @@ Qed.
 Lemma error_exactMul (a b : R) :
   format a -> format b ->
   let: DWR h l := exactMul a b in Rabs ((h + l) - (a * b)) < alpha.
-Proof.
-Admitted.
+Proof. by apply/ExactMul_B. Qed.
 
 (* L'algo q_1 *)
 
@@ -397,7 +397,17 @@ have qh105B : pow (- 105) * Rabs qh <= Rpower 2 (- 104.99).
   by interval.
 have vE : v = RND (h1 - RND (qh - Q0)) by case: Ef2 => <- <-.
 have vB : Rabs v <= pow (- 52).
-  apply: Rle_trans (_ : ulp(qh) <= _); first by admit.
+  rewrite vE (round_generic _ _ _ (qh - Q0)); last first.
+    rewrite qhE; apply/sma_exact_abs=>//.
+    + by apply/format_Q0.
+    + by rewrite h1E; apply/generic_format_round.
+    by interval.
+  apply/abs_round_le_generic.
+    by apply/generic_format_bpow; rewrite//fexp; lia.
+  rewrite -Rabs_Ropp Ropp_minus_distr.
+  have->: qh - Q0 - h1= qh - (Q0 + h1)by lra.
+  apply/(Rle_trans _ (ulp qh)).
+    by rewrite qhE; apply/error_le_ulp_round.
   apply: bound_ulp => //.
   by interval.
 have Ff : format (pow (- 52) + pow (- 65)).
