@@ -153,7 +153,7 @@ Lemma err_lem6 z :
   format z ->
   let: DWR qh ql := q1 z in 
   Rabs z <= Rpower 2 (- 12.905) ->
-  Rabs ((qh - ql) / exp z - 1) < Rpower 2 (- 64.902632) /\ 
+  Rabs ((qh + ql) / exp z - 1) < Rpower 2 (- 64.902632) /\ 
   Rabs ql <= Rpower 2 (- 51.999).
 Proof.
 move=> Fz; case Eq : q1 => [qh ql].
@@ -395,12 +395,46 @@ have qhQ : Rabs qh <= 1.0002.
   by interval.
 have qh105B : pow (- 105) * Rabs qh <= Rpower 2 (- 104.99).
   by interval.
-
-     
-
-  apply: format_Rabs_round_le => //.
-  apply: generic_format_bpow => //.
+have vE : v = RND (h1 - RND (qh - Q0)) by case: Ef2 => <- <-.
+have vB : Rabs v <= pow (- 52).
+  apply: Rle_trans (_ : ulp(qh) <= _); first by admit.
+  apply: bound_ulp => //.
   by interval.
+have Ff : format (pow (- 52) + pow (- 65)).
+  have -> : pow (-52) + pow (-65) = Float beta 8193 (- 65). 
+    by rewrite /F2R /=; lra.
+  apply: generic_format_FLT.
+  by apply: FLT_spec (refl_equal _) _ _ => /=; lia.
+have qlB : Rabs ql <= (pow (- 52) + pow (- 65)).
+  rewrite qlE; apply: abs_round_le_generic => //.
+  by boundDMI; lra.
+have qlB1 : Rabs ql <= Rpower 2 (- 51.999).
+  by apply: Rle_trans qlB _; interval.
+split => //.
+have ulpqlB : ulp ql <= pow (-104).
+  apply: bound_ulp => //.
+  by interval.
+have qhqlQ0z0B1 : Rabs (qh + ql - (Q0 + z * H0)) <= Rpower 2 (- 64.904904).
+  apply: Rle_trans (_ : Rpower 2  (- 104.99) + pow (- 104) + 
+                        Rpower 2 (- 64.9049049) <= _); last by interval.
+  apply: Rle_trans qhqlQ0z0B _.
+  by rewrite -/e1; lra.
+have qhqlez : Rabs (qh + ql - exp z) <= Rpower 2 (- 64.902821).
+  have -> :  qh + ql - exp z = (qh + ql - (Q0 + z * H0)) +  
+                               (Q0 + z * H0 - exp z) by lra.
+  apply: Rle_trans (_ : Rpower 2 (- 64.904904) + 
+                        Rpower 2 (- 74.34) <= _); last by interval.
+  boundDMI; try lra.
+  have -> : Q0 + z * H0 = algoQ1.Q z.
+    by rewrite /algoQ1.Q /H0 /Q1 /Q'; lra.
+  suff : Rabs (exp z - algoQ1.Q z) <= Rpower 2 (-74.34).
+    by clear; split_Rabs; lra.
+  by apply: Q_abs_error.
+have -> : (qh + ql) / exp z - 1 = ((qh + ql) - exp z) / exp z.
+  by field; interval.
+rewrite Rabs_mult Rabs_inv.
+set uu := Rabs _ in qhqlez *.
+interval.
 Admitted.
 
 End algoQ1.
