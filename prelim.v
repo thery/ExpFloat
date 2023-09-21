@@ -1,6 +1,6 @@
 Require Import ZArith Reals  Psatz.
 From mathcomp Require Import all_ssreflect all_algebra.
-From Flocq Require Import Core Relative Sterbenz Operations Mult_error.
+From Flocq Require Import Core Relative Sterbenz Operations Mult_error Plus_error.
 From Coquelicot Require Import Coquelicot.
 From Interval Require Import  Tactic.
 Require Import Nmore Rmore Fmore Rstruct MULTmore.
@@ -210,6 +210,25 @@ move=> Fa Fb Mab /=; split; try by apply: generic_format_round.
 by rewrite exactMul_correct.
 Qed.
 
+Theorem is_imul_EM :
+  forall x y,is_imul x y \/ ~is_imul x y.
+Proof.
+move=> x y.
+case: (Req_dec y 0)=>[->|y_neq_0].
+  case: (Req_dec x 0)=>[->|x_neq_0].
+    by left; exists 0%Z; lra.
+  right; move=> [z xE]; lra.
+pose z := Zfloor(x/y).
+case:(Req_dec (x/y) (IZR z))=> hz.
+  by left; exists z; rewrite -hz; field.
+right; move => [z0 xE].
+apply/hz.
+rewrite /z.
+have->: x/y = IZR z0 by rewrite xE; field.
+by rewrite Zfloor_IZR.
+Qed.
+
+
 Definition fastTwoSum (a b : R) :=
   let s := RN (a + b) in
   let z := RN (s - a) in DWR s (RN (b - z)).
@@ -359,6 +378,50 @@ have [x_eq0|x_neq0] := Req_dec x 0.
   by have := u_gt_0; lra.
 have [eps1 [Heps1 H1eps1]] := relative_error_is_min_eps eLy Mxy.
 by have <- : eps1 = eps by nra.
+Qed.
+
+Lemma Rabs_0 x (x0: x = 0 ): Rabs x = 0.
+Proof. by rewrite x0 Rabs_R0. Qed.
+
+(* Lemma 0 *)
+Lemma ExactMul_B a b (Fa: format a) (Fb : format b):
+ let: DWR h l := exactMul a b in
+     Rabs (h + l - (a * b)) < alpha.
+Proof.
+rewrite /=.
+have alphaE: alpha = pow emin by []. 
+have alpha_pos: 0 < alpha  by apply/bpow_gt_0.
+case:(Rle_lt_dec (pow (emin + 2 * p - 1))  (Rabs (a * b))) => abB.
+  set h := RN (a * b).
+  rewrite round_generic; last first.
+    have->: a*b -h = -(RN (a * b) - (a * b)) by rewrite /h; lra.
+    by apply/generic_format_opp/mult_error_FLT.
+  by rewrite Rabs_0; lra.
+case:(Req_dec a 0)=>[->|aneq_0].
+  rewrite !(Rsimp01 , round_0); apply/bpow_gt_0.
+case:(Req_dec b 0)=>[->|bneq_0].
+  rewrite !(Rsimp01 , round_0); apply/bpow_gt_0.
+have abn0: a * b <>  0 by nra.
+
+set h := RN _.
+set l' := a * b - h.
+case:(Req_dec l' 0)=>[l'0|l'neq_0].
+  rewrite l'0  ; rewrite /l' in l'0.
+  by rewrite !(Rsimp01 , round_0) Rabs_0; lra.
+have -> :  (h + RN l' - a * b)=  (RN l' - l') by rewrite /l'; lra.
+apply/(Rlt_le_trans _ (ulp (l'))).
+   by apply/error_lt_ulp. 
+have: Rabs l' < ulp (a * b).
+  by rewrite /l' -(Rabs_Ropp) Ropp_minus_distr; apply/error_lt_ulp.
+have:  ulp (a * b) <= ulp (pow (emin + 2 * p - 1)).
+  apply/ulp_le.
+  rewrite (Rabs_pos_eq (pow _)); try lra.
+  by apply/bpow_ge_0.
+rewrite ulp_bpow {2}/fexp Z.max_l; last lia.
+ring_simplify (emin + 2 * p - 1 + 1 - p)%Z.
+move=>*.
+have l'B: Rabs l' <  pow (emin + p) by lra.
+by rewrite ulp_FLT_small;  lra.
 Qed.
 
 End Prelim.
