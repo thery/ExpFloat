@@ -89,5 +89,26 @@ Qed.
 Lemma LN2HLB : Rabs (LN2H + LN2L - ln 2 * pow (- 12)) < Rpower 2 (- 122.43).
 Proof. by rewrite /LN2H /LN2L; interval with (i_prec 150). Qed.
 
+Lemma imul_INVLN2 : is_imul INVLN2 (pow (- 40)).
+Proof.
+have -> : INVLN2 = Float beta 6497320848556798 (- 40).
+  by rewrite /F2R /INVLN2 /=; lra.
+by exists 6497320848556798%Z; rewrite /F2R /INVLN2 /=; lra.
+Qed.
+
+Lemma imul_LN2H : is_imul LN2H (pow (- 65)).
+Proof.
+have -> : LN2H = Float beta 6243314768165359 (- 65).
+  by rewrite /F2R /LN2H /=; lra.
+by exists 6243314768165359%Z; rewrite /F2R /INVLN2 /=; lra.
+Qed.
+
+Lemma imul_LN2L : is_imul LN2L (pow (- 120)).
+Proof.
+have -> : LN2L = Float beta 7525737178955839 (- 120).
+  by rewrite /F2R /LN2L /=; lra.
+by exists 7525737178955839%Z; rewrite /F2R /INVLN2 /=; lra.
+Qed.
+
 End algoExp1.
 
