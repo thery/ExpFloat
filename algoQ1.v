@@ -447,7 +447,7 @@ have -> : (qh + ql) / exp z - 1 = ((qh + ql) - exp z) / exp z.
 rewrite Rabs_mult Rabs_inv.
 set uu := Rabs _ in qhqlez *.
 interval.
-Admitted.
+Qed.
 
 End algoQ1.
 
