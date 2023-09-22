@@ -14,6 +14,22 @@ Unset Printing Implicit Defensive.
 
 Section Prelim.
 
+Lemma relative_error_FLT_alt (beta : radix) (emin prec : Z) :
+  (0 < prec)%Z ->
+  forall rnd : R -> Z,
+  Valid_rnd rnd ->
+  forall x : R,
+  bpow beta (emin + prec - 1) <= Rabs x ->
+  Rabs (round beta (FLT_exp emin prec) rnd x) < 
+     Rabs x * (1 + bpow beta (- prec + 1)).
+Proof.
+move=> pB rnd rndV x pLx.
+suff : Rabs (round beta (FLT_exp emin prec) rnd x - x) < 
+            bpow beta (- prec + 1) * Rabs x.
+  by split_Rabs; lra.
+by apply: relative_error_FLT.
+Qed.
+
 Let p := 53%Z.
 Let emax := 1024%Z.
 Let emin := (3 - emax - p)%Z.

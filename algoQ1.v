@@ -184,9 +184,7 @@ have qB : Rabs q <= Rpower 2 (- 2.579).
   apply: Rle_trans (_ : (Q4 * Rpower 2 (-12.905) + Q3) *
       (1 + pow (- 52)) <= _); last by interval.
   apply: Rle_trans (_ : Rabs (Q4 * z + Q3) * (1 + pow (- 52)) <= _).
-    suff: Rabs (q - (Q4 * z + Q3)) < pow (- 52) * Rabs (Q4 * z + Q3).
-      by split_Rabs; lra.
-    by apply: relative_error_FLT.
+    by apply/Rlt_le/relative_error_FLT_alt.
   apply: Rmult_le_compat_r; try (by apply: Rabs_pos); first by interval.
   boundDMI; last by rewrite Rabs_pos_eq; lra.
   boundDMI; last by lra.
@@ -230,9 +228,7 @@ have q'B : Rabs q' <= 0.50003.
    (Rpower 2 (-2.579) * Rpower 2 (-12.905) + /2) *
       (1 + pow (- 52)) <= _); last by interval.
   apply: Rle_trans (_ : Rabs (q * z + Q2) * (1 + pow (- 52)) <= _).
-    suff: Rabs (q' - (q * z + Q2)) < pow (- 52) * Rabs (q * z + Q2).
-      by split_Rabs; lra.
-    by apply: relative_error_FLT.
+    by apply/Rlt_le/relative_error_FLT_alt.
   apply: Rmult_le_compat_r; try (by apply: Rabs_pos); first by interval.
   boundDMI; last by rewrite Rabs_pos_eq /Q2; lra.
   boundDMI; last by lra.
@@ -291,9 +287,7 @@ have h0B : Rabs h0 <= 1.0001.
           (0.50003 * Rpower 2 (- 12.905) + 1) * (1 + pow (- 52)) <= _);
       last by interval.
   apply: Rle_trans (_ : Rabs (q' * z + Q1) * (1 + pow (- 52)) <= _).
-    suff: Rabs (h0 - (q' * z + Q1)) < pow (- 52) * Rabs (q' * z + Q1).
-      by split_Rabs; lra.
-    apply: relative_error_FLT => //.
+    apply/Rlt_le/relative_error_FLT_alt => //.
     by rewrite Rabs_pos_eq //; apply: Rle_trans (bpow_ge_0 _ _) q'zQ1B1.
   apply: Rmult_le_compat_r; try (by apply: Rabs_pos); first by interval.
   boundDMI; last by rewrite Rabs_pos_eq /Q1; lra.
@@ -386,9 +380,7 @@ have qhE : qh = RND (Q0 + h1) by case: Ef2 => <-.
 have Q0h1B1 : pow (emin + p - 1) <= Q0 + h1 by interval.
 have qhQ : Rabs qh <= 1.0002.
   apply: Rle_trans (_ : Rabs (Q0 + h1) * (1 + pow (- 52)) <= _).
-    suff: Rabs (qh - (Q0 + h1)) < pow (- 52) * Rabs (Q0 + h1).
-      by clear; split_Rabs; lra.
-    rewrite qhE; apply: relative_error_FLT => //.
+    rewrite qhE; apply/Rlt_le/relative_error_FLT_alt => //.
     by interval.
   apply: Rle_trans (_ : (1 + Rpower 2 (- 12.904)) * (1 + pow (- 52)) <= _).
     apply: Rmult_le_compat_r; first by interval.
