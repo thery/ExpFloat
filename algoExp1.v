@@ -214,7 +214,28 @@ boundDMI; [boundDMI; [boundDMI|]|].
                 <= / 2.
     by split_Rabs; lra.
   by apply: Znearest_half.
-- admit.
+- apply/(Rle_trans _ (ulp (rh *INVLN2))).
+    by apply/error_le_ulp.
+  have Rrh_pos: 0 < Rabs rh by move: (bpow_gt_0 beta (- 970)); lra.
+  rewrite ulp_neq_0; last by rewrite /INVLN2; split_Rabs; nra.
+  have h : Rabs (rh * INVLN2) <= 709.79 *  INVLN2.
+    rewrite Rabs_mult.
+    by rewrite (Rabs_pos_eq INVLN2); try rewrite /INVLN2;lra.
+  have : 709.79 * INVLN2 < pow (23).
+    by rewrite /INVLN2 ; interval.
+  rewrite /cexp /fexp Z.max_l.
+    move=>*.
+    apply/bpow_le.
+    suff: ( mag beta (rh * INVLN2) <= 23) %Z by lia.
+    apply/mag_le_bpow;  try lra.
+    by rewrite /INVLN2; split_Rabs; nra.
+  suff : (emin + p <=  mag beta (rh * INVLN2))%Z by lia.
+  apply/mag_ge_bpow.
+  rewrite Rabs_mult (Rabs_pos_eq INVLN2); try interval.
+  rewrite /INVLN2.
+  apply/(Rle_trans _ (pow (-970))).
+    by apply/bpow_le; lia.
+  lra.
 - apply: Rle_trans (_ : 709.79 * Rpower 2 (- 43.447) <= _); last by interval.
   boundDMI; first by lra.
   by interval with (i_prec 70).
@@ -227,6 +248,7 @@ apply: Rle_trans (_ : Rpower 2 (- 14.4187) * Rabs INVLN2 <= _); last first.
   boundDMI.
   lra.
   lra.
+
   admit.
 Admitted.
 
