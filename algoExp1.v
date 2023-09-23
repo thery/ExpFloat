@@ -188,5 +188,62 @@ apply: Rle_trans (_ : (709.79 * (pow 12/ ln 2 + Rpower 2 (- 43.447))) *
 by interval.
 Qed.
 
+Lemma kn2rhrlB: 
+   Rabs (IZR k * ln 2 * pow (- 12) - (rh + rl)) <= Rpower 2 (- 12.906175).
+Proof.
+suff HF : Rabs (IZR k - (rh + rl) * pow 12 / ln 2) <= 0.769819001.
+  have -> : IZR k * ln 2 * pow (- 12) - (rh + rl) = 
+            (ln 2 * pow (-12)) * (IZR k - (rh + rl) * pow 12 / ln 2).
+    have -> : (- 12 = (- (12)))%Z by lia.
+    by rewrite bpow_opp; field; split; interval.
+  rewrite Rabs_mult.
+  apply: Rle_trans (_ : Rabs (ln 2 * pow (-12)) * 0.769819001 <= _).
+    by apply: Rmult_le_compat_l => //; interval.
+  by interval.
+pose D1 := IZR k - RND(rh * INVLN2).
+pose D2 := RND(rh * INVLN2) - rh * INVLN2.
+pose D3 := (rh + rl) * (INVLN2 - pow 12 / ln 2).
+pose D4 := rl * INVLN2.
+have -> : IZR k - (rh + rl) * pow 12 / ln 2 = D1 + D2 + D3 - D4.
+  by rewrite [_ / ln 2]Rmult_assoc /D1 /D2 /D3 /D4; field; interval.
+apply: Rle_trans (_ : 1/2 + pow (-30) + Rpower 2 (- 33.975) + 
+                      0.269819 <= _); last by interval.
+boundDMI; [boundDMI; [boundDMI|]|].
+- rewrite /D1 /k.
+  suff : Rabs (RND (rh * INVLN2) - IZR (ZnearestE (RND (rh * INVLN2))))
+                <= / 2.
+    by split_Rabs; lra.
+  by apply: Znearest_half.
+- admit.
+- apply: Rle_trans (_ : 709.79 * Rpower 2 (- 43.447) <= _); last by interval.
+  boundDMI; first by lra.
+  by interval with (i_prec 70).
+have : Rabs (- D4) <= 0.2698195.
+rewrite Rabs_Ropp /D4.
+apply: Rle_trans (_ : Rpower 2 (- 14.4187) * Rabs INVLN2 <= _); last first.
+  rewrite [Rabs INVLN2]Rabs_pos_eq.
+  interval with (i_prec 400).
+  interval.
+  boundDMI.
+  lra.
+  lra.
+  apply: Rmult_le_compat_r.
+  interval_intro (Rpower 2 (-14.4187) * INVLN2) with (i_prec 100).
+  interval with (i_prec 200).
+  lra.
+
+Search Znearest.
+  rewrite Rabs_Ropp.
+
+D1 ≤ 1/2. In addition, recalling from
+Lemma 5 that |rh| ≤ 709.79, |rℓ| ≤ 2−14.4187, and
+|rh + rℓ| ≤ 709.79, we deduce that |rhINVLN2| <
+222.1, D2 ≤ ulp(222.1) ≤ 2−30, D3 ≤ 709.79 ·
+2−43.447 ≤ 2−33.975, and D4 ≤ 2−14.4187 v
+  ring_simplify.
+   lra.
+
+  interval.
+  interval.
 End algoExp1.
 
