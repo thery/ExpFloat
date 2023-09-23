@@ -227,23 +227,8 @@ apply: Rle_trans (_ : Rpower 2 (- 14.4187) * Rabs INVLN2 <= _); last first.
   boundDMI.
   lra.
   lra.
-  apply: Rmult_le_compat_r.
-  interval_intro (Rpower 2 (-14.4187) * INVLN2) with (i_prec 100).
-  interval with (i_prec 200).
-  lra.
+  admit.
+Admitted.
 
-Search Znearest.
-  rewrite Rabs_Ropp.
-
-D1 ≤ 1/2. In addition, recalling from
-Lemma 5 that |rh| ≤ 709.79, |rℓ| ≤ 2−14.4187, and
-|rh + rℓ| ≤ 709.79, we deduce that |rhINVLN2| <
-222.1, D2 ≤ ulp(222.1) ≤ 2−30, D3 ≤ 709.79 ·
-2−43.447 ≤ 2−33.975, and D4 ≤ 2−14.4187 v
-  ring_simplify.
-   lra.
-
-  interval.
-  interval.
 End algoExp1.
 
