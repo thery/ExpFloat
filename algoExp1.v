@@ -189,15 +189,15 @@ by interval.
 Qed.
 
 Lemma kn2rhrlB: 
-   Rabs (IZR k * ln 2 * pow (- 12) - (rh + rl)) <= Rpower 2 (- 12.906175).
+   Rabs (IZR k * ln 2 * pow (- 12) - (rh + rl)) <= Rpower 2 (- 12.906174).
 Proof.
-suff HF : Rabs (IZR k - (rh + rl) * pow 12 / ln 2) <= 0.769819001.
+suff HF : Rabs (IZR k - (rh + rl) * pow 12 / ln 2) <= 0.7698196.
   have -> : IZR k * ln 2 * pow (- 12) - (rh + rl) = 
             (ln 2 * pow (-12)) * (IZR k - (rh + rl) * pow 12 / ln 2).
     have -> : (- 12 = (- (12)))%Z by lia.
     by rewrite bpow_opp; field; split; interval.
   rewrite Rabs_mult.
-  apply: Rle_trans (_ : Rabs (ln 2 * pow (-12)) * 0.769819001 <= _).
+  apply: Rle_trans (_ : Rabs (ln 2 * pow (-12)) * 0.7698196 <= _).
     by apply: Rmult_le_compat_l => //; interval.
   by interval.
 pose D1 := IZR k - RND(rh * INVLN2).
@@ -207,14 +207,14 @@ pose D4 := rl * INVLN2.
 have -> : IZR k - (rh + rl) * pow 12 / ln 2 = D1 + D2 + D3 - D4.
   by rewrite [_ / ln 2]Rmult_assoc /D1 /D2 /D3 /D4; field; interval.
 apply: Rle_trans (_ : 1/2 + pow (-30) + Rpower 2 (- 33.975) + 
-                      0.269819 <= _); last by interval.
+                      0.2698195 <= _); last by interval.
 boundDMI; [boundDMI; [boundDMI|]|].
 - rewrite /D1 /k.
   suff : Rabs (RND (rh * INVLN2) - IZR (ZnearestE (RND (rh * INVLN2))))
                 <= / 2.
     by split_Rabs; lra.
   by apply: Znearest_half.
-- apply/(Rle_trans _ (ulp (rh *INVLN2))).
+- apply: Rle_trans  (_ : ulp (rh * INVLN2) <= _).
     by apply/error_le_ulp.
   have Rrh_pos: 0 < Rabs rh by move: (bpow_gt_0 beta (- 970)); lra.
   rewrite ulp_neq_0; last by rewrite /INVLN2; split_Rabs; nra.
@@ -223,34 +223,25 @@ boundDMI; [boundDMI; [boundDMI|]|].
     by rewrite (Rabs_pos_eq INVLN2); try rewrite /INVLN2;lra.
   have : 709.79 * INVLN2 < pow (23).
     by rewrite /INVLN2 ; interval.
-  rewrite /cexp /fexp Z.max_l.
-    move=>*.
+  rewrite /cexp /fexp Z.max_l => *.
     apply/bpow_le.
-    suff: ( mag beta (rh * INVLN2) <= 23) %Z by lia.
+    suff: (mag beta (rh * INVLN2) <= 23) %Z by lia.
     apply/mag_le_bpow;  try lra.
     by rewrite /INVLN2; split_Rabs; nra.
   suff : (emin + p <=  mag beta (rh * INVLN2))%Z by lia.
   apply/mag_ge_bpow.
   rewrite Rabs_mult (Rabs_pos_eq INVLN2); try interval.
   rewrite /INVLN2.
-  apply/(Rle_trans _ (pow (-970))).
-    by apply/bpow_le; lia.
-  lra.
+  apply: Rle_trans (_ : pow (-970) <= _); last by lra. 
+  by apply/bpow_le; lia.
 - apply: Rle_trans (_ : 709.79 * Rpower 2 (- 43.447) <= _); last by interval.
   boundDMI; first by lra.
   by interval with (i_prec 70).
-have : Rabs (- D4) <= 0.2698195.
 rewrite Rabs_Ropp /D4.
-apply: Rle_trans (_ : Rpower 2 (- 14.4187) * Rabs INVLN2 <= _); last first.
-  rewrite [Rabs INVLN2]Rabs_pos_eq.
-  interval with (i_prec 400).
-  interval.
-  boundDMI.
-  lra.
-  lra.
-
-  admit.
-Admitted.
+apply: Rle_trans (_ : Rpower 2 (- 14.4187) * Rabs INVLN2 <= _).
+  by boundDMI; lra.
+by rewrite [Rabs INVLN2]Rabs_pos_eq; interval.
+Qed.
 
 End algoExp1.
 
