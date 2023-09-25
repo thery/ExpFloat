@@ -243,5 +243,18 @@ apply: Rle_trans (_ : Rpower 2 (- 14.4187) * Rabs INVLN2 <= _).
 by rewrite [Rabs INVLN2]Rabs_pos_eq; interval.
 Qed.
 
+Lemma rhBkln2h_format : format (rh - IZR k * LN2H).
+Proof.
+have rhBkln2hB : Rabs (rh - IZR k * LN2H) <= omega.
+  apply: Rle_trans (_ : Rabs rh + Rabs (IZR k * LN2H) <= _).
+    by clear; split_Rabs; lra.
+  apply: Rle_trans (_ : Rabs 709.79 + 4194347 * LN2H <= _); last by interval.
+  apply: Rplus_le_compat.
+    by rewrite [Rabs 709.79]Rabs_pos_eq; lra.
+  rewrite Rabs_mult [Rabs LN2H]Rabs_pos_eq; last by interval.
+  apply: Rmult_le_compat_r; first by interval.
+  by rewrite Rabs_Zabs; apply/IZR_le/kB.
+Admitted.
+
 End algoExp1.
 
