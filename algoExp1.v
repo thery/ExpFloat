@@ -111,6 +111,8 @@ by exists 7525737178955839%Z; rewrite /F2R /INVLN2 /=; lra.
 Qed.
 
 Variables rh rl : R.
+Hypothesis rhF : format rh.
+Hypothesis rlF : format rl.
 Hypothesis rhB : pow (- 970) <= Rabs rh <= 709.79.
 Hypothesis rlB : Rabs rl <= Rpower 2 (-14.4187).
 Hypothesis rhDrlB : Rabs (rl / rh) <= Rpower 2 (- 23.8899).
@@ -269,12 +271,128 @@ have rhBkln2hB : Rabs (rh - IZR k * LN2H) <= omega.
 have rhBkln2h_imul : is_imul (rh - IZR k * LN2H) alpha.
   apply: is_imul_pow_le (_ : is_imul _ (pow (- 1022))) _; last by lia.
   apply: is_imul_minus.
-  have : alpha = 0.
-  Search is_imul.
-  rewrite /alpha.
-    apply: is_imul_pow_le 
-
+    have -> : (- 1022 = - 970 - p + 1)%Z by lia.
+    apply: is_imul_bound_pow_format => //.
+    by rewrite -[bpow _ _]/(pow _); lra.
+  apply: is_imul_pow_le (_ : is_imul _ (pow (- 65))) _; last by lia.
+  exists (6243314768165359 * k)%Z.
+  by rewrite mult_IZR /LN2H /F2R /= /Z.pow_pos /=; lra.
 Admitted.
+
+Definition zl := RND (rl - IZR k * LN2L).
+
+Lemma zl_err : Rabs (zl - (rl - IZR k * LN2L)) <= pow (- 67).
+Proof.
+have rlkln2lB : Rabs (rl - IZR k * LN2L) <= Rpower 2 (- 14.418).
+  apply: Rle_trans (_ : Rabs rl + Rabs (IZR k * LN2L) <= _).
+    by clear; split_Rabs; lra.
+  apply: Rle_trans (_ : Rpower 2 (- 14.4187) + 4194347 * LN2L <= _);
+     last by interval.
+  apply: Rplus_le_compat; first by lra.
+  rewrite Rabs_mult [Rabs LN2L]Rabs_pos_eq; last by interval.
+  apply: Rmult_le_compat_r; first by interval.
+  by rewrite Rabs_Zabs; apply/IZR_le/kB.
+apply: Rle_trans (error_le_ulp _ _ _ _) _.
+apply: bound_ulp => //.
+apply: Rle_lt_trans rlkln2lB _.
+by interval.
+Qed.
+
+Definition e := (k / 2 ^ 12)%Z.
+Definition i1 := ((k - e * 2 ^ 12) / 2 ^ 6)%Z.
+Definition i2 := ((k - e * 2 ^ 12 - i1 * 2 ^ 6))%Z.
+
+Lemma eE : (k = e * 2 ^ 12 + i1 * 2 ^ 6 + i2)%Z.
+Proof.
+rewrite /i2 /i1 /e -!Zmod_eq_full; try by lia.
+rewrite -Zplus_assoc [(_ * 2 ^ 6)%Z]Z.mul_comm -Z_div_mod_eq_full.
+by rewrite [(_ * 2 ^ 12)%Z]Z.mul_comm -Z_div_mod_eq_full.
+Qed.
+
+Lemma i1B : (0 <= i1 <= 63)%Z.
+Proof.
+rewrite /i1 /e -Zmod_eq_full; last by lia.
+have km12B : (0 <= k mod (2 ^ 12) < 2 ^12)%Z by apply: Z.mod_pos_bound.
+split; first by apply: Z.div_pos; lia.
+have -> : (63 = (2 ^ 12 - 1) / 2 ^ 6)%Z by [].
+by apply: Z_div_le; lia.
+Qed.
+
+Lemma i2B : (0 <= i2 <= 63)%Z.
+Proof.
+suff : (0 <= i2 < 2 ^ 6)%Z by lia.
+rewrite /i2 /i1 /e -Zmod_eq_full; last by lia.
+by apply: Z.mod_pos_bound.
+Qed.
+
+Definition h1 := round beta fexp ZnearestE (Rpower 2 (IZR i1 / pow 12)).
+Definition e1 := (h1 - Rpower 2 (IZR i1 / pow 12)).
+
+Lemma h1F : format h1.
+Proof. by apply: generic_format_round. Qed.
+
+Lemma h1B : 1 <= h1 < 2.
+Proof.
+have Blow : 1 <= (Rpower 2 (IZR i1 / pow 12)).
+  have <- : Rpower 2 0 = 1 by rewrite Rpower_O; lra.
+  apply: Rle_Rpower; first by lra.
+  apply: Rcomplements.Rdiv_le_0_compat; last by apply: bpow_gt_0.
+  by apply/IZR_le; have := i1B; lia.
+have Bhigh : Rpower 2 (IZR i1 / pow 12) < 2.
+  have {2}<- : Rpower 2 1 = 2 by rewrite Rpower_1; lra.
+  apply: Rpower_lt; first by lra.
+  apply/Rcomplements.Rlt_div_l; first by interval.
+  rewrite Rsimp01 -IZR_Zpower //.
+  apply/IZR_lt.
+  by rewrite /beta /= /Z.pow_pos /=; have := i1B; lia.
+split.
+  have-> : 1 = pow 0 by [].
+  suff: pow (1 - 1) <= h1 <= pow 1 by rewrite -[(1 - 1)%Z]/0%Z; lra.
+  by apply: round_bounded_large_pos.
+rewrite [h1]round_FLT_FLX; last first.
+  rewrite Rabs_pos_eq; last by lra.
+  by apply: Rle_trans Blow; interval.
+apply: RN_lt_pos; try by (lia || lra).
+rewrite -{4}[2]/(pow 1).
+rewrite ulp_bpow [FLX_exp _ _]/=.
+apply: Rle_lt_trans (_ : Rpower 2 0.5 < _); last by interval.
+apply: Rle_Rpower; first by lra.
+apply/Rcomplements.Rle_div_l; first by interval.
+have -> : 0.5 * pow 12 = pow 11 by rewrite /= /Z.pow_pos /=; lra.
+rewrite -IZR_Zpower //.
+apply/IZR_le.
+by rewrite /= /Z.pow_pos /=; have := i1B; lia.
+Qed.
+
+Lemma h1E : h1 = Rpower 2 (IZR i1 / pow 12) + e1.
+Proof. by rewrite /e1; lra. Qed.
+
+Lemma e1B : Rabs e1 <= pow (- 53).
+Proof.
+apply: Rle_trans (_ : /2 * ulp (Rpower 2 (IZR i1 / pow 12)) <= _).
+  by apply: error_le_half_ulp.
+suff : ulp (Rpower 2 (IZR i1 / pow 12)) <= pow (-52).
+  by rewrite ![pow _]/= /Z.pow_pos /=; lra.
+apply: bound_ulp => //.
+rewrite Rabs_pos_eq; last by apply/Rlt_le/exp_pos.
+rewrite pow_Rpower //.
+apply: Rpower_lt; first by lra.
+apply/Rcomplements.Rlt_div_l; first by interval.
+rewrite -IZR_Zpower // -mult_IZR.
+apply/IZR_lt.
+by have := i1B; rewrite /=; lia.
+Qed.
+
+Definition l1 := round beta fexp ZnearestE (Rpower 2 (IZR i1 / pow 12) - h1).
+
+Lemma l1E : l1 = round beta fexp ZnearestE (- e1).
+Proof. by rewrite /l1 /e1; congr round; lra. Qed.
+
+Lemma l1B : Rabs l1 <= pow (- 53).
+Proof.
+rewrite l1E; apply: Rabs_round_le => //.
+by rewrite Rabs_Ropp; apply: e1B.
+Qed.
 
 End algoExp1.
 
