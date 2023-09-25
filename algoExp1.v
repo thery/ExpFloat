@@ -243,6 +243,18 @@ apply: Rle_trans (_ : Rpower 2 (- 14.4187) * Rabs INVLN2 <= _).
 by rewrite [Rabs INVLN2]Rabs_pos_eq; interval.
 Qed.
 
+Lemma is_imul_bound_pow_format e x :
+  bpow radix2 e <= Rabs x -> format x ->
+  is_imul x (bpow radix2 (e - p + 1)).
+Proof.
+move=> eLx x_F.
+have [->|x_neq0] := Req_dec x 0;  first by exists 0%Z; lra.
+have xE : x = IZR (Ztrunc (scaled_mantissa radix2 fexp x)) * pow (cexp x).
+  by rewrite {1}x_F.
+apply: is_imul_bound_pow eLx xE _.
+rewrite -scaled_mantissa_generic //.
+Admitted.
+
 Lemma rhBkln2h_format : format (rh - IZR k * LN2H).
 Proof.
 have rhBkln2hB : Rabs (rh - IZR k * LN2H) <= omega.
@@ -254,6 +266,14 @@ have rhBkln2hB : Rabs (rh - IZR k * LN2H) <= omega.
   rewrite Rabs_mult [Rabs LN2H]Rabs_pos_eq; last by interval.
   apply: Rmult_le_compat_r; first by interval.
   by rewrite Rabs_Zabs; apply/IZR_le/kB.
+have rhBkln2h_imul : is_imul (rh - IZR k * LN2H) alpha.
+  apply: is_imul_pow_le (_ : is_imul _ (pow (- 1022))) _; last by lia.
+  apply: is_imul_minus.
+  have : alpha = 0.
+  Search is_imul.
+  rewrite /alpha.
+    apply: is_imul_pow_le 
+
 Admitted.
 
 End algoExp1.
