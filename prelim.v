@@ -30,6 +30,10 @@ suff : Rabs (round beta (FLT_exp emin prec) rnd x - x) <
 by apply: relative_error_FLT.
 Qed.
 
+
+
+
+
 Let p := 53%Z.
 Let emax := 1024%Z.
 Let emin := (3 - emax - p)%Z.
@@ -84,6 +88,24 @@ Proof.
 rewrite /alpha !bpow_powerRZ !powerRZ_Rpower.
   by rewrite -[IZR beta]/2; interval with (i_prec 54).
 by apply: IZR_lt.
+Qed.
+
+Lemma  alpha_lB x (Fx: format x)(xneq0: x <> 0):
+           alpha <= Rabs x.
+Proof.
+move:(Fx); rewrite /generic_format /F2R/=/cexp.
+set mx := Ztrunc _=> xE.
+have mx_neq0: (mx <> 0)%Z.
+  by move => mx0 ; apply xneq0; rewrite xE mx0; lra.
+
+apply/(Rle_trans _ ( bpow beta (fexp (mag beta x)))).
+  by rewrite /alpha /fexp; apply/bpow_le;  lia.
+rewrite [X in _ <= Rabs X]xE.
+rewrite Rabs_mult -[X in X <= _]Rmult_1_l.
+apply/Rmult_le_compat; 
+ rewrite ?(Rabs_pos_eq (pow _)); try apply/bpow_ge_0;
+ try lra.
+by rewrite -abs_IZR; apply/IZR_le; lia.
 Qed.
 
 Lemma alpha_LB x : format x -> 0 < x -> alpha <= x.
@@ -243,6 +265,20 @@ rewrite /z.
 have->: x/y = IZR z0 by rewrite xE; field.
 by rewrite Zfloor_IZR.
 Qed.
+
+Lemma is_imul_bound_pow_format e x :
+  bpow radix2 e <= Rabs x -> format x ->
+  is_imul x (bpow radix2 (e - p + 1)).
+Proof.
+move=> eLx x_F.
+have [->|x_neq0] := Req_dec x 0;  first by exists 0%Z; lra.
+apply/(is_imul_format_mag_pow x_F)=>//.
+apply/(Z.le_trans _ (mag radix2 x - p)%Z); last by  (rewrite /fexp; lia).
+suff: (e + 1 <= mag radix2 x )%Z by lia.
+apply/mag_ge_bpow.
+by have->: (e + 1 -1 = e)%Z by lia.
+Qed.
+
 
 
 Definition fastTwoSum (a b : R) :=
