@@ -428,5 +428,10 @@ rewrite l1E; apply: Rabs_round_le => //.
 by rewrite Rabs_Ropp; apply: e1B.
 Qed.
 
+Lemma rel_error_h1l1 : 
+  Rabs (h1 + l1 / Rpower 2 (IZR i1 /pow 12) - 1) < Rpower 2 (- 107.000244).
+Proof.
+Admitted.
+ 
 End algoExp1.
 
