@@ -250,14 +250,14 @@ Proof.
 have rhBkln2hB : Rabs (rh - IZR k * LN2H) <= omega.
   apply: Rle_trans (_ : Rabs rh + Rabs (IZR k * LN2H) <= _).
     by clear; split_Rabs; lra.
-  apply: Rle_trans (_ : Rabs 709.79 + 4194347 * LN2H <= _); last by interval.
+  apply: Rle_trans (_ : Rabs 709.79 + 4194347 * LN2H <= _); 
+   last by interval.
   apply: Rplus_le_compat.
     by rewrite [Rabs 709.79]Rabs_pos_eq; lra.
   rewrite Rabs_mult [Rabs LN2H]Rabs_pos_eq; last by interval.
   apply: Rmult_le_compat_r; first by interval.
   by rewrite Rabs_Zabs; apply/IZR_le/kB.
-have rhBkln2h_imul : is_imul (rh - IZR k * LN2H) alpha.
-  apply: is_imul_pow_le (_ : is_imul _ (pow (- 1022))) _; last by lia.
+have rhBkln2h_imul_1022: (is_imul (rh - IZR k * LN2H)(pow (- 1022))).
   apply: is_imul_minus.
     have -> : (- 1022 = - 970 - p + 1)%Z by lia.
     apply: is_imul_bound_pow_format => //.
@@ -265,6 +265,30 @@ have rhBkln2h_imul : is_imul (rh - IZR k * LN2H) alpha.
   apply: is_imul_pow_le (_ : is_imul _ (pow (- 65))) _; last by lia.
   exists (6243314768165359 * k)%Z.
   by rewrite mult_IZR /LN2H /F2R /= /Z.pow_pos /=; lra.
+have rhBkln2h_imul : is_imul (rh - IZR k * LN2H) alpha.
+  by apply: is_imul_pow_le (_ : is_imul _ (pow (- 1022))) _; last by lia.
+
+have rhBkln2hB13 : Rabs (rh - IZR k * LN2H) <= Rpower 2 (-13.528766) by admit.
+case:(Rle_lt_dec (bpow radix2 (-13)) (Rabs rh))=>hrh13.
+  
+  have imul_rh65: is_imul rh (pow (-65)).
+    have->: (-65 = -13 - 53 + 1)%Z by lia.
+    by apply/is_imul_bound_pow_format.    
+  case:imul_LN2H => mln2h mE.
+  have [m rhkln2E]: is_imul (rh - IZR k * LN2H)  (pow (-65)).
+    apply/is_imul_minus=>//.
+    by rewrite mE;exists (k * mln2h)%Z; rewrite -Rmult_assoc mult_IZR.
+  apply/generic_format_FLT/(FLT_spec _ _ _ _ (Float beta  m (-65))); rewrite /F2R/=.
+  +  have ->: IZR (Z.pow_pos 2 65) = bpow beta 65 by [].
+     by rewrite -bpow_opp.
+  + apply/lt_IZR; have ->: IZR (Z.pow_pos 2 53) = bpow beta 53 by [].
+    apply/(Rmult_lt_reg_r (pow (-65))); first by apply/bpow_gt_0.
+    rewrite abs_IZR -bpow_plus -(Rabs_pos_eq (pow (-65))); last by apply/bpow_ge_0.
+    rewrite -Rabs_mult -rhkln2E; ring_simplify (53 + -65)%Z.
+    apply/(Rle_lt_trans _ (Rpower 2 (-13.528766)))=>//.
+    by rewrite pow_Rpower; last lia; apply/Rpower_lt; lra.
+  by lia.
+
 Admitted.
 
 Definition zl := RND (rl - IZR k * LN2L).
