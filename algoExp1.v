@@ -291,7 +291,18 @@ case:(Rle_lt_dec (bpow radix2 (-13)) (Rabs rh))=>hrh13.
 
 Admitted.
 
+Definition zh := RND (rh - IZR k * LN2H).
+
+Lemma zhF : format zh.
+Proof. by apply: generic_format_round. Qed.
+
+Lemma zhE : zh = rh - IZR k * LN2H.
+Proof. by apply/round_generic/rhBkln2h_format. Qed.
+
 Definition zl := RND (rl - IZR k * LN2L).
+
+Lemma zlF : format zl.
+Proof. by apply: generic_format_round. Qed.
 
 Lemma zl_err : Rabs (zl - (rl - IZR k * LN2L)) <= pow (- 67).
 Proof.
@@ -309,6 +320,14 @@ apply: bound_ulp => //.
 apply: Rle_lt_trans rlkln2lB _.
 by interval.
 Qed.
+
+Definition z := RND (zh + zl).
+
+Lemma zF : format z.
+Proof. by apply: generic_format_round. Qed.
+
+Lemma zB: Rabs z <= Rpower 2  (- 12.905).
+Admitted.
 
 Definition e := (k / 2 ^ 12)%Z.
 Definition i1 := ((k - e * 2 ^ 12) / 2 ^ 6)%Z.
@@ -396,6 +415,9 @@ by have := i1B; rewrite /=; lia.
 Qed.
 
 Definition l1 := round beta fexp ZnearestE (Rpower 2 (IZR i1 / pow 12) - h1).
+
+Lemma l1F : format l1.
+Proof. by apply: generic_format_round. Qed.
 
 Lemma l1E : l1 = round beta fexp ZnearestE (- e1).
 Proof. by rewrite /l1 /e1; congr round; lra. Qed.
