@@ -118,13 +118,8 @@ Hypothesis rlB : Rabs rl <= Rpower 2 (-14.4187).
 Hypothesis rhDrlB : Rabs (rl / rh) <= Rpower 2 (- 23.8899).
 Hypothesis rhlB : Rabs (rh + rl) <= 709.79.
 
-Definition k := ZnearestE (RND (rh * INVLN2)).
-
-Lemma Zfloor_opp k : Zfloor (- k) = (- Zceil k)%Z.
-Proof. by rewrite /Zceil /Zfloor; lia. Qed.
-
-Lemma Zceil_opp k : Zceil (- k) = (- Zfloor k)%Z.
-Proof. by rewrite /Zceil /Zfloor Ropp_involutive; lia. Qed.
+Variable choice : Z -> bool.
+Definition k := Znearest choice (RND (rh * INVLN2)).
 
 Lemma Znearest_le c r1 r2 : 
   r1 <= r2 -> (Znearest c r1 <= Znearest c r2)%Z.
@@ -133,61 +128,42 @@ Proof. by case: (valid_rnd_N c) => H _; exact: H. Qed.
 Lemma Znearest_IZR c k : Znearest c (IZR k) = k.
 Proof. by case: (valid_rnd_N c) => _ H; exact: H. Qed.
 
-Lemma ZnearestE_opp r : ZnearestE (- r) = (- ZnearestE r)%Z.
-Proof.
-have [<-|zNE] := Req_dec (IZR (Zfloor r)) r.
-  by rewrite -opp_IZR ![ZnearestE (IZR _)]Znearest_IZR.
-rewrite [in RHS]/ZnearestE; case: Rcompare_spec => H.
-- have rE : /2 < - r - IZR (Zfloor (- r)).
-    rewrite Zfloor_opp Zceil_floor_neq // opp_IZR plus_IZR; lra.
-  rewrite /ZnearestE; case: Rcompare_spec; try lra.
-  by rewrite Zceil_opp; lia.
-- have rE : - r = IZR (Zfloor (- r)) + / 2.
-   by rewrite Zfloor_opp Zceil_floor_neq // opp_IZR plus_IZR; lra.
-  rewrite /Znearest; case: Rcompare_spec; (try by lra) => _.
-  rewrite Zfloor_opp Zceil_floor_neq; last by lra.
-  by rewrite Z.even_opp Z.even_add Zceil_opp /=; case: Z.even => /=; lia.
-have rE : - r - IZR (Zfloor (- r)) < /2.
-  by rewrite Zfloor_opp Zceil_floor_neq // opp_IZR plus_IZR; lra.
-  rewrite /ZnearestE; case: Rcompare_spec; try lra.
-by rewrite Zfloor_opp.
-Qed.
-
-Lemma ZnearestE_le_abs r1 r2 : 
-  Rabs r1 <= r2 -> (Z.abs (ZnearestE r1) <= ZnearestE r2)%Z.
-Proof.
-have [r1_pos|r1_neg] := Rle_dec 0 r1.
-  rewrite Rabs_pos_eq // Z.abs_eq; last first.
-    rewrite -(Znearest_IZR (fun x => ~~ Z.even x) 0).
-    by apply: Znearest_le.
-  by apply: Znearest_le.
-rewrite Rabs_left; last by lra.
-rewrite Z.abs_neq; last first.
-  rewrite -(Znearest_IZR (fun x => ~~ Z.even x) 0).
-  by apply: Znearest_le; lra.
-rewrite -ZnearestE_opp.
-by apply: Znearest_le; lra.
-Qed.
-
 Lemma kB : (Z.abs k <= 4194347)%Z.
 Proof.
-have ->: 4194347%Z = ZnearestE 4194347.07.
-  rewrite /ZnearestE.
-  have -> : Zfloor 4194347.07 = 4194347%Z.
-    by apply: Zfloor_imp; rewrite plus_IZR; lra.
-  by case: Rcompare_spec => //; lra.
-apply: ZnearestE_le_abs.
-apply: Rle_trans (_ : Rabs (rh * INVLN2) * (1 + pow (- 52)) <= _).
-  apply/Rlt_le/relative_error_FLT_alt => //.
-  rewrite Rabs_mult [Rabs INVLN2]Rabs_pos_eq; last by interval.
-  apply: Rle_trans (_ : pow (-970) * INVLN2 <= _); first by interval.
-  by apply: Rmult_le_compat; try lra; interval.
-apply: Rle_trans (_ : (709.79 * (pow 12/ ln 2 + Rpower 2 (- 43.447))) *
+have F1: Rabs (RND (rh * INVLN2)) <= 4194347.07.
+  apply: Rle_trans (_ : Rabs (rh * INVLN2) * (1 + pow (- 52)) <= _).
+    apply/Rlt_le/relative_error_FLT_alt => //.
+    rewrite Rabs_mult [Rabs INVLN2]Rabs_pos_eq; last by interval.
+    apply: Rle_trans (_ : pow (-970) * INVLN2 <= _); first by interval.
+    by apply: Rmult_le_compat; try lra; interval.
+  apply: Rle_trans (_ : (709.79 * (pow 12/ ln 2 + Rpower 2 (- 43.447))) *
                          (1 + pow (-52)) <= _).
-  apply: Rmult_le_compat_r; first by interval.
-  boundDMI; first by lra.
-  by interval with (i_prec 100).
-by interval.
+    apply: Rmult_le_compat_r; first by interval.
+    boundDMI; first by lra.
+    by interval with (i_prec 100).
+  by interval.
+have [rhi_neg|rhi_pos] := Rle_lt_dec (rh * INVLN2) 0.
+  have rrhi_neg : RND (rh * INVLN2) <= 0.
+    have <- : RND 0 = 0 by rewrite round_0.
+    by apply: round_le.  
+  rewrite Z.abs_neq; last first.
+    have <- : Znearest choice 0 = 0%Z by rewrite Znearest_IZR.
+    by apply: Znearest_le.
+  suff: (- 4194347 <= k)%Z by lia.
+  have <- : Znearest choice (- 4194347.07) = (- 4194347)%Z.
+    by apply: Znearest_imp; interval.
+  apply: Znearest_le.
+  by clear -F1 rrhi_neg; split_Rabs; lra.
+have rrhi_pos : 0 <= RND (rh * INVLN2).
+  have <- : RND 0 = 0 by rewrite round_0.
+  by apply: round_le; lra.
+rewrite Z.abs_eq; last first.
+  have <- : Znearest choice 0 = 0%Z by rewrite Znearest_IZR.
+  by apply: Znearest_le.
+have <- : Znearest choice (4194347.07) = 4194347%Z.
+  by apply: Znearest_imp; interval.
+apply: Znearest_le.
+by clear -F1 rrhi_pos; split_Rabs; lra.
 Qed.
 
 Lemma kn2rhrlB: 
@@ -212,7 +188,7 @@ apply: Rle_trans (_ : 1/2 + pow (-30) + Rpower 2 (- 33.975) +
                       0.2698195 <= _); last by interval.
 boundDMI; [boundDMI; [boundDMI|]|].
 - rewrite /D1 /k.
-  suff : Rabs (RND (rh * INVLN2) - IZR (ZnearestE (RND (rh * INVLN2))))
+  suff : Rabs (RND (rh * INVLN2) - IZR (Znearest choice (RND (rh * INVLN2))))
                 <= / 2.
     by split_Rabs; lra.
   by apply: Znearest_half.
@@ -356,7 +332,7 @@ rewrite /i2 /i1 /e -Zmod_eq_full; last by lia.
 by apply: Z.mod_pos_bound.
 Qed.
 
-Definition h1 := round beta fexp ZnearestE (Rpower 2 (IZR i1 / pow 12)).
+Definition h1 := round beta fexp (Znearest choice) (Rpower 2 (IZR i1 / pow 12)).
 Definition e1 := (h1 - Rpower 2 (IZR i1 / pow 12)).
 
 Lemma h1F : format h1.
@@ -386,7 +362,7 @@ rewrite [h1]round_FLT_FLX; last first.
 pose pv := pred beta (FLX_exp p) (pow 1).
 apply: Rle_lt_trans (_ : pv < _); last first.
   by rewrite /pv pow1E /=; apply: pred_lt_id; lra.
-have <- : round beta (FLX_exp p) ZnearestE pv = pv.
+have <- : round beta (FLX_exp p) (Znearest choice) pv = pv.
   apply/round_generic/generic_format_pred.
   by apply: generic_format_bpow.
 apply: round_le; last first.
@@ -423,12 +399,13 @@ apply: is_imul_bound_pow_format h1F.
 by have h1B := h1B; rewrite pow0E Rabs_pos_eq; lra.
 Qed.
 
-Definition l1 := round beta fexp ZnearestE (Rpower 2 (IZR i1 / pow 12) - h1).
+Definition l1 := 
+  round beta fexp (Znearest choice) (Rpower 2 (IZR i1 / pow 12) - h1).
 
 Lemma l1F : format l1.
 Proof. by apply: generic_format_round. Qed.
 
-Lemma l1E : l1 = round beta fexp ZnearestE (- e1).
+Lemma l1E : l1 = round beta fexp (Znearest choice) (- e1).
 Proof. by rewrite /l1 /e1; congr round; lra. Qed.
 
 Lemma l1B : Rabs l1 <= pow (- 53).
@@ -490,7 +467,7 @@ apply: bound_ulp => //.
 rewrite [(_ + _)%Z]/= -[bpow _ _]/(pow _); lra.
 Qed.
 
-Definition h2 := round beta fexp ZnearestE (Rpower 2 (IZR i2 / pow 6)).
+Definition h2 := round beta fexp (Znearest choice) (Rpower 2 (IZR i2 / pow 6)).
 Definition e2 := (h2 - Rpower 2 (IZR i2 / pow 6)).
 
 Lemma h2F : format h2.
@@ -520,7 +497,7 @@ rewrite [h2]round_FLT_FLX; last first.
 pose pv := pred beta (FLX_exp p) (pow 1).
 apply: Rle_lt_trans (_ : pv < _); last first.
   by rewrite /pv pow1E /=; apply: pred_lt_id; lra.
-have <- : round beta (FLX_exp p) ZnearestE pv = pv.
+have <- : round beta (FLX_exp p) (Znearest choice) pv = pv.
   apply/round_generic/generic_format_pred.
   by apply: generic_format_bpow.
 apply: round_le; last first.
@@ -557,12 +534,13 @@ apply/IZR_lt.
 by have := i2B; rewrite /=; lia.
 Qed.
 
-Definition l2 := round beta fexp ZnearestE (Rpower 2 (IZR i2 / pow 6) - h2).
+Definition l2 :=
+  round beta fexp (Znearest choice) (Rpower 2 (IZR i2 / pow 6) - h2).
 
 Lemma l2F : format l2.
 Proof. by apply: generic_format_round. Qed.
 
-Lemma l2E : l2 = round beta fexp ZnearestE (- e2).
+Lemma l2E : l2 = round beta fexp (Znearest choice) (- e2).
 Proof. by rewrite /l2 /e2; congr round; lra. Qed.
 
 Lemma l2B : Rabs l2 <= pow (- 53).
@@ -623,6 +601,18 @@ have [->|l2_neq0] := Req_dec l2 0; first by exists 0%Z; lra.
 have -> : (- 111 = - 59 - p + 1)%Z by lia.
 apply: is_imul_bound_pow_format l2F.
 apply: Rle_trans (_ : Rpower 2 (- 58.98) <= _); first by interval.
+Admitted.
+
+Lemma h1h2B : 1 <= h1 * h2 < 2.
+Proof.
+split; first by have := h1B; have := h2B; nra.
+apply: Rle_lt_trans (_ : Rpower 2 (0.015381) * Rpower 2 (0.984376) < _); 
+   last by interval.
+apply: Rmult_le_compat.
+- have := h1B; lra.
+- have := h2B; lra.
+- admit.
+admit.
 Admitted.
 
 End algoExp1.
