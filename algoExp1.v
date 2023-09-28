@@ -541,7 +541,7 @@ Proof. by apply: format_T1_l2 => //; case/andP: ni2B. Qed.
 Lemma l2B : Rabs l2 <= pow (- 53).
 Proof.
 have [->|l2_neq0] := Req_dec l2 0; first by interval.
-suff : pow (- 59) <= Rabs l2 <= pow (- 53) by lra.
+suff : Rpower 2 (- 58.98) <= Rabs l2 <= pow (- 53) by lra.
 by apply: T1_l2B => //; have/andP[] := ni2B.
 Qed.
 
@@ -574,6 +574,14 @@ apply: Rmult_le_compat.
 - by apply: T2_h1B1; case/andP : ni1B.
 by apply: T1_h2B1; case/andP : ni2B.
 Qed.
+
+Definition ph := let 'DWR ph _ := exactMul h1 h2 in ph.
+
+Definition s := let 'DWR _ s := exactMul h1 h2 in s.
+
+Definition t := RND (l1 * h2 + s).
+
+Definition pl := RND (h1 * l2 + t).
 
 End algoExp1.
 
