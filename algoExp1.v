@@ -275,8 +275,8 @@ have rhBkln2h_imul : is_imul (rh - IZR k * LN2H) alpha.
   by apply: is_imul_pow_le (_ : is_imul _ (pow (- 1022))) _; last by lia.
 
 have rhBkln2hB13 : Rabs (rh - IZR k * LN2H) <= Rpower 2 (-13.528766) by admit.
+
 case:(Rle_lt_dec (bpow radix2 (-13)) (Rabs rh))=>hrh13.
-  
   have imul_rh65: is_imul rh (pow (-65)).
     have->: (-65 = -13 - 53 + 1)%Z by lia.
     by apply/is_imul_bound_pow_format.    
@@ -329,6 +329,16 @@ have kB: (-1 <= k <= 1)%Z.
 have kE: (k = 0)%Z \/ (k = 1)%Z \/ (k = -1)%Z by lia.
 case:kE=> [k0 |kE].
   by rewrite k0 Rmult_0_l Rminus_0_r.
+
+have LN2H_2E:  
+   round beta fexp Zceil (pred beta fexp (/ 2) * / INVLN2) = 
+          LN2H / 2.
+  rewrite -powm1E pred_bpow.
+  apply/round_UP_eq.
+    by apply/format_LN2H_2.
+  by rewrite pred_LN2H_2 ; rewrite /INVLN2 /LN2H /F2R /=; lra.
+
+(* k = 1 *)
 case:kE=> [k1 |kE].
   rewrite k1 Rmult_1_l.
   case :(Rlt_le_dec rh 0)=>rh0.
@@ -363,16 +373,62 @@ case:kE=> [k1 |kE].
   rewrite Rmult_assoc Rinv_r ?Rmult_1_r; last interval.
   move=> h3.
   have: round beta fexp Zceil (pred beta fexp (/ 2) * / INVLN2) <=
- round beta fexp Zceil rh.
+    round beta fexp Zceil rh.
     by apply/round_le; lra.
-  rewrite (round_generic _ _ _ rh) //.
-  suff:  round beta fexp Zceil (pred beta fexp (/ 2) * / INVLN2) = 
-          LN2H / 2 by lra.
-  rewrite -powm1E pred_bpow.
-  apply/round_UP_eq.
-    by apply/format_LN2H_2.
-  by rewrite pred_LN2H_2 ; rewrite /INVLN2 /LN2H /F2R /=; lra.
+  rewrite (round_generic _ _ _ rh) //; lra.
+(* k = -1 *)
+case :(Req_dec rh 0)=>[->| rhn0].
+  rewrite kE !Rsimp01.
+  by apply/generic_format_opp/generic_format_opp/format_LN2H.
+have ->: rh - IZR k * LN2H = LN2H - (-rh) by rewrite kE;lra.
+apply/sterbenz.
++ by apply/format_LN2H.
++ by apply/generic_format_opp.
+split; first by interval.
+have rhneg: rh <= 0.
+  case:(Rle_lt_dec rh 0)=>//=> rhpos.
+  have h : 0 <=(rh * INVLN2) by rewrite /INVLN2; lra.
+  have hR : 0 <=  (RND (rh * INVLN2)).
+  have ->: 0 = RND 0 by rewrite round_0.
+    by apply/round_le.
+  suff : (0 <= k)%Z by lia.
+  rewrite /k -(Znearest_IZR  choice 0).
+  by apply/Znearest_le.
+have rhb: - bpow radix2 (-13) < rh.
+move: hrh13; rewrite -Rabs_Ropp Rabs_pos_eq /beta; lra.
+have hneg:  RND (rh * INVLN2) <= 0.
+  have ->: 0 =  RND 0 by rewrite round_0.
+  apply/round_le; rewrite /INVLN2; lra.
+have h: RND (rh * INVLN2) <= -/2.
+  case: (Rle_lt_dec (RND (rh * INVLN2))(-/2))=>//=> h.
+  suff: (k = 0)%Z by lia.
+  rewrite /k; apply/Znearest_imp.
+  by rewrite -Rabs_Ropp Rabs_pos_eq; lra.
+have succE: - / 2 + pow (-54)= succ beta fexp (-/2).
+    rewrite succ_opp -powm1E pred_bpow  /fexp Z.max_l; last lia.
+    by ring_simplify; congr Rplus; congr bpow; lia.
+have h4 : rh * INVLN2 < -/2 + pow(-54).
 
+  case:(Rlt_le_dec (rh * INVLN2)  (- / 2 + pow (-54)))=>//h2.
+  have:RND (- /2 + pow (-54)) <= RND(rh * INVLN2) by apply/round_le.
+  rewrite round_generic; first by  move:(bpow_gt_0 beta (-54)); lra.
+  rewrite succE; apply/generic_format_succ/generic_format_opp.
+  rewrite -powm1E; apply/generic_format_bpow.
+  rewrite /fexp; lia.
+
+have {}h2: (/2 - pow (-54)) /INVLN2 < -rh. 
+  apply/(Rmult_lt_reg_r INVLN2); first by interval.
+  by rewrite Rmult_assoc Rinv_l ?Rmult_1_r; last interval; lra.
+suff: LN2H/2 <= -rh by lra.
+rewrite -LN2H_2E.
+have->: -rh =  (round beta fexp Zceil (-rh)).
+  by rewrite round_generic//; apply/generic_format_opp.
+apply/round_le.
+rewrite -powm1E pred_bpow.
+have ->: (pow (-1) - pow (fexp (-1)))= (/ 2 - pow (-54)).
+  by rewrite powm1E /fexp ; congr Rminus; congr bpow; 
+     rewrite /fexp; lia.
+lra.
 Admitted.
 
 Definition zh := RND (rh - IZR k * LN2H).
