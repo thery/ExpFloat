@@ -221,6 +221,36 @@ apply: Rle_trans (_ : Rpower 2 (- 14.4187) * Rabs INVLN2 <= _).
 by rewrite [Rabs INVLN2]Rabs_pos_eq; interval.
 Qed.
 
+Lemma  LN2H_2E: LN2H/2 = Float beta 6243314768165359 (- 66).
+Proof.   by rewrite /F2R /LN2H /=; lra. Qed.
+
+
+Lemma format_LN2H_2 : format (LN2H/2).
+Proof.
+rewrite LN2H_2E; apply: generic_format_FLT.
+apply: FLT_spec (refl_equal _) _ _ => /=; lia.
+Qed.
+Lemma mag_LNH2_2:  (mag beta  (LN2H/2) = -13:>Z)%Z.
+Proof.
+by rewrite (mag_unique_pos _ _ (-13)) //= /LN2H ; lra.
+Qed.
+
+Lemma  ulp_LN2H_2: ulp (LN2H/2) =  pow (-66).
+Proof.
+rewrite ulp_neq_0; last by interval.
+congr bpow; rewrite /cexp mag_LNH2_2 /fexp; lia.
+Qed.
+
+
+Lemma   pred_LN2H_2: 
+    pred beta fexp (LN2H/2)=  Float beta 6243314768165358 (- 66).
+Proof.
+rewrite pred_eq_pos; try (rewrite /LN2H; lra).
+rewrite /pred_pos Req_bool_false.
+  by rewrite  ulp_LN2H_2   LN2H_2E /F2R/=;lra.
+rewrite  mag_LNH2_2 LN2H_2E /F2R //=;lra.
+Qed.
+
 Lemma rhBkln2h_format : format (rh - IZR k * LN2H).
 Proof.
 have rhBkln2hB : Rabs (rh - IZR k * LN2H) <= omega.
@@ -264,6 +294,84 @@ case:(Rle_lt_dec (bpow radix2 (-13)) (Rabs rh))=>hrh13.
     apply/(Rle_lt_trans _ (Rpower 2 (-13.528766)))=>//.
     by rewrite pow_Rpower; last lia; apply/Rpower_lt; lra.
   by lia.
+have  powm1E: pow (-1) = /2  by [].
+have rhINVLN2B: Rabs (rh *  INVLN2) < 0.73 by interval.
+have u73: ulp (0.73) = pow (-p).
+  rewrite ulp_neq_0 /cexp; last lra.
+  rewrite (mag_unique_pos  _ _ 0)/fexp.
+    by rewrite Z.max_l.
+  have->: pow (0 -1) = /2 by [].
+  by rewrite -powm1E pow0E; lra.
+have ulpk: ulp  (rh * INVLN2) <= pow (-p).
+  rewrite -u73; apply/ulp_le.
+  by rewrite (Rabs_pos_eq (0.73));lra.
+have hRNk: Rabs (RND (rh* INVLN2)) <= 0.75.
+  have-> : (RND (rh* INVLN2)) = 
+         ((RND (rh* INVLN2)) -  (rh* INVLN2))+
+          (rh* INVLN2) by lra.
+  apply: Rle_trans (Rabs_triang _ _) _.
+  apply/(Rle_trans _   (ulp (rh * INVLN2) + 0.73)).
+    apply/Rplus_le_compat.
+      by  apply/error_le_ulp.
+    by lra.
+  apply/(Rle_trans _ (pow (-p) + 0.73)); try lra.
+  by interval.
+have kB: (-1 <= k <= 1)%Z.
+  rewrite /k.
+  have h: -0.75 <=  RND(rh * INVLN2) <= 0.75 by split_Rabs;lra.  
+  have ->: (-1 =  Znearest choice(-0.75))%Z.
+    rewrite (Znearest_imp choice _ (-1)%Z) //.
+    by split_Rabs; lra.
+  have ->: (1 =  Znearest choice 0.75)%Z.
+    rewrite (Znearest_imp choice _ 1%Z) //.
+    by split_Rabs; lra.
+  by  split; apply/Znearest_le; lra.
+have kE: (k = 0)%Z \/ (k = 1)%Z \/ (k = -1)%Z by lia.
+case:kE=> [k0 |kE].
+  by rewrite k0 Rmult_0_l Rminus_0_r.
+case:kE=> [k1 |kE].
+  rewrite k1 Rmult_1_l.
+  case :(Rlt_le_dec rh 0)=>rh0.
+    suff: (k <= 0)%Z by lia.
+    rewrite /k -(Znearest_IZR  choice 0).
+    apply/Znearest_le.
+    have-> : 0 = RND 0 by rewrite round_0.
+    by apply/round_le; rewrite /INVLN2 ;lra.
+  apply/sterbenz=>//.
+    by apply/format_LN2H.
+  split; last interval.
+  case: (Rlt_le_dec (RND (rh * INVLN2)) (/2))=>h.
+    suff: (k <= 0)%Z by lia.
+    rewrite /k (Znearest_imp _ _ 0); first  lia.
+    rewrite Rminus_0_r Rabs_pos_eq //.
+    have ->: 0 = RND 0 by rewrite round_0.
+    by apply/round_le; rewrite /INVLN2; lra.
+  case :(Rle_lt_dec (rh * INVLN2)  (pred beta fexp (/ 2))).
+    move=>hle.
+    have: RND(rh * INVLN2) <= RND(pred beta fexp (/ 2)) 
+      by apply/round_le.
+    rewrite (round_generic _ _ _ (pred _ _ _ )).
+      move: h;
+      have->: /2 = pow (-1) by [].
+      rewrite pred_bpow; move:(bpow_gt_0 beta (fexp (-1))).
+      by  lra.
+    have->: /2 = pow (-1) by [].
+    by apply/generic_format_pred/generic_format_bpow;
+      rewrite /fexp; lia.
+  have h2: 0 </ INVLN2 by interval.
+  move/(Rmult_lt_compat_r (/INVLN2) _ _ h2).
+  rewrite Rmult_assoc Rinv_r ?Rmult_1_r; last interval.
+  move=> h3.
+  have: round beta fexp Zceil (pred beta fexp (/ 2) * / INVLN2) <=
+ round beta fexp Zceil rh.
+    by apply/round_le; lra.
+  rewrite (round_generic _ _ _ rh) //.
+  suff:  round beta fexp Zceil (pred beta fexp (/ 2) * / INVLN2) = 
+          LN2H / 2 by lra.
+  rewrite -powm1E pred_bpow.
+  apply/round_UP_eq.
+    by apply/format_LN2H_2.
+  by rewrite pred_LN2H_2 ; rewrite /INVLN2 /LN2H /F2R /=; lra.
 
 Admitted.
 
