@@ -45,7 +45,13 @@ Algorithm Q1 :
 - [Definition of the polynomial Q](./algoQ1.v#L127-L128)
 - [Absolute error of the polynomial Q](./algoQ1.v#L130-L132)
 - [Algorithm Q1](./algoQ1.v#L146-L150)
-- [Lemma 6](./algoQ1.v#L154-L159)"""
+- [Lemma 6](./algoQ1.v#L154-L159)
+
+Algorithm Exp1 :
+- [table T1](./tableT1.v#L76-L142)
+- [relative error for T1](./algoExp1.v#L548-L549)
+- [table T2](./tableT2.v#L76-L142)
+- [relative error for T1](./algoExp1.v#L504-L505)"""
 
 build: [make "-j%{jobs}%"]
 install: [make "install"]

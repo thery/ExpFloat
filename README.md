@@ -47,6 +47,12 @@ Algorithm Q1 :
 - [Algorithm Q1](./algoQ1.v#L146-L150)
 - [Lemma 6](./algoQ1.v#L154-L159)
 
+Algorithm Exp1 :
+- [table T1](./tableT1.v#L76-L142)
+- [relative error for T1](./algoExp1.v#L548-L549)
+- [table T2](./tableT2.v#L76-L142)
+- [relative error for T1](./algoExp1.v#L504-L505)
+
 ## Meta
 
 - Author(s):
