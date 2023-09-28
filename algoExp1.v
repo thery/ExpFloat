@@ -652,25 +652,132 @@ suff : Rpower 2 (- 58.98) <= Rabs l2 <= pow (- 53) by lra.
 by apply: T1_l2B => //; have/andP[] := ni2B.
 Qed.
 
+Lemma imul_h1h2 : is_imul (h1 * h2) (pow (- 104)).
+Proof.
+have -> : pow (- 104) = pow (- 52) * pow (- 52) by rewrite -bpow_plus.
+  by apply: is_imul_mul imul_h1 imul_h2.
+Qed.
+
+Lemma h1B1 : h1 <= Rpower 2 (0.015381).
+Proof. by apply: T2_h1B1; case/andP : ni1B. Qed.
+
+Lemma h2B1 : h2 <= Rpower 2 (0.984376).
+Proof. by apply: T1_h2B1; case/andP : ni2B.
+Qed.
+
 Lemma h1h2B : 1 <= h1 * h2 < 2.
 Proof.
 split; first by have := h1B; have := h2B; nra.
 apply: Rle_lt_trans (_ : Rpower 2 (0.015381) * Rpower 2 (0.984376) < _); 
    last by interval.
-apply: Rmult_le_compat.
-- have := h1B; lra.
-- have := h2B; lra.
-- by apply: T2_h1B1; case/andP : ni1B.
-by apply: T1_h2B1; case/andP : ni2B.
+apply: Rmult_le_compat h1B1 h2B1; first by have := h1B; lra.
+by have := h2B; lra.
 Qed.
 
 Definition ph := let 'DWR ph _ := exactMul h1 h2 in ph.
 
+Lemma phE : ph = RND (h1 * h2).
+Proof. by []. Qed.
+
+Lemma imul_ph : is_imul ph (pow (- 104)).
+Proof. by rewrite phE; apply: is_imul_pow_round imul_h1h2. Qed.
+
 Definition s := let 'DWR _ s := exactMul h1 h2 in s.
+
+Lemma sE : s = h1 * h2 - ph.
+Proof.
+have [h1F h2F] := (h1F, h2F).
+have -> : s = RND (h1 * h2 - ph) by [].
+apply: round_generic.
+have -> : h1 * h2 - ph = - (ph - h1 * h2) by lra.
+apply: generic_format_opp.
+apply: format_err_mul => //.
+apply: is_imul_pow_le (_ : _ <= (- 52) + (- 52))%Z => //.
+rewrite bpow_plus.
+by apply: is_imul_mul imul_h1 imul_h2.
+Qed.
+
+Lemma sB : Rabs s <= pow (- 52).
+Proof.
+apply: Rle_trans (_ : ulp (h1 * h2) <= _).
+have -> : Rabs s = Rabs (ph - h1 * h2) by rewrite sE; split_Rabs; lra.
+apply: error_le_ulp.
+apply: bound_ulp => //.
+rewrite -[bpow _ _]/2.
+by have := h1h2B; split_Rabs; lra.
+Qed.
+
+Lemma imul_s : is_imul s (pow (- 104)).
+Proof. by rewrite sE; apply: is_imul_minus imul_h1h2 imul_ph. Qed.
+
+Lemma imul_l1h2s : is_imul (l1 * h2 + s) (pow (- 162)).
+Proof.
+apply: is_imul_add.
+  have -> : pow (- 162) = pow (- 110) * pow (- 52) by rewrite -bpow_plus.
+  by apply: is_imul_mul imul_l1 imul_h2.
+by apply: is_imul_pow_le imul_s _.
+Qed.
 
 Definition t := RND (l1 * h2 + s).
 
+Lemma imul_t : is_imul t (pow (- 162)).
+Proof. by apply: is_imul_pow_round imul_l1h2s. Qed.
+
+Lemma l1h2sB : Rabs (l1 * h2 + s) <= Rpower 2 (-51.007).
+Proof.
+apply: Rle_trans (_ : pow (- 53) * Rpower 2 0.984376 + pow (- 52) <= _);
+    last by interval.
+boundDMI; last by apply: sB.
+boundDMI; first by apply: l1B.
+rewrite Rabs_pos_eq; first by apply: h2B1.
+have := h2B; lra.
+Qed.
+
+Lemma tB : Rabs t < Rpower 2 (- 51.00699).
+Proof.
+apply: Rle_lt_trans (_ : Rpower 2 (- 51.007) + pow (- 104) < _);
+    last by interval.
+apply: Rle_trans (_ : Rabs (l1 * h2 + s) + ulp (l1 * h2 + s) <= _).
+  by apply: error_le_ulp_add.
+apply: Rplus_le_compat l1h2sB _.
+apply: bound_ulp => //.
+by apply: Rle_lt_trans l1h2sB _; interval.
+Qed.
+
 Definition pl := RND (h1 * l2 + t).
+
+Lemma imul_l2h1t : is_imul (h1 * l2 + t) (pow (- 163)).
+Proof.
+apply: is_imul_add.
+  have -> : pow (- 163) = pow (- 52) * pow (- 111) by rewrite -bpow_plus.
+  by apply: is_imul_mul imul_h1 imul_l2.
+by apply: is_imul_pow_le imul_t _.
+Qed.
+
+Lemma imul_pl : is_imul pl (pow (- 163)).
+Proof. by apply: is_imul_pow_round imul_l2h1t. Qed.
+
+Lemma h1l2tB : Rabs (h1 * l2 + t) <= Rpower 2 (- 50.6805).
+Proof.
+apply: Rle_trans (_ : Rpower 2 0.015381  * pow (- 53) + Rpower 2 (- 51.00699) 
+           <= _);
+    last by interval.
+boundDMI; last by apply/Rlt_le/tB.
+boundDMI; last by apply: l2B.
+rewrite Rabs_pos_eq; first by apply: h1B1.
+have := h1B; lra.
+Qed.
+
+Lemma plB : Rabs pl < Rpower 2 (- 50.680499).
+Proof.
+apply: Rle_lt_trans (_ : Rpower 2 (- 50.6805) + pow (- 103) < _);
+    last by interval.
+apply: Rle_trans (_ : Rabs (h1 * l2 + t) + ulp (h1 * l2 + t) <= _).
+  by apply: error_le_ulp_add.
+apply: Rplus_le_compat h1l2tB _.
+apply: bound_ulp => //.
+by apply: Rle_lt_trans h1l2tB _; interval.
+Qed.
 
 End algoExp1.
 
