@@ -180,6 +180,15 @@ case: i => [/= _|]; first by (lra || interval).
 by do 63 (case => [/= _|]; first by (lra || interval)).
 Qed.
 
+Lemma T2_h1B2 i : (1 <= i <= 63)%N ->
+   let h1 := (nth (0,0) T2 i).1 in 
+   Rpower 2 (1 / 2 ^ 12) * (1 - pow (- 53)) <= h1.
+Proof.
+case: i => [//|].
+by do 63 (case => [/= _|]; first by (lra || interval with (i_prec 70))).
+Qed.
+
+
 Lemma T2_l1B i : (i <= 63)%N ->
    let l1 := (nth (0,0) T2 i).2 in 
    (l1 <> 0 -> pow (- 58) <= Rabs l1 <= pow (- 53)).

@@ -255,8 +255,7 @@ rewrite ulp_neq_0; last by interval.
 congr bpow; rewrite /cexp mag_LNH2_2 /fexp; lia.
 Qed.
 
-
-Lemma   pred_LN2H_2: 
+Lemma pred_LN2H_2: 
     pred beta fexp (LN2H/2)=  Float beta 6243314768165358 (- 66).
 Proof.
 rewrite pred_eq_pos; try (rewrite /LN2H; lra).
@@ -665,13 +664,18 @@ Lemma h2B1 : h2 <= Rpower 2 (0.984376).
 Proof. by apply: T1_h2B1; case/andP : ni2B.
 Qed.
 
+Lemma h1h2B1 : h1 * h2 <= Rpower 2 0.999757.
+Proof.
+have <- : 0.015381 + 0.984376 = 0.999757 by lra.
+rewrite Rpower_plus.
+apply: Rmult_le_compat h1B1 h2B1; first by have := h1B; lra.
+by have := h2B; lra.
+Qed.
+
 Lemma h1h2B : 1 <= h1 * h2 < 2.
 Proof.
 split; first by have := h1B; have := h2B; nra.
-apply: Rle_lt_trans (_ : Rpower 2 (0.015381) * Rpower 2 (0.984376) < _); 
-   last by interval.
-apply: Rmult_le_compat h1B1 h2B1; first by have := h1B; lra.
-by have := h2B; lra.
+by apply: Rle_lt_trans h1h2B1 _; interval.
 Qed.
 
 Definition ph := let 'DWR ph _ := exactMul h1 h2 in ph.
@@ -778,6 +782,61 @@ apply: Rplus_le_compat h1l2tB _.
 apply: bound_ulp => //.
 by apply: Rle_lt_trans h1l2tB _; interval.
 Qed.
+
+Lemma phplB : 1 <= ph + pl < 2.
+Proof.
+suff : 1 <= ph + pl.
+  split; first by lra.
+  apply: Rle_lt_trans (_ : Rpower 2 0.999757 * (1 + pow (- 52)) +
+                           Rpower 2 (- 50.680499) < _); last by interval.
+  rewrite -[ph + pl]Rabs_pos_eq; last by lra.
+  boundDMI; last by apply/Rlt_le/plB.
+  apply: Rle_trans (_ : Rabs (h1 * h2) * (1 + pow (- 52)) <= _).
+    apply: relative_error_eps_ge => //.
+    by apply: is_imul_pow_le imul_h1h2 _.
+  apply: Rmult_le_compat_r; first by interval.
+  rewrite Rabs_pos_eq; last by have := h1h2B; lra.
+  by apply: h1h2B1.
+have [i1eq0|i1ne0] := Z.eq_dec i1 0.
+  have h1E: h1 = 1 by rewrite /h1 /ni1 i1eq0.
+  have [i2eq0|i2ne0] := Z.eq_dec i2 0.
+    have h2E: h2 = 1 by rewrite /h2 /ni2 i2eq0.
+    rewrite /pl /t sE phE h1E h2E !Rsimp01.
+    rewrite /l1 /l2 /ni1 /ni2 i1eq0 i2eq0 /= !Rsimp01.
+    suff -> : RND 1 = 1 by rewrite !Rsimp01 !round_0; lra.
+    by apply: round_generic; apply: format1.
+  have h2B : Rpower 2 (1 / 2 ^ 6) * (1 - pow (- 53)) <= h2.
+    apply: T1_h2B2.
+    have := ni2B; suff: ni2 <> 0%N by case : ni2.
+    by have := i2B; rewrite /ni2; lia.
+  apply: Rle_trans (_ : 1.0001 - Rpower 2 (- 50.680499) <= _); 
+     first by interval.
+  apply: Rle_trans (_ : ph - Rabs pl <= _); last by split_Rabs; lra.
+  suff : 1.0001 <= ph by have := plB; lra.
+  rewrite phE h1E Rsimp01 -[RND h2]Rabs_pos_eq; last first.
+    have <- : RND 0 = 0 by apply: round_0.
+    by apply: round_le; interval.
+  apply: Rle_trans (_ : Rabs (h2) * (1 - pow (-52)) <= _).
+    rewrite Rabs_pos_eq; first by interval.
+    by apply: Rle_trans h2B; interval.
+  apply: relative_error_eps_le => //.
+  by apply: is_imul_pow_le imul_h2 _.
+have h1B1 : Rpower 2 (1 / 2 ^ 12) * (1 - pow (- 53)) <= h1.
+  apply: T2_h1B2.
+  have := ni1B; suff: ni1 <> 0%N by case : ni1.
+  by have := i1B; rewrite /ni1; lia.
+apply: Rle_trans (_ : 1.0001 - Rpower 2 (- 50.680499) <= _); 
+    first by interval.
+apply: Rle_trans (_ : ph - Rabs pl <= _); last by split_Rabs; lra.
+suff : 1.0001 <= ph by have := plB; lra.
+rewrite phE -[RND _]Rabs_pos_eq; last first.
+  have <- : RND 0 = 0 by apply: round_0.
+    by apply: round_le; have := h1B; have := h2B; nra.
+  apply: Rle_trans (_ : Rabs (h1 * h2) * (1 - pow (-52)) <= _).
+  by have h2B := h2B; interval.
+apply: relative_error_eps_le => //.
+by apply: is_imul_pow_le imul_h1h2 _.
+Qed. 
 
 End algoExp1.
 
