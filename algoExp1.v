@@ -926,5 +926,46 @@ apply: Rlt_le_trans (_ : (h1 - Rabs l1) * (h2 - Rabs l2) <= _); last first.
 by interval.
 Qed.
 
+Lemma rel_error_phpl_i1i2 : 
+  Rabs ((ph + pl) / (Rpower 2 (IZR i2 / pow 6 + IZR i1 / pow 12)) - 1) <= 
+  Rpower 2 (- 102.2074).
+Proof.
+have aI x y : 0 <= x -> 1 - x <= y <= 1 + x -> Rabs (y - 1) <= x.
+  by move=> xP yB; split_Rabs; lra.
+have bI x y : Rabs (y - 1) <= x -> 1 - x <= y <= 1 + x.
+  by move=> xB; split_Rabs; lra.
+have -> :  (ph + pl) / (Rpower 2 (IZR i2 / pow 6 + IZR i1 / pow 12)) = 
+    ((ph + pl) / ((h1 + l1) * (h2 + l2))) * 
+    ((h2 + l2) / Rpower 2 (IZR i2 /pow 6)) *
+    ((h1 + l1) / Rpower 2 (IZR i1 /pow 12)).
+  rewrite Rpower_plus.
+  field.
+  split.
+    suff : 0 < Rpower 2 (IZR i1 / pow 12) by lra.
+    by apply: exp_pos.
+  split.
+    suff : 0 < Rpower 2 (IZR i2 / pow 6) by lra.
+    by apply: exp_pos.
+  split.
+    suff : 0 < h2 - Rabs l2 by clear; split_Rabs; lra.
+    by have [Hx Hy]:= (h2B, l2B); interval with (i_prec 100).
+  suff : 0 < h1 - Rabs l1 by clear; split_Rabs; lra.
+  by have [Hx Hy] := (h1B, l1B); interval with (i_prec 100).
+have := rel_error_phpl.
+set xx := (_ / _) => /bI Hxx.
+have : Rabs ((h2 + l2) / Rpower 2 (IZR i2 /pow 6) - 1) < Rpower 2 (- 107.015625).
+  rewrite -INR_ni2E /h2 /l2.
+  case: nth (@T1_rel_error_h2l2 ni2) => /= a b; apply.
+  by have /andP[] := ni2B.
+set yy := (_ / _) =>  /Rlt_le /bI Hyy.
+have : Rabs ((h1 + l1) / Rpower 2 (IZR i1 /pow 12) - 1) < Rpower 2 (- 107.000244).
+  rewrite -INR_ni1E /h1 /l1.
+  case: nth (@T2_rel_error_h1l1 ni1) => /= a b; apply.
+  by have /andP[] := ni1B.
+set zz := (_ / _) => /Rlt_le /bI Hzz.
+apply: aI; first by apply/Rlt_le/exp_pos.
+split; interval with (i_prec 200).
+Qed.
+
 End algoExp1.
 
