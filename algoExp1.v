@@ -264,6 +264,31 @@ rewrite /pred_pos Req_bool_false.
 rewrite  mag_LNH2_2 LN2H_2E /F2R //=;lra.
 Qed.
 
+
+Fact  rhBkln2hB13: Rabs (rh - IZR k * LN2H) <= Rpower 2 (-13.528766).
+  pose D3' := rh * (INVLN2 -/LN2H).
+  have D1_B:= D1_B; have D2_B := D2_B.
+  have E1:  ( IZR k  - rh/ LN2H) = D1 + D2 + D3' by rewrite /D1 /D2 /D3'; lra.
+  have ->:  Rabs (rh - IZR k * LN2H) = Rabs (D1 + D2 + D3')* LN2H.
+    rewrite -Rabs_Ropp  -{2}(Rabs_pos_eq LN2H); last by rewrite /LN2H;lra.
+    by rewrite -Rabs_mult /D1 /D2 /D3'; congr Rabs; field; rewrite /LN2H;lra.
+  apply/(Rle_trans _ ((Rabs D1 + Rabs D2 + Rabs D3')* LN2H)).
+    apply/Rmult_le_compat_r;  first by rewrite /LN2H; lra.
+    apply: Rle_trans (Rabs_triang _ _) _.
+    by apply/Rplus_le_compat_r;apply: Rle_trans (Rabs_triang _ _) _ ; lra.
+  have h: Rabs  (INVLN2 - / LN2H) < Rpower 2 (-41.694).
+    by interval with (i_prec 70).
+  have D3'B: Rabs D3' <= Rpower 2 (-32.222).
+    rewrite /D3' Rabs_mult.
+    apply/(Rle_trans _ ( 709.79 *  Rpower 2 (-41.694))).
+      by apply/Rmult_le_compat=>//; try apply/Rabs_pos; lra.
+    by interval.
+  apply/(Rle_trans _ ((/2 + pow (-30) +  Rpower 2 (-32.222))*LN2H)).
+    by apply/Rmult_le_compat_r;  rewrite /LN2H; lra.
+  by interval.
+Qed.
+
+
 Lemma rhBkln2h_format : format (rh - IZR k * LN2H).
 Proof.
 have rhBkln2hB : Rabs (rh - IZR k * LN2H) <= omega.
@@ -286,27 +311,7 @@ have rhBkln2h_imul_1022: (is_imul (rh - IZR k * LN2H)(pow (- 1022))).
   by rewrite mult_IZR /LN2H /F2R /= /Z.pow_pos /=; lra.
 have rhBkln2h_imul : is_imul (rh - IZR k * LN2H) alpha.
   by apply: is_imul_pow_le (_ : is_imul _ (pow (- 1022))) _; last by lia.
-have rhBkln2hB13 : Rabs (rh - IZR k * LN2H) <= Rpower 2 (-13.528766).
-pose D3' := rh * (INVLN2 -/LN2H).
-have D1_B:= D1_B; have D2_B := D2_B.
-have E1:  ( IZR k  - rh/ LN2H) = D1 + D2 + D3' by rewrite /D1 /D2 /D3'; lra.
-  have ->:  Rabs (rh - IZR k * LN2H) = Rabs (D1 + D2 + D3')* LN2H.
-    rewrite -Rabs_Ropp  -{2}(Rabs_pos_eq LN2H); last by rewrite /LN2H;lra.
-    by rewrite -Rabs_mult /D1 /D2 /D3'; congr Rabs; field; rewrite /LN2H;lra.
-  apply/(Rle_trans _ ((Rabs D1 + Rabs D2 + Rabs D3')* LN2H)).
-    apply/Rmult_le_compat_r;  first by rewrite /LN2H; lra.
-    apply: Rle_trans (Rabs_triang _ _) _.
-    by apply/Rplus_le_compat_r;apply: Rle_trans (Rabs_triang _ _) _ ; lra.
-  have h: Rabs  (INVLN2 - / LN2H) < Rpower 2 (-41.694).
-    by interval with (i_prec 70).
-  have D3'B: Rabs D3' <= Rpower 2 (-32.222).
-    rewrite /D3' Rabs_mult.
-    apply/(Rle_trans _ ( 709.79 *  Rpower 2 (-41.694))).
-      by apply/Rmult_le_compat=>//; try apply/Rabs_pos; lra.
-    by interval.
-  apply/(Rle_trans _ ((/2 + pow (-30) +  Rpower 2 (-32.222))*LN2H)).
-    by apply/Rmult_le_compat_r;  rewrite /LN2H; lra.
-  by interval.
+have rhBkln2hB13 := rhBkln2hB13.
 case:(Rle_lt_dec (bpow radix2 (-13)) (Rabs rh))=>hrh13.
   have imul_rh65: is_imul rh (pow (-65)).
     have->: (-65 = -13 - 53 + 1)%Z by lia.
@@ -476,9 +481,7 @@ Definition zl := RND (rl - IZR k * LN2L).
 Lemma zlF : format zl.
 Proof. by apply: generic_format_round. Qed.
 
-Lemma zl_err : Rabs (zl - (rl - IZR k * LN2L)) <= pow (- 67).
-Proof.
-have rlkln2lB : Rabs (rl - IZR k * LN2L) <= Rpower 2 (- 14.418).
+Fact rlkln2lB : Rabs (rl - IZR k * LN2L) <= Rpower 2 (- 14.418).
   apply: Rle_trans (_ : Rabs rl + Rabs (IZR k * LN2L) <= _).
     by clear; split_Rabs; lra.
   apply: Rle_trans (_ : Rpower 2 (- 14.4187) + 4194347 * LN2L <= _);
@@ -487,11 +490,18 @@ have rlkln2lB : Rabs (rl - IZR k * LN2L) <= Rpower 2 (- 14.418).
   rewrite Rabs_mult [Rabs LN2L]Rabs_pos_eq; last by interval.
   apply: Rmult_le_compat_r; first by interval.
   by rewrite Rabs_Zabs; apply/IZR_le/kB.
+Qed.
+
+
+Lemma zl_err : Rabs (zl - (rl - IZR k * LN2L)) <= pow (- 67).
+Proof.
+have rlkln2lB := rlkln2lB.
 apply: Rle_trans (error_le_ulp _ _ _ _) _.
 apply: bound_ulp => //.
 apply: Rle_lt_trans rlkln2lB _.
 by interval.
 Qed.
+
 
 Definition z := RND (zh + zl).
 
@@ -499,7 +509,43 @@ Lemma zF : format z.
 Proof. by apply: generic_format_round. Qed.
 
 Lemma zB: Rabs z <= Rpower 2  (- 12.905).
-Admitted.
+
+apply/(Rle_trans _ (Rpower 2 (-64.67806) + Rpower 2 (-12.906174))); last interval.
+have h1: Rabs(zh + zl)  <=  Rpower 2 (- 12.9059). 
+  apply/(Rle_trans _ (Rpower 2 (-13.528766) + Rpower 2 (-14.418) + pow (- 67))); 
+    last by interval.
+  rewrite Rplus_assoc; boundDMI; first by rewrite zhE; apply/rhBkln2hB13.
+  have->:(zl = ( (rl - IZR k * LN2L) + (zl - (rl - IZR k * LN2L)))) by lra.
+  by boundDMI;[apply/rlkln2lB|apply/zl_err].
+have ulpz: ulp (zh + zl) <= pow (-65).
+  have ->: pow (-65) = ulp( Rpower 2 (- 12.9059)).
+    rewrite ulp_neq_0 /cexp /fexp; last interval.
+    congr bpow; rewrite (mag_unique_pos _ _ (-12)); first lia.
+    by rewrite !pow_Rpower; try lia; split;interval.
+  apply/ulp_le; rewrite (Rabs_pos_eq (Rpower _ _)) //.
+  by apply/Rlt_le/exp_pos.
+have->: z = z - (rh + rl - IZR k * (ln 2) * pow(-12))+ (rh + rl - IZR k* ln 2 * pow (-12)) by lra.
+ boundDMI; last by rewrite -Rabs_Ropp Ropp_minus_distr; apply/kn2rhrlB.
+apply/(Rle_trans _ ( pow (-65) + pow (-67) + Rpower 2(-100.429))); last by interval.
+have->:  (z - (rh + rl - IZR k * ln 2 * pow (-12))) = 
+          (z - (zh + zl)) + (zl - (rl - IZR k * LN2L)) -
+          (IZR k * (LN2H + LN2L) - IZR k * ln 2 * pow (-12)).
+  by rewrite zhE; lra.
+boundDMI.
+  boundDMI.
+    apply/(Rle_trans _  (ulp (zh + zl)))=>//.
+    by apply/error_le_ulp.
+  by apply/zl_err.
+rewrite Rabs_Ropp Rmult_assoc -Rmult_minus_distr_l.
+apply/(Rle_trans _ ( 4194347 * Rpower 2 (-122.43 ))); last interval.
+rewrite Rabs_mult; apply/Rmult_le_compat; try apply/Rabs_pos.
+Search k.
+ rewrite -abs_IZR; apply/IZR_le/kB.
+apply/Rlt_le/LN2HLB.
+Qed.
+
+
+
 
 Definition e := (k / 2 ^ 12)%Z.
 Definition i1 := ((k - e * 2 ^ 12) / 2 ^ 6)%Z.
