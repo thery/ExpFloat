@@ -509,7 +509,7 @@ Lemma zF : format z.
 Proof. by apply: generic_format_round. Qed.
 
 Lemma zB: Rabs z <= Rpower 2  (- 12.905).
-
+Proof.
 apply/(Rle_trans _ (Rpower 2 (-64.67806) + Rpower 2 (-12.906174))); last interval.
 have h1: Rabs(zh + zl)  <=  Rpower 2 (- 12.9059). 
   apply/(Rle_trans _ (Rpower 2 (-13.528766) + Rpower 2 (-14.418) + pow (- 67))); 
@@ -524,9 +524,11 @@ have ulpz: ulp (zh + zl) <= pow (-65).
     by rewrite !pow_Rpower; try lia; split;interval.
   apply/ulp_le; rewrite (Rabs_pos_eq (Rpower _ _)) //.
   by apply/Rlt_le/exp_pos.
-have->: z = z - (rh + rl - IZR k * (ln 2) * pow(-12))+ (rh + rl - IZR k* ln 2 * pow (-12)) by lra.
- boundDMI; last by rewrite -Rabs_Ropp Ropp_minus_distr; apply/kn2rhrlB.
-apply/(Rle_trans _ ( pow (-65) + pow (-67) + Rpower 2(-100.429))); last by interval.
+have->: z = z - (rh + rl - IZR k * (ln 2) * pow(-12))+ 
+                 (rh + rl - IZR k* ln 2 * pow (-12)) by lra.
+boundDMI; last by rewrite -Rabs_Ropp Ropp_minus_distr; apply/kn2rhrlB.
+apply/(Rle_trans _ ( pow (-65) + pow (-67) + Rpower 2(-100.429))); 
+      last by interval.
 have->:  (z - (rh + rl - IZR k * ln 2 * pow (-12))) = 
           (z - (zh + zl)) + (zl - (rl - IZR k * LN2L)) -
           (IZR k * (LN2H + LN2L) - IZR k * ln 2 * pow (-12)).
@@ -539,13 +541,9 @@ boundDMI.
 rewrite Rabs_Ropp Rmult_assoc -Rmult_minus_distr_l.
 apply/(Rle_trans _ ( 4194347 * Rpower 2 (-122.43 ))); last interval.
 rewrite Rabs_mult; apply/Rmult_le_compat; try apply/Rabs_pos.
-Search k.
- rewrite -abs_IZR; apply/IZR_le/kB.
+  by rewrite -abs_IZR; apply/IZR_le/kB.
 apply/Rlt_le/LN2HLB.
 Qed.
-
-
-
 
 Definition e := (k / 2 ^ 12)%Z.
 Definition i1 := ((k - e * 2 ^ 12) / 2 ^ 6)%Z.
