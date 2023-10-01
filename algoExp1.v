@@ -590,7 +590,7 @@ by apply: T2_l1B => //; have/andP[] := ni1B.
 Qed.
 
 Lemma rel_error_h1l1 : 
-  Rabs ((h1 + l1) / Rpower 2 (IZR i1 /pow 12) - 1) < Rpower 2 (- 107.000244).
+  Rabs ((h1 + l1) / Rpower 2 (IZR i1 /pow 12) - 1) < Rpower 2 (- 107.0228).
 Proof.
 rewrite -INR_ni1E /h1 /l1.
 case: nth (@T2_rel_error_h1l1 ni1) => h l /=.
@@ -634,7 +634,7 @@ by apply: T1_l2B => //; have/andP[] := ni2B.
 Qed.
 
 Lemma rel_error_h2l2 : 
-  Rabs ((h2 + l2) / Rpower 2 (IZR i2 /pow 6) - 1) < Rpower 2 (- 107.015625).
+  Rabs ((h2 + l2) / Rpower 2 (IZR i2 /pow 6) - 1) < Rpower 2 (- 107.57149).
 Proof.
 rewrite -INR_ni2E /h2 /l2.
 case: nth (@T1_rel_error_h2l2 ni2) => h l /=.
@@ -928,7 +928,7 @@ Qed.
 
 Lemma rel_error_phpl_i1i2 : 
   Rabs ((ph + pl) / (Rpower 2 (IZR i2 / pow 6 + IZR i1 / pow 12)) - 1) <= 
-  Rpower 2 (- 102.2074).
+  Rpower 2 (- 102.2248).
 Proof.
 have aI x y : 0 <= x -> 1 - x <= y <= 1 + x -> Rabs (y - 1) <= x.
   by move=> xP yB; split_Rabs; lra.
@@ -951,20 +951,11 @@ have -> :  (ph + pl) / (Rpower 2 (IZR i2 / pow 6 + IZR i1 / pow 12)) =
     by have [Hx Hy]:= (h2B, l2B); interval with (i_prec 100).
   suff : 0 < h1 - Rabs l1 by clear; split_Rabs; lra.
   by have [Hx Hy] := (h1B, l1B); interval with (i_prec 100).
-have := rel_error_phpl.
-set xx := (_ / _) => /bI Hxx.
-have : Rabs ((h2 + l2) / Rpower 2 (IZR i2 /pow 6) - 1) < Rpower 2 (- 107.015625).
-  rewrite -INR_ni2E /h2 /l2.
-  case: nth (@T1_rel_error_h2l2 ni2) => /= a b; apply.
-  by have /andP[] := ni2B.
-set yy := (_ / _) =>  /Rlt_le /bI Hyy.
-have : Rabs ((h1 + l1) / Rpower 2 (IZR i1 /pow 12) - 1) < Rpower 2 (- 107.000244).
-  rewrite -INR_ni1E /h1 /l1.
-  case: nth (@T2_rel_error_h1l1 ni1) => /= a b; apply.
-  by have /andP[] := ni1B.
-set zz := (_ / _) => /Rlt_le /bI Hzz.
+have := rel_error_phpl; set xx := (_ / _) => /bI Hxx.
+have := rel_error_h2l2; set yy := (_ / _) =>  /Rlt_le /bI Hyy.
+have := rel_error_h1l1; set zz := (_ / _) => /Rlt_le /bI Hzz.
 apply: aI; first by apply/Rlt_le/exp_pos.
-split; interval with (i_prec 200).
+interval with (i_prec 200).
 Qed.
 
 End algoExp1.

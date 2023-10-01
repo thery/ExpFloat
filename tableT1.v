@@ -208,7 +208,7 @@ Qed.
 Lemma T1_rel_error_h2l2 i : 
   (i <= 63)%N ->
    let: (h2, l2) := nth (0,0) T1 i in 
-  Rabs ((h2 + l2) / Rpower 2 (INR i /pow 6) - 1) < Rpower 2 (- 107.015625).
+  Rabs ((h2 + l2) / Rpower 2 (INR i /pow 6) - 1) < Rpower 2 (- 107.57149).
 Proof.
 case: i => [/= _|]; first by interval with (i_prec 70).
 by do 63 (case => [/= _|]; first by (interval with (i_prec 150))).
