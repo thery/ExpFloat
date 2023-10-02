@@ -47,6 +47,7 @@ Local Notation RND := (round beta fexp rnd).
 Local Notation fastTwoSum := (fastTwoSum rnd).
 Local Notation exactMul := (exactMul rnd).
 Local Notation fastSum := (fastSum rnd).
+Local Notation q1 := (q1 rnd).
 
 Let alpha := pow (- 1074).
 Let omega := (1 - pow (-p)) * pow emax.
@@ -1000,6 +1001,30 @@ have := rel_error_h2l2; set yy := (_ / _) =>  /Rlt_le /bI Hyy.
 have := rel_error_h1l1; set zz := (_ / _) => /Rlt_le /bI Hzz.
 apply: aI; first by apply/Rlt_le/exp_pos.
 interval with (i_prec 200).
+Qed.
+
+Definition qh := let 'DWR qh _ := q1 z in qh.
+
+Definition ql := let 'DWR _ ql := q1 z in ql.
+
+Definition h := RND (ph * qh).
+
+Definition s' := RND (ph * qh - h).
+
+Definition t' := RND (pl * qh + s').
+
+Definition l := RND (ph * ql + t').
+
+Lemma qlB : Rabs ql <= Rpower 2 (- 51.999).
+Proof.
+rewrite /ql.
+by case: q1 (@err_lem6 (refl_equal _) _ valid_rnd z zF) => h l /(_ zB); lra.
+Qed.
+
+Lemma qhqlB : Rabs ((qh + ql) / exp z - 1) < Rpower 2 (- 64.902632).
+Proof.
+rewrite /qh /ql.
+by case: q1 (@err_lem6 (refl_equal _) _ valid_rnd z zF) => h l /(_ zB); lra.
 Qed.
 
 End algoExp1.
