@@ -1192,5 +1192,78 @@ boundDMI; first by have := plB; lra.
 by have := qhB; split_Rabs; lra.
 Qed.
 
+Definition e'2 := t' - (pl * qh + s').
+
+Lemma t'E : t' = pl * qh + s' + e'2.
+Proof. by rewrite /e'2; lra. Qed.
+
+Lemma e'2B : Rabs e'2 <= pow (- 103).
+Proof.
+apply: Rle_trans (_ : ulp (pl * qh + s') <= _).
+  by apply: error_le_ulp.
+apply: bound_ulp => //.
+by apply: Rle_lt_trans plqhs'B _; interval.
+Qed.
+
+Lemma t'B : Rabs t' <= Rpower 2 (- 50.194239).
+Proof.
+rewrite t'E.
+apply: Rle_trans (_ : Rpower 2 (- 50.19424) + pow (- 103) <= _); 
+    last by interval.
+boundDMI => //; first by apply: plqhs'B.
+apply: e'2B.
+Qed.
+
+Lemma phqlt'B : Rabs (ph * ql + t') <= Rpower 2 (- 49.541218).
+Proof.
+apply: Rle_trans (_ : 2 * Rpower 2 (- 51.999 ) + Rpower 2 (- 50.194239) <= _);
+    last by interval.
+boundDMI; last by apply: t'B.
+boundDMI; first by have := phB; split_Rabs; lra.
+by apply: qlB.
+Qed.
+
+Definition e'3 := l - (ph * ql + t').
+
+Lemma lE : l = ph * ql + t' + e'3.
+Proof. by rewrite /e'3; lra. Qed.
+
+Lemma e'3B : Rabs e'3 <= pow (- 102).
+Proof.
+apply: Rle_trans (_ : ulp (ph * ql + t') <= _).
+  by apply: error_le_ulp.
+apply: bound_ulp => //.
+by apply: Rle_lt_trans phqlt'B _; interval.
+Qed.
+
+Lemma lB : Rabs l <= Rpower 2 (- 49.5412179).
+Proof.
+rewrite lE.
+apply: Rle_trans (_ : Rpower 2 (- 49.541218) + pow (- 102) <= _); 
+    last by interval.
+boundDMI => //; first by apply: phqlt'B.
+by apply: e'3B.
+Qed.
+
+Lemma lhB : Rabs (l / h) <= Rpower 2 (- 49.541).
+Proof.
+rewrite Rabs_mult Rabs_inv.
+by have hB := hB; have lB := lB; interval.
+Qed.
+
+Lemma hlphplqhqlB : Rabs (h + l - (ph + pl) * (qh + ql)) <= Rpower 2 100.9129.
+Proof.
+apply: Rle_trans (_ : pow (- 103) + pow (- 102) + Rpower 2 (- 50.680499) *
+                      Rpower 2 (- 51.999) <= _); last by interval.
+have -> : h + l - (ph + pl) * (qh + ql) = e'2 + e'3 - pl * ql.
+  by rewrite lE /e'2 /e'3 s'E; lra.
+boundDMI.
+  boundDMI; first by apply: e'2B.
+  by apply: e'3B.
+rewrite Rabs_Ropp.
+boundDMI; first by apply/Rlt_le/plB.
+by apply: qlB.
+Qed.
+
 End algoExp1.
 
