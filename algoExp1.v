@@ -1251,7 +1251,8 @@ rewrite Rabs_mult Rabs_inv.
 by have hB := hB; have lB := lB; interval.
 Qed.
 
-Lemma hlphplqhqlB : Rabs (h + l - (ph + pl) * (qh + ql)) <= Rpower 2 100.9129.
+Lemma abs_error_hl :
+  Rabs (h + l - (ph + pl) * (qh + ql)) <= Rpower 2 (- 100.9129).
 Proof.
 apply: Rle_trans (_ : pow (- 103) + pow (- 102) + Rpower 2 (- 50.680499) *
                       Rpower 2 (- 51.999) <= _); last by interval.
@@ -1263,6 +1264,35 @@ boundDMI.
 rewrite Rabs_Ropp.
 boundDMI; first by apply/Rlt_le/plB.
 by apply: qlB.
+Qed.
+
+Lemma rel_error_hl :
+  Rabs ((h + l) / ((ph + pl) * (qh + ql)) - 1) <= Rpower 2 (- 100.912696).
+Proof.
+have phplqhqlB : Rpower 2 (- 0.000204) <= (ph + pl) * (qh + ql).
+  apply: Rle_trans (_ : 0.999859 <= _); first by interval.
+  have phB := phB; have plB := plB; have qhB := qhB; have qlB := qlB.
+  have ql_pos : 0 <= Rabs ql by apply: Rabs_pos.
+  have pl_pos : 0 <= Rabs pl by apply: Rabs_pos.
+  set xx := Rabs pl in plB pl_pos; set yy := Rabs ql in qlB ql_pos.
+  have plphB : 0.9999998 <= ph + pl.
+    apply: Rle_trans (_ : ph - xx <= _); first by interval with (i_prec 100).
+    by rewrite /xx; split_Rabs; lra.
+  have qlqhB : 0.9998599 <= qh + ql.
+    apply: Rle_trans (_ : qh - yy <= _); first by interval with (i_prec 100).
+    by rewrite /yy; split_Rabs; lra.
+  set uu := ph + pl in plphB *; set vv := qh + ql in qlqhB *.
+  by interval.
+have abs_error := abs_error_hl.
+set uu := _ * _ in abs_error phplqhqlB *.
+have -> : (h + l) / uu - 1 = (h + l - uu) / uu.
+  by field; interval.
+rewrite Rabs_mult Rabs_inv [Rabs uu]Rabs_pos_eq; last by interval.
+apply/Rcomplements.Rle_div_l; first by interval.
+apply: Rle_trans abs_error _.
+have -> : -100.9129 = -100.912696 + -0.000204 by lra.
+rewrite Rpower_plus.
+by apply: Rmult_le_compat_l phplqhqlB; interval.
 Qed.
 
 End algoExp1.
