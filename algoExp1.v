@@ -725,11 +725,31 @@ Qed.
 
 Definition ph := let 'DWR ph _ := exactMul h1 h2 in ph.
 
+Lemma phF : format ph.
+Proof. by apply: generic_format_round. Qed.
+
 Lemma phE : ph = RND (h1 * h2).
 Proof. by []. Qed.
 
-Lemma imul_ph : is_imul ph (pow (- 104)).
-Proof. by rewrite phE; apply: is_imul_pow_round imul_h1h2. Qed.
+Lemma phB : 1 <= ph <= 2.
+Proof.
+split.
+  have <- : RND 1 = 1 by apply: round_generic; apply: format1.
+  by apply: round_le; have := h1h2B; lra.
+have <- : RND 2 = 2.
+  apply: round_generic.
+  have <- : pow 1 = 2 by rewrite pow1E.
+  by apply: generic_format_bpow.
+by apply: round_le; have := h1h2B; lra.
+Qed.
+
+Lemma imul_ph : is_imul ph (pow (- 52)).
+Proof.
+have -> : (- 52 = 0 - 53 + 1)%Z by lia.
+apply: is_imul_bound_pow_format => //.
+  by rewrite pow0E; have := phB; clear; split_Rabs; lra.
+by apply: phF.
+Qed.
 
 Definition s := let 'DWR _ s := exactMul h1 h2 in s.
 
@@ -757,7 +777,10 @@ by have := h1h2B; split_Rabs; lra.
 Qed.
 
 Lemma imul_s : is_imul s (pow (- 104)).
-Proof. by rewrite sE; apply: is_imul_minus imul_h1h2 imul_ph. Qed.
+Proof. 
+rewrite sE; apply: is_imul_minus imul_h1h2 _.
+by apply: is_imul_pow_le imul_ph _.
+Qed.
 
 Lemma imul_l1h2s : is_imul (l1 * h2 + s) (pow (- 162)).
 Proof.
@@ -1005,15 +1028,33 @@ Qed.
 
 Definition qh := let 'DWR qh _ := q1 z in qh.
 
+Lemma qhF : format qh.
+Proof. by apply: generic_format_round. Qed.
+
 Definition ql := let 'DWR _ ql := q1 z in ql.
+
+Lemma qlF : format ql.
+Proof. by apply: generic_format_round. Qed.
 
 Definition h := RND (ph * qh).
 
+Lemma hF : format h.
+Proof. by apply: generic_format_round. Qed.
+
 Definition s' := RND (ph * qh - h).
+
+Lemma s'F : format s'.
+Proof. by apply: generic_format_round. Qed.
 
 Definition t' := RND (pl * qh + s').
 
+Lemma t'F : format t'.
+Proof. by apply: generic_format_round. Qed.
+
 Definition l := RND (ph * ql + t').
+
+Lemma lF : format l.
+Proof. by apply: generic_format_round. Qed.
 
 Lemma qlB : Rabs ql <= Rpower 2 (- 51.999).
 Proof.
@@ -1025,6 +1066,130 @@ Lemma qhqlB : Rabs ((qh + ql) / exp z - 1) < Rpower 2 (- 64.902632).
 Proof.
 rewrite /qh /ql.
 by case: q1 (@err_lem6 (refl_equal _) _ valid_rnd z zF) => h l /(_ zB); lra.
+Qed.
+
+Lemma qhB : 0.99986 <= qh <= 1.000131.
+Proof.
+have zB := zB.
+have qlB := qlB.
+pose d := (qh + ql) / exp z - 1.
+have qhE : qh = exp z * (1 + d) - ql.
+  rewrite /d; field.
+  suff : 0 < exp z by lra.
+  by apply: exp_pos.
+have dB : Rabs d <= Rpower 2 (- 64.902632).
+  by apply/Rlt_le/qhqlB.
+by rewrite qhE; split; interval.
+Qed.
+
+Lemma imul_qh : is_imul qh (pow (- 53)).
+Proof.
+have -> : (- 53 = -1 - 53 + 1)%Z by lia.
+apply: is_imul_bound_pow_format.
+  by rewrite powN1; have := qhB; split_Rabs; lra.
+by apply: qhF.
+Qed.
+
+Lemma imul_phqh : is_imul (ph * qh) (pow (- 105)).
+Proof.
+have -> : (- 105 = - 52 + - 53)%Z by lia.
+rewrite bpow_plus; apply: is_imul_mul; first by apply: imul_ph.
+by apply: imul_qh.
+Qed.
+
+Lemma imul_h : is_imul h (pow (- 105)).
+Proof.
+apply: is_imul_pow_round.
+by apply: imul_phqh.
+Qed.
+
+Lemma phqhhF : format (ph * qh - h).
+Proof.
+have -> : ph * qh - h = - (h - ph * qh) by lra.
+apply/generic_format_opp/format_err_mul => //; first by apply: phF.
+  by apply: qhF.
+by apply: is_imul_pow_le imul_phqh _.
+Qed.
+
+Lemma s'E : s' = ph * qh - h.
+Proof. by apply: round_generic phqhhF. Qed.
+
+Lemma imul_s' : is_imul s' (pow (- 105)).
+Proof.
+rewrite s'E; apply: is_imul_minus; last by apply: imul_h.
+by apply: imul_phqh.
+Qed.
+
+Lemma phqhB : ph * qh < 2.
+Proof.
+have h1h2_pos : 0 <= h1 * h2 by have := h1h2B; lra.
+apply: Rle_lt_trans (_ : h1 * h2 * (1 + pow (- 52)) * qh < _).
+  apply: Rmult_le_compat_r; first by have := qhB; lra.
+  rewrite phE -{2}[h1 * h2]Rabs_pos_eq // -[RND _]Rabs_pos_eq; last first.
+    have <- : RND 0 = 0 by rewrite round_0.
+    by apply: round_le.
+  apply: relative_error_eps_ge => //.
+  by apply: is_imul_pow_le imul_h1h2 _.
+apply: Rle_lt_trans 
+       (_ : Rpower 2 (0.999757) * (1 + pow (- 52)) *  1.000131 < _); 
+       last by interval.
+apply: Rmult_le_compat.
+- suff : 0 <= 1 + pow (-52) by nra.
+  by interval.
+- by have := qhB; lra.
+- apply: Rmult_le_compat_r; first by interval.
+  by apply: h1h2B1.
+by have := qhB; lra.
+Qed.
+
+Lemma hB : 0.999859 <= h <= 2.
+Proof.
+split.
+  apply: Rle_trans (_ : (1 * 0.99986) * (1 - pow (- 52)) <= _); 
+     first by interval.
+  apply: Rle_trans (_ : Rabs (ph * qh) * (1 - pow (-52)) <= _).
+    apply: Rmult_le_compat_r; first by interval.
+    rewrite Rabs_mult.
+    apply: Rmult_le_compat; try by lra.
+      by have := phB; split_Rabs; lra.
+    by have := qhB; split_Rabs; lra.
+  rewrite -[h]Rabs_pos_eq; last first.
+    have <- : RND 0 = 0 by rewrite round_0.
+    apply: round_le.
+    by have := phB; have := qhB; nra.
+  apply: relative_error_eps_le => //.
+  by apply: is_imul_pow_le imul_phqh _.
+have <- : RND 2 = 2.
+  by rewrite round_generic // -(pow1E beta); apply: generic_format_bpow.
+apply: round_le.
+by apply/Rlt_le/phqhB.
+Qed.
+
+Lemma s'B : Rabs s' <= pow (- 52).
+Proof.
+apply: Rle_trans (_ : ulp (ph * qh) <= _).
+  rewrite s'E -Rabs_Ropp Ropp_minus_distr.
+  by apply: error_le_ulp.
+apply: bound_ulp => //.
+rewrite Rabs_pos_eq; first by apply: phqhB.
+by have := phB; have := qhB; nra.
+Qed.
+
+Lemma imul_plqhs' : is_imul (pl * qh + s') (pow (- 216)).
+Proof.
+apply: is_imul_add; last first.
+  by apply: is_imul_pow_le imul_s' _.
+have -> : pow (- 216) = pow (- 163) * pow (- 53) by rewrite -bpow_plus.
+by apply: is_imul_mul imul_pl imul_qh.
+Qed.
+
+Lemma plqhs'B : Rabs (pl * qh + s') <= Rpower 2 (- 50.19424).
+Proof.
+apply: Rle_trans (_ : Rpower 2 (- 50.680499) * 1.000131 + pow (- 52) <= _);
+    last by interval.
+boundDMI; last by apply: s'B.
+boundDMI; first by have := plB; lra.
+by have := qhB; split_Rabs; lra.
 Qed.
 
 End algoExp1.
