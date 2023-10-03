@@ -58,14 +58,10 @@ Local Notation log1 := (log1 rnd).
 Local Notation exactMul := (exactMul rnd).
 Local Notation ulp := (ulp beta fexp).
 
-Lemma ulp_subnormal f : 
-  format f -> pow emin <= Rabs f < pow (emin + p) -> ulp f = pow emin.
+Lemma ulp_subnormal f : Rabs f < pow (emin + p) -> ulp f = pow emin.
 Proof.
-move=> Ff fB.
-have f_neq_0 : f <> 0.
-  suff : 0 < Rabs f by split_Rabs; lra.
-  suff : 0 < pow emin by lra.
-  by apply: bpow_gt_0.
+  move=> fB.
+have [->|f_neq0]:= Req_dec f 0; first by rewrite ulp_FLT_0.
 rewrite ulp_neq_0; last by lra.
 rewrite /cexp /fexp Z.max_r //.
 suff : (mag beta f <= emin + p)%Z by lia.
@@ -73,10 +69,9 @@ apply: mag_le_bpow; first by lra.
 by lra.
 Qed.
 
-Lemma ulp_norm f : 
-  format f -> pow (emin + p) <= Rabs f -> ulp f = pow (mag beta f - p).
+Lemma ulp_norm f : pow (emin + p) <= Rabs f -> ulp f = pow (mag beta f - p).
 Proof.
-move=> Ff fB.
+move=> fB.
 have f_neq_0 : f <> 0.
   suff : 0 < Rabs f by split_Rabs; lra.
   suff : 0 < pow (emin + p) by lra.
