@@ -509,9 +509,9 @@ Definition z := RND (zh + zl).
 Lemma zF : format z.
 Proof. by apply: generic_format_round. Qed.
 
-Lemma zB: Rabs z <= Rpower 2  (- 12.905).
+Lemma zrhrlk2B : 
+  Rabs (z - (rh + rl - IZR k * ln 2 * pow (-12))) < Rpower 2 (-64.67807).
 Proof.
-apply/(Rle_trans _ (Rpower 2 (-64.67806) + Rpower 2 (-12.906174))); last interval.
 have h1: Rabs(zh + zl)  <=  Rpower 2 (- 12.9059). 
   apply/(Rle_trans _ (Rpower 2 (-13.528766) + Rpower 2 (-14.418) + pow (- 67))); 
     last by interval.
@@ -525,10 +525,7 @@ have ulpz: ulp (zh + zl) <= pow (-65).
     by rewrite !pow_Rpower; try lia; split;interval.
   apply/ulp_le; rewrite (Rabs_pos_eq (Rpower _ _)) //.
   by apply/Rlt_le/exp_pos.
-have->: z = z - (rh + rl - IZR k * (ln 2) * pow(-12))+ 
-                 (rh + rl - IZR k* ln 2 * pow (-12)) by lra.
-boundDMI; last by rewrite -Rabs_Ropp Ropp_minus_distr; apply/kn2rhrlB.
-apply/(Rle_trans _ ( pow (-65) + pow (-67) + Rpower 2(-100.429))); 
+apply/(Rle_lt_trans _ ( pow (-65) + pow (-67) + Rpower 2(-100.429))); 
       last by interval.
 have->:  (z - (rh + rl - IZR k * ln 2 * pow (-12))) = 
           (z - (zh + zl)) + (zl - (rl - IZR k * LN2L)) -
@@ -546,41 +543,63 @@ rewrite Rabs_mult; apply/Rmult_le_compat; try apply/Rabs_pos.
 apply/Rlt_le/LN2HLB.
 Qed.
 
-Definition e := (k / 2 ^ 12)%Z.
-Definition i1 := ((k - e * 2 ^ 12) / 2 ^ 6)%Z.
-Definition ni1 := Z.to_nat i1.
-Definition i2 := ((k - e * 2 ^ 12 - i1 * 2 ^ 6))%Z.
-Definition ni2 := Z.to_nat i2.
-
-Lemma eE : (k = e * 2 ^ 12 + i1 * 2 ^ 6 + i2)%Z.
+Lemma zB: Rabs z <= Rpower 2  (- 12.905).
 Proof.
-rewrite /i2 /i1 /e -!Zmod_eq_full; try by lia.
+apply/(Rle_trans _ (Rpower 2 (-64.67806) + Rpower 2 (-12.906174))); last interval.
+have->: z = z - (rh + rl - IZR k * (ln 2) * pow(-12))+ 
+                 (rh + rl - IZR k* ln 2 * pow (-12)) by lra.
+boundDMI; last by rewrite -Rabs_Ropp Ropp_minus_distr; apply/kn2rhrlB.
+by apply: Rlt_le; apply: Rlt_le_trans zrhrlk2B _; interval.
+Qed.
+
+Lemma expzB : 
+  Rabs (exp (rh + rl) / (Rpower 2 (IZR k / pow 12) * exp z) - 1) <= 
+    Rpower 2 (-64.67806).
+Proof.
+pose eps := rh + rl - (IZR k * ln 2 * pow (- 12) + z).
+have rhrlE : rh + rl = IZR k * ln 2 * pow (- 12) + z + eps.
+  by rewrite /eps; lra.
+have epsB : Rabs eps <= Rpower 2 (- 64.67807).
+  rewrite -Rabs_Ropp.
+  have -> : - eps = z - (rh + rl - IZR k * ln 2 * pow (-12)).
+    by rewrite /eps; lra.
+  by apply/Rlt_le/zrhrlk2B.
+have erhrlE : exp (rh + rl) = 
+   Rpower 2 (IZR k / pow 12) * exp z * exp eps.
+  rewrite rhrlE 2!exp_plus.
+  congr (exp _ * _ * _).
+  have -> : (-12 = - (12))%Z by [].
+  by rewrite bpow_opp; lra.
+have -> : exp (rh + rl) / (Rpower 2 (IZR k / pow 12) * exp z) = exp eps.
+  rewrite erhrlE.
+  field; split.
+    suff : 0 < exp z by lra.
+    by apply: exp_pos.
+  suff : 0 < Rpower 2 (IZR k / pow 12)  by lra.
+  by apply: exp_pos.
+by interval with (i_prec 100).
+Qed.
+
+Definition e := (k / 2 ^ 12)%Z.
+Definition i2 := ((k - e * 2 ^ 12) / 2 ^ 6)%Z.
+Definition ni2 := Z.to_nat i2.
+Definition i1 := ((k - e * 2 ^ 12 - i2 * 2 ^ 6))%Z.
+Definition ni1 := Z.to_nat i1.
+
+Lemma kE : (k = e * 2 ^ 12 + i2 * 2 ^ 6 + i1)%Z.
+Proof.
+rewrite /i1 /i2 /e -!Zmod_eq_full; try by lia.
 rewrite -Zplus_assoc [(_ * 2 ^ 6)%Z]Z.mul_comm -Z_div_mod_eq_full.
 by rewrite [(_ * 2 ^ 12)%Z]Z.mul_comm -Z_div_mod_eq_full.
 Qed.
 
-Lemma i1B : (0 <= i1 <= 63)%Z.
+Lemma i2B : (0 <= i2 <= 63)%Z.
 Proof.
-rewrite /i1 /e -Zmod_eq_full; last by lia.
+rewrite /i2 /e -Zmod_eq_full; last by lia.
 have km12B : (0 <= k mod (2 ^ 12) < 2 ^12)%Z by apply: Z.mod_pos_bound.
 split; first by apply: Z.div_pos; lia.
 have -> : (63 = (2 ^ 12 - 1) / 2 ^ 6)%Z by [].
 by apply: Z_div_le; lia.
-Qed.
-
-Lemma ni1B : (0 <= ni1 <= 63)%N.
-Proof.
-by apply/andP; split; apply/leP; have := i1B; rewrite /ni1; lia.
-Qed.
-
-Lemma INR_ni1E : INR ni1 = IZR i1.
-Proof. by rewrite INR_IZR_INZ Z2Nat.id //; have := i1B; lia. Qed. 
-
-Lemma i2B : (0 <= i2 <= 63)%Z.
-Proof.
-suff : (0 <= i2 < 2 ^ 6)%Z by lia.
-rewrite /i2 /i1 /e -Zmod_eq_full; last by lia.
-by apply: Z.mod_pos_bound.
 Qed.
 
 Lemma ni2B : (0 <= ni2 <= 63)%N.
@@ -590,6 +609,21 @@ Qed.
 
 Lemma INR_ni2E : INR ni2 = IZR i2.
 Proof. by rewrite INR_IZR_INZ Z2Nat.id //; have := i2B; lia. Qed. 
+
+Lemma i1B : (0 <= i1 <= 63)%Z.
+Proof.
+suff : (0 <= i1 < 2 ^ 6)%Z by lia.
+rewrite /i1 /i2 /e -Zmod_eq_full; last by lia.
+by apply: Z.mod_pos_bound.
+Qed.
+
+Lemma ni1B : (0 <= ni1 <= 63)%N.
+Proof.
+by apply/andP; split; apply/leP; have := i1B; rewrite /ni1; lia.
+Qed.
+
+Lemma INR_ni1E : INR ni1 = IZR i1.
+Proof. by rewrite INR_IZR_INZ Z2Nat.id //; have := i1B; lia. Qed. 
 
 Definition h1 := (nth (0,0) T2 ni1).1.
 Definition e1 := (h1 - Rpower 2 (IZR i1 / pow 12)).
@@ -1356,7 +1390,7 @@ have tehB := tehB rhB1.
 by set xx := (_ * _) in tehB *; interval.
 Qed.
 
-Definition e''' := (h + l)/ ((ph + pl) * (qh + ql)) - 1.
+Definition e''' := (h + l) / ((ph + pl) * (qh + ql)) - 1.
 
 Lemma hlE : h + l = (ph + pl) * (qh + ql) * (1 + e''').
 Proof.
@@ -1389,84 +1423,98 @@ Qed.
 Lemma e'B : Rabs e' <= Rpower 2 (- 102.2248).
 Proof. apply: rel_error_phpl_i1i2. Qed.
 
+Definition eps := exp (rh + rl) / (Rpower 2 (IZR k / pow 12) * exp z) - 1.
+
+Lemma erhrlE : exp (rh + rl) = Rpower 2 (IZR k / pow 12) * exp z * (1 + eps).
+Proof.
+rewrite /eps; field.
+split.
+  suff : 0 < exp z by lra.
+  by apply: exp_pos.
+suff : 0 < Rpower 2 (IZR k / pow 12)  by lra.
+by apply: exp_pos.
+Qed.
+
+Lemma epsB : Rabs eps <= Rpower 2 (- 64.67806).
+Proof. by apply: expzB. Qed.
+
+Definition e'' := (qh + ql) / exp z - 1.
+
+Lemma qhqlE : qh + ql = exp z * (1 + e'').
+Proof.
+rewrite /e''; field.
+suff : 0 < exp z by lra.
+by apply: exp_pos.
+Qed.
+
+Lemma e''B : Rabs e'' <= Rpower 2 (- 64.902632).
+Proof. by apply/Rlt_le/qhqlB. Qed.
+
+Definition d := (pow e * (h + l)) / exp (rh + rl) - 1.
+
+Lemma powehlE : pow e * (h + l) = exp (rh + rl) * (1 + d).
+Proof.
+rewrite /d; field.
+suff : 0 < exp (rh + rl) by lra.
+by apply: exp_pos.
+Qed.
+
+Lemma dE : d = (1 + e') * (1 + e'') * (1 + e''') / (1 + eps) - 1.
+Proof.
+rewrite /d hlE phplE qhqlE erhrlE.
+rewrite pow_Rpower // -!Rmult_assoc -Rpower_plus.
+have -> : IZR e + (IZR i2 / pow 6 + IZR i1 / pow 12) = IZR k / pow 12.
+  rewrite kE 2!plus_IZR 2!mult_IZR !(IZR_Zpower beta); try lia.
+  have -> : pow 12 = pow 6 * pow 6 by rewrite -bpow_plus; congr bpow; lia.
+  by field; interval.
+field; split; first by have epsB := epsB; interval.
+split.
+  suff: 0 < exp z by lra.
+  by apply: exp_pos.
+suff : 0 < Rpower 2 (IZR k / pow 12) by lra.
+by apply: exp_pos.
+Qed.
+
+Definition Phi := Rpower 2 (- 63.78598).
+
+Lemma dB : Rabs d < Phi.
+Proof.
+rewrite dE.
+have e'B := e'B.
+have e''B := e''B.
+have e'''B := e'''B.
+have epsB := epsB.
+by interval with (i_prec 90).
+Qed.
+
+Lemma rhrlB : r1 <= rh <= r2 -> r1 + -0x1.72b0feb06bbe9p-15 <= rh + rl.
+Proof.
+move=> rhB1.
+pose f : float := Float beta (-6521271831935977) (- 67).
+have fF : format f.
+  by apply: generic_format_FLT; apply: FLT_spec (refl_equal _) _ _.
+have magfE : mag beta f = (- 14)%Z :> Z.
+  apply: mag_unique.
+  rewrite /F2R /= /Z.pow_pos /=.
+  by split; interval.
+have ufE : ulp f = pow (- 67).
+  rewrite ulp_neq_0; last by rewrite /F2R /= /Z.pow_pos /=; lra.
+  by congr (pow _); rewrite /cexp /fexp magfE; lia.
+have fE : f = -0x1.72b0feb06bbe9p-15 :> R.
+  by rewrite /F2R /= /Z.pow_pos /=; lra.
+have foppE : f = - Float beta (6521271831935977) (- 67) :> R.
+  by rewrite /F2R /= /Z.pow_pos /=; lra.
+suff : f <= rl by rewrite -fE; lra.
+rewrite -(succ_pred beta fexp f) //.
+apply: succ_le_lt => //; first by apply: generic_format_pred.
+apply: Rlt_le_trans (_ : Rpower 2 (-23.8899) * r1 <= _).
+  rewrite foppE pred_opp succ_eq_pos; last first.
+    by rewrite /F2R /= /Z.pow_pos /=; lra.
+  rewrite -ulp_opp -foppE ufE.
+  by rewrite /F2R /= /Z.pow_pos /=; interval with (i_prec 100).
+Admitted.
 
 (*
-Definition fh rl := 
-  let zl := RND (rl - IZR k * LN2L) in
-  let z := RND (zh + zl) in 
-  let 'DWR qh _ := q1 z in 
-  let 'DWR h _ := exactMul ph qh in h.
-
-
-Lemma inc_fh rl1 rl2 : rl1 <= rl2 -> fh rl1 <= fh rl2.
-Proof.
-move=> rl1Lrl2; rewrite /fh.
-set zl1 := RND (_ - _ * _); set zl2 := RND (_ - _ * _).
-have zl1Lzl2 : zl1 <= zl2 by apply: round_le; lra.
-set z1 := RND (_ + _); set z2 := RND (_ + _).
-have z1B : Rabs z1 <= Rpower 2 (-12.905) by admit.
-have z2B : Rabs z2 <= Rpower 2 (-12.905) by admit.
-have z1Lz2 : z1 <= z2 by apply: round_le; lra.
-case E1 : q1 => [qh1 s1].
-case E2 : q1 => [qh2 s2].
-have qh1Lqh2 : qh1 <= qh2.
-  rewrite /q1 /= in E1; rewrite /q1 /= in E2.
-  set q1' := RND (Q4 * _ + _) in E1.
-  set q2' := RND (Q4 * _ + _) in E2.
-  have q1'_pos : 0 <= q1'.
-    rewrite /q1'.
-    have <- : RND 0 = 0 by apply: round_0.
-    apply: round_le.
-    by interval.
-  have q2'_pos : 0 <= q2'.
-    rewrite /q2'.
-    have <- : RND 0 = 0 by apply: round_0.
-    apply: round_le.
-    by interval.  
-  have q1'Lq2' : q1' <= q2' by apply: round_le; rewrite /Q4; lra.
-  set q11 := RND (q1' * _ + _) in E1.
-  set q21 := RND (q2' * _ + _) in E2.
-  have q11Lq21 : q11 <= q21.
-    apply: round_le; rewrite /Q2.
-    apply: Rplus_le_compat_r.
-    have [z1_neg|z1_pos] := Rle_dec z1 0; last by nra.
-    have [z2_neg|z2_pos] := Rle_dec z2 0; last by nra.
-    0 <= f1 x <= f2 x 
-    g1 x <= g2 x 
-    alors f1 x * g1 x <= f2 x * g2 x.
-    2 * (- 2) <= 5 * (- 1)
-    nra.
-
-
-    apply: Rle_trans (_ <= q1' * z2)
-    nra.
-    ; lra.
-
-0 <= (qh1 + ql1)
-0 <= (qh2 + ql2)
-
-  Rabs ((qh1 + ql1) - exp z1) < Rpower 2 (- 64.902821).
-  Rabs ((qh2 + ql2) - exp (z1 + ulp rl) < Rpower 2 (- 64.902821).
-  
-  Rabs (qh1 + ql1) <= Rabs (qh2 + ql2)
-          exp (z1 + ulp rl) -  Rpower 2 (- 64.902821) <=
-     <= exp z1 + Rpower 2 (- 64.902821)
-
-exp z1 + Rpower 2 (- 64.902821) <= exp (z1) * exp(ulp rl) -  Rpower 2 (- 64.902821) 
-exp z1 * (1 - exp(ulp rl))
-
-<=
-
-  have q11Lq21 : q11 <= q21 by apply: round_le; rewrite /Q4; lra.
-  
-  
-case E1.
-
-set q'1 := let _ := q1 _; set q2 := q1 _
-
-
-
-
 Definition fhl rl := 
   let zl := RND (rl - IZR k * LN2L) in
   let z := RND (zh + zl) in 
