@@ -1490,6 +1490,20 @@ Qed.
 Lemma rhrlB : r1 <= rh <= r2 -> r1 + -0x1.72b0feb06bbe9p-15 <= rh + rl.
 Proof.
 move=> rhB1.
+have [->|rh_neq0] := Req_dec rh 0; first by interval.
+have rlhB:  Rabs rl <= Rpower 2 (-23.8899) * Rabs rh.
+  apply/Rcomplements.Rle_div_l; first by split_Rabs; lra.
+  by rewrite /Rdiv -Rabs_inv -Rabs_mult.
+have [rh_pos|rh_neg] := Rle_gt_dec 0 rh; first by interval.
+suff : (-0x1.72b0feb06bbe9p-15)%xR <= rl by lra.
+rewrite [Rabs rh]Rabs_left in rlhB; last by lra.
+have F : Rpower 2 (-23.8899) * r1 <= rl.
+  have p_pos : 0 < Rpower 2 (-23.8899) by apply: exp_pos.
+  by split_Rabs; nra.
+pose R_UP := (round beta fexp Zceil).
+have <- : R_UP rl = rl by apply: round_generic.
+suff <- : R_UP (Rpower 2 (-23.8899) * r1) = -0x1.72b0feb06bbe9p-15.
+  by apply: round_le.
 pose f : float := Float beta (-6521271831935977) (- 67).
 have fF : format f.
   by apply: generic_format_FLT; apply: FLT_spec (refl_equal _) _ _.
@@ -1502,17 +1516,16 @@ have ufE : ulp f = pow (- 67).
   by congr (pow _); rewrite /cexp /fexp magfE; lia.
 have fE : f = -0x1.72b0feb06bbe9p-15 :> R.
   by rewrite /F2R /= /Z.pow_pos /=; lra.
+rewrite -fE.
+apply: round_UP_eq => //; split; last first.
+  by rewrite /F2R /= /Z.pow_pos /=; interval with (i_prec 70).
 have foppE : f = - Float beta (6521271831935977) (- 67) :> R.
   by rewrite /F2R /= /Z.pow_pos /=; lra.
-suff : f <= rl by rewrite -fE; lra.
-rewrite -(succ_pred beta fexp f) //.
-apply: succ_le_lt => //; first by apply: generic_format_pred.
-apply: Rlt_le_trans (_ : Rpower 2 (-23.8899) * r1 <= _).
-  rewrite foppE pred_opp succ_eq_pos; last first.
-    by rewrite /F2R /= /Z.pow_pos /=; lra.
-  rewrite -ulp_opp -foppE ufE.
-  by rewrite /F2R /= /Z.pow_pos /=; interval with (i_prec 100).
-Admitted.
+rewrite foppE pred_opp succ_eq_pos; last first.
+  by rewrite /F2R /= /Z.pow_pos /=; lra.
+rewrite -ulp_opp -foppE ufE.
+by rewrite /F2R /= /Z.pow_pos /=; interval with (i_prec 100).
+Qed.
 
 (*
 Definition fhl rl := 
