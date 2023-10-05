@@ -1356,5 +1356,126 @@ have tehB := tehB rhB1.
 by set xx := (_ * _) in tehB *; interval.
 Qed.
 
+Definition e''' := (h + l)/ ((ph + pl) * (qh + ql)) - 1.
+
+Lemma hlE : h + l = (ph + pl) * (qh + ql) * (1 + e''').
+Proof.
+rewrite /e'''; field.
+  have phB := phB; have plB := plB; have qhB := qhB; have qlB := qlB.
+  have ql_pos : 0 <= Rabs ql by apply: Rabs_pos.
+  have pl_pos : 0 <= Rabs pl by apply: Rabs_pos.
+  set xx := Rabs pl in plB pl_pos; set yy := Rabs ql in qlB ql_pos.
+  have plphB : 0.9999998 <= ph + pl.
+    apply: Rle_trans (_ : ph - xx <= _); first by interval with (i_prec 100).
+    by rewrite /xx; split_Rabs; lra.
+  have qlqhB : 0.9998599 <= qh + ql.
+    apply: Rle_trans (_ : qh - yy <= _); first by interval with (i_prec 100).
+    by rewrite /yy; split_Rabs; lra.
+  by split; lra.
+Qed.
+
+Lemma e'''B : Rabs e''' <= Rpower 2 (- 100.912696).
+Proof. by apply: rel_error_hl. Qed.
+
+Definition e' := (ph + pl) / (Rpower 2 (IZR i2 / pow 6 + IZR i1 / pow 12)) - 1.
+
+Lemma phplE : ph + pl = Rpower 2 (IZR i2 / pow 6 + IZR i1 / pow 12) * (1 + e').
+Proof.
+rewrite /e'; field.
+suff : 0 < Rpower 2 (IZR i2 / pow 6 + IZR i1 / pow 12) by lra.
+by apply: exp_pos.
+Qed.
+
+Lemma e'B : Rabs e' <= Rpower 2 (- 102.2248).
+Proof. apply: rel_error_phpl_i1i2. Qed.
+
+
+(*
+Definition fh rl := 
+  let zl := RND (rl - IZR k * LN2L) in
+  let z := RND (zh + zl) in 
+  let 'DWR qh _ := q1 z in 
+  let 'DWR h _ := exactMul ph qh in h.
+
+
+Lemma inc_fh rl1 rl2 : rl1 <= rl2 -> fh rl1 <= fh rl2.
+Proof.
+move=> rl1Lrl2; rewrite /fh.
+set zl1 := RND (_ - _ * _); set zl2 := RND (_ - _ * _).
+have zl1Lzl2 : zl1 <= zl2 by apply: round_le; lra.
+set z1 := RND (_ + _); set z2 := RND (_ + _).
+have z1B : Rabs z1 <= Rpower 2 (-12.905) by admit.
+have z2B : Rabs z2 <= Rpower 2 (-12.905) by admit.
+have z1Lz2 : z1 <= z2 by apply: round_le; lra.
+case E1 : q1 => [qh1 s1].
+case E2 : q1 => [qh2 s2].
+have qh1Lqh2 : qh1 <= qh2.
+  rewrite /q1 /= in E1; rewrite /q1 /= in E2.
+  set q1' := RND (Q4 * _ + _) in E1.
+  set q2' := RND (Q4 * _ + _) in E2.
+  have q1'_pos : 0 <= q1'.
+    rewrite /q1'.
+    have <- : RND 0 = 0 by apply: round_0.
+    apply: round_le.
+    by interval.
+  have q2'_pos : 0 <= q2'.
+    rewrite /q2'.
+    have <- : RND 0 = 0 by apply: round_0.
+    apply: round_le.
+    by interval.  
+  have q1'Lq2' : q1' <= q2' by apply: round_le; rewrite /Q4; lra.
+  set q11 := RND (q1' * _ + _) in E1.
+  set q21 := RND (q2' * _ + _) in E2.
+  have q11Lq21 : q11 <= q21.
+    apply: round_le; rewrite /Q2.
+    apply: Rplus_le_compat_r.
+    have [z1_neg|z1_pos] := Rle_dec z1 0; last by nra.
+    have [z2_neg|z2_pos] := Rle_dec z2 0; last by nra.
+    0 <= f1 x <= f2 x 
+    g1 x <= g2 x 
+    alors f1 x * g1 x <= f2 x * g2 x.
+    2 * (- 2) <= 5 * (- 1)
+    nra.
+
+
+    apply: Rle_trans (_ <= q1' * z2)
+    nra.
+    ; lra.
+
+0 <= (qh1 + ql1)
+0 <= (qh2 + ql2)
+
+  Rabs ((qh1 + ql1) - exp z1) < Rpower 2 (- 64.902821).
+  Rabs ((qh2 + ql2) - exp (z1 + ulp rl) < Rpower 2 (- 64.902821).
+  
+  Rabs (qh1 + ql1) <= Rabs (qh2 + ql2)
+          exp (z1 + ulp rl) -  Rpower 2 (- 64.902821) <=
+     <= exp z1 + Rpower 2 (- 64.902821)
+
+exp z1 + Rpower 2 (- 64.902821) <= exp (z1) * exp(ulp rl) -  Rpower 2 (- 64.902821) 
+exp z1 * (1 - exp(ulp rl))
+
+<=
+
+  have q11Lq21 : q11 <= q21 by apply: round_le; rewrite /Q4; lra.
+  
+  
+case E1.
+
+set q'1 := let _ := q1 _; set q2 := q1 _
+
+
+
+
+Definition fhl rl := 
+  let zl := RND (rl - IZR k * LN2L) in
+  let z := RND (zh + zl) in 
+  let 'DWR qh ql := q1 z in 
+  let 'DWR h s' := exactMul ph qh in 
+  let t' := RND (pl * qh + s')  in
+  let l := RND (ph * ql + t') in 
+  h + l.
+*)
+
 End algoExp1.
 
