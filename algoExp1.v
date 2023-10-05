@@ -1338,58 +1338,6 @@ Definition r1 := -0x1.577453f1799a6p+9.
 Definition r2 := 0x1.62e42e709a95bp+9.
 Definition r3 := 0x1.62e4316ea5df9p+9.
 
-Lemma tehB : r1 <= rh <= r2 -> pow (- 991) <= pow e * h <= omega.
-Admitted.
-
-
-Lemma elehB : r1 <= rh <= r2 -> Rabs (el / eh) <= Rpower 2 (- 49.2999).
-Proof.
-move=> rhB1.
-apply: Rle_trans (_ : Rpower 2 (-49.541) + alpha / pow (- 1022) <= _);
-    last by interval with (i_prec 100).
-have teh : format (pow e * h).
-  rewrite Rmult_comm.
-  apply: mult_bpow_exact_FLT hF _.
-  rewrite -[radix2]/beta.
-  suff : (emin + p - e < mag beta h)%Z by lia.
-  apply: mag_gt_bpow.
-  rewrite bpow_plus bpow_opp.
-  apply/Rcomplements.Rle_div_l; first by apply: bpow_gt_0.
-  rewrite Rabs_pos_eq; last by have := hB; lra.
-  apply: Rle_trans (_ : pow (- 991) <= _); first by apply: bpow_le; lia.
-  by have := tehB rhB1; rewrite Rmult_comm; lra.
-rewrite /eh round_generic //.
-pose e'' := el - pow e * l.
-have elE : el = pow e * l + e'' by rewrite /e''; lra.
-have e''B : Rabs e'' <= alpha.
-  have [eLl|lLe] := Z_lt_le_dec  (emin + p - e)(mag beta l).
-    rewrite /e'' /el round_generic ?Rsimp01 //; first by interval.
-    rewrite Rmult_comm.
-    apply: mult_bpow_exact_FLT lF _.
-    by rewrite -[radix2]/beta; lia.
-  suff <- : ulp (pow e * l) = alpha by apply: error_le_ulp.
-  apply: ulp_subnormal => //.
-  rewrite Rabs_mult Rabs_pos_eq; last by apply: bpow_ge_0.
-  have -> : (3 - 1024 - 53 + 53 = e + (3 - 1024 - 53 + 53 - e))%Z by lia.
-  rewrite bpow_plus -[bpow _ _]/(pow _); apply: Rmult_lt_compat_l.
-    by apply: bpow_gt_0.
-  apply: Rlt_le_trans (_ : pow (mag beta l) <= _).
-    by apply: bpow_mag_gt.
-  by apply: bpow_le; lia.
-rewrite elE.
-have -> : (pow e * l + e'') / (pow e * h) = l / h + e'' / (pow e * h).
-  field; split; first by have hB := hB; interval.
-  suff : 0 < pow e by lra.
-  by apply: bpow_gt_0.
-boundDMI; first by apply: lhB.
-rewrite Rabs_mult Rabs_inv.
-apply: Rmult_le_compat => //; first by apply: Rabs_pos.
-  by apply/Rinv_0_le_compat/Rabs_pos.
-apply: Rinv_le; first by interval.
-have tehB := tehB rhB1.
-by set xx := (_ * _) in tehB *; interval.
-Qed.
-
 Definition e''' := (h + l) / ((ph + pl) * (qh + ql)) - 1.
 
 Lemma hlE : h + l = (ph + pl) * (qh + ql) * (1 + e''').
@@ -1527,16 +1475,102 @@ rewrite -ulp_opp -foppE ufE.
 by rewrite /F2R /= /Z.pow_pos /=; interval with (i_prec 100).
 Qed.
 
-(*
-Definition fhl rl := 
-  let zl := RND (rl - IZR k * LN2L) in
-  let z := RND (zh + zl) in 
-  let 'DWR qh ql := q1 z in 
-  let 'DWR h s' := exactMul ph qh in 
-  let t' := RND (pl * qh + s')  in
-  let l := RND (ph * ql + t') in 
-  h + l.
-*)
+Lemma powehlLB : r1 <= rh <= r2 -> pow (- 991) <= pow e * (h + l).
+Proof.
+move=> rhB1.
+rewrite powehlE.
+apply: Rle_trans (_ : exp (r1 + -0x1.72b0feb06bbe9p-15) * (1 - Phi) <= _).
+  by interval with (i_prec 100).
+apply: Rle_trans (_ : exp (r1 + -0x1.72b0feb06bbe9p-15) * (1 + d) <= _).
+  apply: Rmult_le_compat_l; first by apply/Rlt_le/exp_pos.
+  by have := dB; clear; split_Rabs; lra.
+apply: Rmult_le_compat_r.
+  apply: Rle_trans (_ : 1 - Phi <= _); first by interval.
+  by have := dB; clear; split_Rabs; lra.
+by apply/exp_le/rhrlB.
+Qed.
+
+Lemma powehLB : r1 <= rh <= r2 -> pow (- 991) <= pow e * h.
+Proof.
+move=> rhB1.
+have [rl_neg|rl_pos] := Rle_gt_dec l 0.
+  apply: Rle_trans (_ : pow e * (h + l) <= _); first by apply: powehlLB.
+  apply: Rmult_le_compat_l; last by lra.
+  by apply: bpow_ge_0.
+apply: Rle_trans (_ : pow e * (h + l) * (1 - Rpower 2 (- 49.541)) <= _);
+    last first.
+  rewrite Rmult_assoc; apply: Rmult_le_compat_l; first by apply: bpow_ge_0.
+  have hB := hB.
+  have lB : l <= Rpower 2 (-49.541) * h.
+    apply/Rcomplements.Rle_div_l; first by lra.
+    rewrite -[l / h]Rabs_pos_eq; first by apply: lhB.
+    by apply: Rcomplements.Rdiv_le_0_compat; lra.
+  suff : l * (1 - Rpower 2 (-49.541)) <= Rpower 2 (-49.541) * h by lra.
+  apply: Rle_trans lB.
+  suff: 0 <= Rpower 2 (-49.541) * l by lra.
+  suff: 0 <= Rpower 2 (-49.541) by nra.
+  by interval.
+rewrite powehlE.
+apply: Rle_trans (_ : exp (r1 + -0x1.72b0feb06bbe9p-15) 
+           * (1 - Phi) * (1 - Rpower 2 (-49.541)) <= _).
+  by interval with (i_prec 100).
+apply: Rmult_le_compat_r; first by interval.
+apply: Rle_trans (_ : exp (r1 + -0x1.72b0feb06bbe9p-15) * (1 + d) <= _).
+  apply: Rmult_le_compat_l; first by apply/Rlt_le/exp_pos.
+  by have := dB; clear; split_Rabs; lra.
+apply: Rmult_le_compat_r.
+  apply: Rle_trans (_ : 1 - Phi <= _); first by interval.
+  by have := dB; clear; split_Rabs; lra.
+by apply/exp_le/rhrlB.
+Qed.
+
+Lemma elehB : r1 <= rh <= r2 -> Rabs (el / eh) <= Rpower 2 (- 49.2999).
+Proof.
+move=> rhB1.
+apply: Rle_trans (_ : Rpower 2 (-49.541) + alpha / pow (- 1022) <= _);
+    last by interval with (i_prec 100).
+have teh : format (pow e * h).
+  rewrite Rmult_comm.
+  apply: mult_bpow_exact_FLT hF _.
+  rewrite -[radix2]/beta.
+  suff : (emin + p - e < mag beta h)%Z by lia.
+  apply: mag_gt_bpow.
+  rewrite bpow_plus bpow_opp.
+  apply/Rcomplements.Rle_div_l; first by apply: bpow_gt_0.
+  rewrite Rabs_pos_eq; last by have := hB; lra.
+  apply: Rle_trans (_ : pow (- 991) <= _); first by apply: bpow_le; lia.
+  by have := powehLB rhB1; rewrite Rmult_comm; lra.
+rewrite /eh round_generic //.
+pose e'' := el - pow e * l.
+have elE : el = pow e * l + e'' by rewrite /e''; lra.
+have e''B : Rabs e'' <= alpha.
+  have [eLl|lLe] := Z_lt_le_dec  (emin + p - e)(mag beta l).
+    rewrite /e'' /el round_generic ?Rsimp01 //; first by interval.
+    rewrite Rmult_comm.
+    apply: mult_bpow_exact_FLT lF _.
+    by rewrite -[radix2]/beta; lia.
+  suff <- : ulp (pow e * l) = alpha by apply: error_le_ulp.
+  apply: ulp_subnormal => //.
+  rewrite Rabs_mult Rabs_pos_eq; last by apply: bpow_ge_0.
+  have -> : (3 - 1024 - 53 + 53 = e + (3 - 1024 - 53 + 53 - e))%Z by lia.
+  rewrite bpow_plus -[bpow _ _]/(pow _); apply: Rmult_lt_compat_l.
+    by apply: bpow_gt_0.
+  apply: Rlt_le_trans (_ : pow (mag beta l) <= _).
+    by apply: bpow_mag_gt.
+  by apply: bpow_le; lia.
+rewrite elE.
+have -> : (pow e * l + e'') / (pow e * h) = l / h + e'' / (pow e * h).
+  field; split; first by have hB := hB; interval.
+  suff : 0 < pow e by lra.
+  by apply: bpow_gt_0.
+boundDMI; first by apply: lhB.
+rewrite Rabs_mult Rabs_inv.
+apply: Rmult_le_compat => //; first by apply: Rabs_pos.
+  by apply/Rinv_0_le_compat/Rabs_pos.
+apply: Rinv_le; first by interval.
+have powehLB := powehLB rhB1.
+by set xx := (_ * _) in powehLB *; interval.
+Qed.
 
 End algoExp1.
 
