@@ -1435,7 +1435,7 @@ have epsB := epsB.
 by interval with (i_prec 90).
 Qed.
 
-Lemma rhrlB : r1 <= rh <= r2 -> r1 + -0x1.72b0feb06bbe9p-15 <= rh + rl.
+Lemma rhrlLB : r1 <= rh <= r2 -> r1 + -0x1.72b0feb06bbe9p-15 <= rh + rl.
 Proof.
 move=> rhB1.
 have [->|rh_neq0] := Req_dec rh 0; first by interval.
@@ -1487,7 +1487,7 @@ apply: Rle_trans (_ : exp (r1 + -0x1.72b0feb06bbe9p-15) * (1 + d) <= _).
 apply: Rmult_le_compat_r.
   apply: Rle_trans (_ : 1 - Phi <= _); first by interval.
   by have := dB; clear; split_Rabs; lra.
-by apply/exp_le/rhrlB.
+by apply/exp_le/rhrlLB.
 Qed.
 
 Lemma powehLB : r1 <= rh <= r2 -> pow (- 991) <= pow e * h.
@@ -1521,7 +1521,107 @@ apply: Rle_trans (_ : exp (r1 + -0x1.72b0feb06bbe9p-15) * (1 + d) <= _).
 apply: Rmult_le_compat_r.
   apply: Rle_trans (_ : 1 - Phi <= _); first by interval.
   by have := dB; clear; split_Rabs; lra.
-by apply/exp_le/rhrlB.
+by apply/exp_le/rhrlLB.
+Qed.
+
+Lemma rhrlUB : r1 <= rh <= r2 -> rh + rl <= r2 + 0x1.7f09093c9fe5bp-15.
+Proof.
+move=> rhB1.
+have [->|rh_neq0] := Req_dec rh 0; first by interval.
+have rlhB:  Rabs rl <= Rpower 2 (-23.8899) * Rabs rh.
+  apply/Rcomplements.Rle_div_l; first by split_Rabs; lra.
+  by rewrite /Rdiv -Rabs_inv -Rabs_mult.
+have [rh_pos|rh_neg] := Rle_gt_dec 0 rh; last by interval.
+suff :  rl <= 0x1.7f09093c9fe5bp-15 by lra.
+rewrite [Rabs rh]Rabs_pos_eq in rlhB; last by lra.
+have F : rl <= Rpower 2 (-23.8899) * r2.
+  have p_pos : 0 < Rpower 2 (-23.8899) by apply: exp_pos.
+  by split_Rabs; nra.
+pose R_DN := (round beta fexp Zfloor).
+have <- : R_DN rl = rl by apply: round_generic.
+suff <- : R_DN (Rpower 2 (-23.8899) * r2) = 0x1.7f09093c9fe5bp-15%xR.
+  by apply: round_le.
+pose f : float := Float beta (6738428209790555) (- 67).
+have fF : format f.
+  by apply: generic_format_FLT; apply: FLT_spec (refl_equal _) _ _.
+have magfE : mag beta f = (- 14)%Z :> Z.
+  apply: mag_unique.
+  rewrite /F2R /= /Z.pow_pos /=.
+  by split; interval.
+have ufE : ulp f = pow (- 67).
+  rewrite ulp_neq_0; last by rewrite /F2R /= /Z.pow_pos /=; lra.
+  by congr (pow _); rewrite /cexp /fexp magfE; lia.
+have fE : f = 0x1.7f09093c9fe5bp-15 :> R.
+  by rewrite /F2R /Q2R /= /Z.pow_pos /=; lra.
+rewrite -fE.
+apply: round_DN_eq => //; split.
+  by rewrite /F2R /= /Z.pow_pos /=; interval with (i_prec 70).
+rewrite succ_eq_pos; last first.
+  by rewrite /F2R /= /Z.pow_pos /=; lra.
+rewrite ufE.
+by rewrite /F2R /= /Z.pow_pos /=; interval with (i_prec 100).
+Qed.
+
+Lemma powehlUB : r1 <= rh <= r2 -> pow e * (h + l) <= omega.
+Proof.
+move=> rhB1.
+rewrite powehlE.
+apply: Rle_trans (_ : exp (r2 + 0x1.7f09093c9fe5bp-15) * (1 + Phi) <= _);
+    last by interval with (i_prec 100).
+apply: Rle_trans (_ : exp (r2 + 0x1.7f09093c9fe5bp-15) * (1 + d) <= _); 
+    last first.
+  apply: Rmult_le_compat_l; first by apply/Rlt_le/exp_pos.
+  by have := dB; clear; split_Rabs; lra.
+apply: Rmult_le_compat_r.
+  apply: Rle_trans (_ : 1 - Phi <= _); first by interval.
+  by have := dB; clear; split_Rabs; lra.
+by apply/exp_le/rhrlUB.
+Qed.
+
+Lemma powehUB : r1 <= rh <= r2 -> pow e * h <= omega.
+Proof.
+move=> rhB1.
+have [rl_pos|rl_neg] := Rle_gt_dec 0 l.
+  apply: Rle_trans (_ : pow e * (h + l) <= _); last by apply: powehlUB.
+  apply: Rmult_le_compat_l; last by lra.
+  by apply: bpow_ge_0.
+apply: Rle_trans (_ : pow e * (h + l) * 
+            (1 + Rpower 2 (- 49.541)) / (1 - Rpower 2 (- 49.541)) <= _).
+  rewrite /Rdiv !Rmult_assoc; apply: Rmult_le_compat_l.
+    by apply: bpow_ge_0.
+  have hB := hB.
+  have lB : - l <= Rpower 2 (-49.541) * h.
+    apply/Rcomplements.Rle_div_l; first by lra.
+    have -> : - l / h = - (l / h) by lra.
+    rewrite -Rabs_left; first by apply: lhB.
+    suff : 0 < (- l) / h by lra.
+    by apply: Rcomplements.Rdiv_lt_0_compat; lra.
+  rewrite -!Rmult_assoc -[_ */ _]/(_ / _).
+  suff : h * (1 - Rpower 2 (-49.541)) <= (h + l) * (1 + Rpower 2 (-49.541)).
+    have p_pos : (1 - Rpower 2 (-49.541)) > 0 by interval.
+    by move=> /Rcomplements.Rle_div_r => /(_ p_pos); lra.
+  apply: Rle_trans (_ : h * (1 - Rpower 2 (-49.541)) *
+                         (1 + Rpower 2 (-49.541)) <= _).
+    rewrite Rmult_assoc.
+    apply: Rmult_le_compat_l; first by lra.
+    by interval.
+  apply: Rmult_le_compat_r; first by interval.
+  by lra.
+rewrite powehlE.
+apply: Rle_trans (_ : exp (r2 + 0x1.7f09093c9fe5bp-15) 
+           * (1 + Phi) * (1 + Rpower 2 (-49.541)) 
+              / (1 - Rpower 2 (-49.541)) <= _); last first.
+  by interval with (i_prec 100).
+apply: Rmult_le_compat_r; first by interval.
+apply: Rmult_le_compat_r; first by interval.
+apply: Rle_trans (_ : exp (r2 + 0x1.7f09093c9fe5bp-15) * (1 + d) <= _); 
+    last first.
+  apply: Rmult_le_compat_l; first by apply/Rlt_le/exp_pos.
+  by have := dB; clear; split_Rabs; lra.
+apply: Rmult_le_compat_r.
+  apply: Rle_trans (_ : 1 - Phi <= _); first by interval.
+  by have := dB; clear; split_Rabs; lra.
+by apply/exp_le/rhrlUB.
 Qed.
 
 Lemma elehB : r1 <= rh <= r2 -> Rabs (el / eh) <= Rpower 2 (- 49.2999).
