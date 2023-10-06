@@ -59,13 +59,13 @@ Algorithm Exp1 :
   - Laurent Théry
   - Laurence Rideau
 - License: [MIT License](LICENSE)
-- Compatible Coq versions: 8.17 or later
+- Compatible Coq versions: 8.18 or later
 - Additional dependencies:
   - [MathComp ssreflect 1.17 or later](https://math-comp.github.io)
-  - [Coquelicot 3.3.1 or later](https://gitlab.inria.fr/coquelicot/coquelicot)
+  - [Coquelicot 3.4.0 or later](https://gitlab.inria.fr/coquelicot/coquelicot)
   - [MathComp algebra 1.17 or later](https://math-comp.github.io)
-  - [Flocq 4.1.1 or later](https://gitlab.inria.fr/flocq/flocq)
-  - [Interval 4.7.0 or later](https://gitlab.inria.fr/coqinterval/interval)
+  - [Flocq 4.1.3 or later](https://gitlab.inria.fr/flocq/flocq)
+  - [Interval 4.8.1 or later](https://gitlab.inria.fr/coqinterval/interval)
 - Coq namespace: `floatexp`
 - Related publication(s): none
 

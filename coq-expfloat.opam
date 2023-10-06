@@ -56,12 +56,12 @@ Algorithm Exp1 :
 build: [make "-j%{jobs}%"]
 install: [make "install"]
 depends: [
-  "coq" {(>= "8.17")}
+  "coq" {(>= "8.18")}
   "coq-mathcomp-ssreflect" {(>= "1.17.0")}
-  "coq-coquelicot" {(>= "3.3.1")}
+  "coq-coquelicot" {(>= "3.4.0")}
   "coq-mathcomp-algebra" {(>= "1.17.0")}
-  "coq-flocq" {(>= "4.1.1")}
-  "coq-interval" {(>= "4.7.0")}
+  "coq-flocq" {(>= "4.1.3")}
+  "coq-interval" {(>= "4.8.1")}
 ]
 
 tags: [

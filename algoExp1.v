@@ -1671,6 +1671,6 @@ apply: Rinv_le; first by interval.
 have powehLB := powehLB rhB1.
 by set xx := (_ * _) in powehLB *; interval.
 Qed.
-
+Locate Rle_gt_dec.
 End algoExp1.
 
