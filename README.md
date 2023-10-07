@@ -52,6 +52,8 @@ Algorithm Exp1 :
 - [relative error for T1](./algoExp1.v#L548-L549)
 - [table T2](./tableT2.v#L76-L142)
 - [relative error for T2](./algoExp1.v#L504-L505)
+- [algorithm Exp1](./algoExp1.v#L1776-L1804)
+- [Lemma 7](./algoExp1.v#L1806-L1812)
 
 ## Meta
 
