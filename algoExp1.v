@@ -12,7 +12,7 @@ Set Implicit Arguments.
 Unset Strict Implicit.
 Unset Printing Implicit Defensive.
 
-Section algoExp1.
+Section Prelim.
 
 Let p := 53%Z.
 Let emax := 1024%Z.
@@ -1624,40 +1624,49 @@ apply: Rmult_le_compat_r.
 by apply/exp_le/rhrlUB.
 Qed.
 
+Lemma pehF : r1 <= rh <= r2 -> format (pow e * h).
+Proof.
+move=> rhB1.
+rewrite Rmult_comm.
+apply: mult_bpow_exact_FLT hF _.
+rewrite -[radix2]/beta.
+suff : (emin + p - e < mag beta h)%Z by lia.
+apply: mag_gt_bpow.
+rewrite bpow_plus bpow_opp.
+apply/Rcomplements.Rle_div_l; first by apply: bpow_gt_0.
+rewrite Rabs_pos_eq; last by have := hB; lra.
+apply: Rle_trans (_ : pow (- 991) <= _); first by apply: bpow_le; lia.
+by have := powehLB rhB1; rewrite Rmult_comm; lra.
+Qed.
+
+Lemma el_abs_error : Rabs (el - pow e * l) <= alpha.
+Proof.
+have [eLl|lLe] := Z_lt_le_dec  (emin + p - e)(mag beta l).
+  rewrite /e'' /el round_generic ?Rsimp01 //; first by interval.
+  rewrite Rmult_comm.
+  apply: mult_bpow_exact_FLT lF _.
+  by rewrite -[radix2]/beta; lia.
+suff <- : ulp (pow e * l) = alpha by apply: error_le_ulp.
+apply: ulp_subnormal => //.
+rewrite Rabs_mult Rabs_pos_eq; last by apply: bpow_ge_0.
+have -> : (3 - 1024 - 53 + 53 = e + (3 - 1024 - 53 + 53 - e))%Z by lia.
+rewrite bpow_plus -[bpow _ _]/(pow _); apply: Rmult_lt_compat_l.
+  by apply: bpow_gt_0.
+apply: Rlt_le_trans (_ : pow (mag beta l) <= _).
+  by apply: bpow_mag_gt.
+by apply: bpow_le; lia.
+Qed.
+
 Lemma elehB : r1 <= rh <= r2 -> Rabs (el / eh) <= Rpower 2 (- 49.2999).
 Proof.
 move=> rhB1.
 apply: Rle_trans (_ : Rpower 2 (-49.541) + alpha / pow (- 1022) <= _);
     last by interval with (i_prec 100).
-have teh : format (pow e * h).
-  rewrite Rmult_comm.
-  apply: mult_bpow_exact_FLT hF _.
-  rewrite -[radix2]/beta.
-  suff : (emin + p - e < mag beta h)%Z by lia.
-  apply: mag_gt_bpow.
-  rewrite bpow_plus bpow_opp.
-  apply/Rcomplements.Rle_div_l; first by apply: bpow_gt_0.
-  rewrite Rabs_pos_eq; last by have := hB; lra.
-  apply: Rle_trans (_ : pow (- 991) <= _); first by apply: bpow_le; lia.
-  by have := powehLB rhB1; rewrite Rmult_comm; lra.
+have teh := pehF rhB1.
 rewrite /eh round_generic //.
 pose e'' := el - pow e * l.
 have elE : el = pow e * l + e'' by rewrite /e''; lra.
-have e''B : Rabs e'' <= alpha.
-  have [eLl|lLe] := Z_lt_le_dec  (emin + p - e)(mag beta l).
-    rewrite /e'' /el round_generic ?Rsimp01 //; first by interval.
-    rewrite Rmult_comm.
-    apply: mult_bpow_exact_FLT lF _.
-    by rewrite -[radix2]/beta; lia.
-  suff <- : ulp (pow e * l) = alpha by apply: error_le_ulp.
-  apply: ulp_subnormal => //.
-  rewrite Rabs_mult Rabs_pos_eq; last by apply: bpow_ge_0.
-  have -> : (3 - 1024 - 53 + 53 = e + (3 - 1024 - 53 + 53 - e))%Z by lia.
-  rewrite bpow_plus -[bpow _ _]/(pow _); apply: Rmult_lt_compat_l.
-    by apply: bpow_gt_0.
-  apply: Rlt_le_trans (_ : pow (mag beta l) <= _).
-    by apply: bpow_mag_gt.
-  by apply: bpow_le; lia.
+have e''B : Rabs e'' <= alpha by apply: el_abs_error.
 rewrite elE.
 have -> : (pow e * l + e'') / (pow e * h) = l / h + e'' / (pow e * h).
   field; split; first by have hB := hB; interval.
@@ -1670,6 +1679,191 @@ apply: Rmult_le_compat => //; first by apply: Rabs_pos.
 apply: Rinv_le; first by interval.
 have powehLB := powehLB rhB1.
 by set xx := (_ * _) in powehLB *; interval.
+Qed.
+
+Definition mu := (eh + el) / (pow e * (h + l)) - 1.
+
+Lemma ehelE : eh + el = (pow e * (h + l)) * (1 + mu).
+Proof.
+rewrite /mu; field; split => //.
+  by have hB := hB; have lB := lB; interval.
+suff : 0 < pow e by lra.
+by apply: bpow_gt_0.
+Qed.
+
+Lemma muB : r1 <= rh <= r2 -> Rabs mu <= Rpower 2 (- 82.9).
+Proof.
+move=> rhB1; rewrite /mu.
+have -> : (eh + el) / (pow e * (h + l)) - 1 = 
+          (eh + el - pow e * (h + l)) / (pow e * (h + l)).
+  field; split => //.
+    by have hB := hB; have lB := lB; interval.
+  suff : 0 < pow e by lra.
+  by apply: bpow_gt_0.
+have -> : eh + el - pow e * (h + l) = el - pow e * l.
+  rewrite /eh round_generic //; first by lra.
+  by apply: pehF.
+rewrite Rabs_mult Rabs_inv.
+apply: Rle_trans (_ : alpha / pow (- 991) <= _); 
+  last by interval with (i_prec 100).
+apply: Rmult_le_compat; first by apply: Rabs_pos.
+- by apply/Rinv_0_le_compat/Rabs_pos.
+- by apply: el_abs_error.
+apply: Rinv_le; first by interval.
+rewrite Rabs_pos_eq; first by apply: powehlLB.
+apply: Rle_trans (_ : pow (-991) <= _); first by apply: bpow_ge_0.
+by apply: powehlLB.
+Qed.
+
+Definition e_exp := (1 + d) * (1 + mu) - 1.
+
+Lemma ehelE1 : r1 <= rh <= r2 -> eh + el = exp(rh + rl) * (1 + e_exp).
+Proof.
+by move=> rhB1; rewrite ehelE powehlE /e_exp; lra.
+Qed.
+
+Lemma e_expB : r1 <= rh <= r2 -> Rabs e_exp < Rpower 2 (- 63.78597).
+Proof.
+move=> rhB1; suff : 0 < Rpower 2 (- 63.78597) - Rabs e_exp by lra.
+have dB := dB; have muB := muB rhB1.
+interval with (i_prec 100).
+Qed.
+
+End Prelim.
+
+Section algoExp1.
+
+Let p := 53%Z.
+Let emax := 1024%Z.
+Let emin := (3 - emax - p)%Z.
+
+Let beta := radix2.
+
+Hypothesis Hp2: Z.lt 1 p.
+Local Notation pow e := (bpow beta e).
+
+Open Scope R_scope.
+
+Local Notation u := (u p beta).
+Local Notation u_gt_0 := (u_gt_0 p beta).
+
+Variable rnd : R -> Z.
+Context ( valid_rnd : Valid_rnd rnd ).
+
+Local Notation float := (float radix2).
+Local Notation fexp := (FLT_exp emin p).
+Local Notation format := (generic_format radix2 fexp).
+Local Notation cexp := (cexp beta fexp).
+Local Notation mant := (scaled_mantissa beta fexp).
+Local Notation RND := (round beta fexp rnd).
+Local Notation fastTwoSum := (fastTwoSum rnd).
+Local Notation exactMul := (exactMul rnd).
+Local Notation fastSum := (fastSum rnd).
+Local Notation q1 := (q1 rnd).
+
+Let alpha := pow (- 1074).
+Let omega := (1 - pow (-p)) * pow emax.
+
+Local Notation ulp := (ulp beta fexp).
+
+Variable choice : Z -> bool.
+
+(* Algo Exp 1 *)
+
+Definition Nan := omega + 1.
+Local Notation " x <? y " := (Rlt_bool x y).
+
+Definition exp1 r := 
+let 'DWR rh rl := r in 
+let r0 := -0x1.74910ee4e8a27p+9 in
+let r1 := -0x1.577453f1799a6p+9 in
+let r2 := 0x1.62e42e709a95bp+9 in
+let r3 := 0x1.62e4316ea5df9p+9 in
+if r3 <? rh then DWR omega omega else 
+if rh <? r0 then DWR alpha alpha else 
+if (rh <? r1) || (r2 <? rh) then DWR Nan Nan else
+let INVLN2 := 0x1.71547652b82fep+12 in
+let k := Znearest choice (RND (rh * INVLN2)) in 
+let LN2H := 0x1.62e42fefa39efp-13 in 
+let LN2L := 0x1.abc9e3b39803fp-68 in
+let zh := RND (rh - IZR k * LN2H) in 
+let zl := RND (rl - IZR k * LN2L) in
+let z := RND (zh + zl) in 
+let e := (k / 2 ^ 12)%Z in 
+let i2 := ((k - e * 2 ^ 12) / 2 ^ 6)%Z in
+let i1 := ((k - e * 2 ^ 12 - i2 * 2 ^ 6))%Z in
+let '(h2, l2) := (nth (0,0) T1 (Z.to_nat i2)) in 
+let '(h1, l1) := (nth (0,0) T2 (Z.to_nat i1)) in 
+let 'DWR ph s := exactMul h1 h2 in 
+let t := RND (l1 * h2 + s) in 
+let pl := RND (h1 * l2 + t) in 
+let 'DWR qh ql := q1 z in 
+let 'DWR h s := exactMul ph qh in
+let t := RND (pl * qh + s) in 
+let l := RND (ph * ql + t) in 
+DWR (RND (pow e * h)) (RND (pow e * l)).
+
+Lemma err_lem7 rh rl :
+  format rh -> format rl -> pow (- 970) <= Rabs rh ->
+  -0x1.577453f1799a6p+9 <= rh <= 0x1.62e42e709a95bp+9 ->
+  Rabs (rl / rh) < Rpower 2 (- 23.8899) -> Rabs rl < Rpower 2 (- 14.4187) ->
+  let 'DWR eh el := exp1 (DWR rh rl) in 
+  Rabs ((eh + el) / exp (rh + rl) - 1) < Rpower 2 (- 63.78597) /\ 
+  Rabs (el / eh) <= Rpower 2 (- 49.2999).
+Proof.
+move=> rhF rlF rhB rhB1 rlrhB rlB.
+case E: exp1 => [eh el].
+have rhB2 : pow (-970) <= Rabs rh <= 709.79.
+  by split; [lra | interval].
+have rhrlB : Rabs (rh + rl) <= 709.79 by interval.
+have -> : eh = algoExp1.eh rnd rh rl choice.
+  have := E.
+  rewrite /exp1.
+  case: Rlt_bool_spec => [|_]; first by lra.
+  case: Rlt_bool_spec => [|_]; first by lra.
+  case: Rlt_bool_spec => [|_]; first by lra.
+  case: Rlt_bool_spec => [|_ /=]; first by lra.
+  case E2 : nth => [h2 l2].
+  case E1 : nth => [h1 l1].
+  case=> <- _.
+  congr (RND (_ * RND(RND (_ * _) * _))).
+    rewrite /algoExp1.h1.
+    by case: nth E1 => ? ? [].
+  rewrite /algoExp1.h2.
+  by case: nth E2 => ? ? [].
+have -> : el = algoExp1.el rnd rh rl choice.
+  have := E.
+  rewrite /exp1.
+  case: Rlt_bool_spec => [|_]; first by lra.
+  case: Rlt_bool_spec => [|_]; first by lra.
+  case: Rlt_bool_spec => [|_]; first by lra.
+  case: Rlt_bool_spec => [|_ /=]; first by lra.
+  case E2 : nth => [h2 l2].
+  case E1 : nth => [h1 l1].
+  case=> _ <-.
+  have h1E : h1 = algoExp1.h1 rnd rh choice.
+    rewrite /algoExp1.h1.
+    by case: nth E1 => ? ? [].
+  have h2E : h2 = algoExp1.h2 rnd rh choice.
+    rewrite /algoExp1.h2.
+    by case: nth E2 => ? ? [].
+  congr (RND (_ * RND (RND (_ * _) * 
+            RND _ + RND (RND (_ * _ + RND (_ * _ + RND (_ * _ - RND (_ * _)))) 
+            * RND (_ + RND _) + RND _)))) => //.
+  - rewrite /algoExp1.l2.
+    by case: nth E2 => ? ? [].
+  - rewrite /algoExp1.l1.
+    by case: nth E1 => ? ? [].
+  by congr (RND (_ * _) * _ - RND (RND (_ * _) * _)).
+split.
+  rewrite ehelE1 //; try lra.
+  have -> : exp (rh + rl) * (1 + e_exp rnd rh rl choice) / exp (rh + rl) - 1 =
+             e_exp rnd rh rl choice.
+    field.
+    have : 0 < exp (rh + rl) by apply: exp_pos.
+    by lra.
+  by apply: e_expB => //; lra.
+by apply: elehB => //; lra.
 Qed.
 
 End algoExp1.
