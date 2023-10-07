@@ -187,6 +187,7 @@ by rewrite e2E; apply: generic_format_round; apply: FLT_exp_valid.
 Qed.
 
 Variables x y : R.
+Hypothesis x_pos : 0 < x.
 Hypothesis xF : format x.
 Hypothesis yF : format y.
 
@@ -274,6 +275,20 @@ Qed.
 Definition u' := RND (eh + RND (el - e * eh)).
 Definition v' := RND (eh + RND (el + e * eh)).
 
+(* Appendix A-L *)
+Lemma r1B_phase1_thm1 : rh < r1 -> u' = v' -> u' = RND (Rpower x y).
+Proof.
+Admitted.
+
+(* Appendix A-M *)
+Lemma r2B_phase1_thm1 : r2 < rh -> u' = v' -> u' = RND (Rpower x y).
+Proof.
+Admitted.
+
+(* Appendix A-N *)
+Lemma r1r2B_phase1_thm1 : r1 <= rh <= r2 -> u' = v' -> u' = RND (Rpower x y).
+Proof.
+Admitted.
 
 End Prelim.
 
@@ -336,6 +351,52 @@ Definition phase1 (x y : R) :=
   let u := RND (eh + RND (el - e * eh)) in 
   let v := RND (eh + RND (el + e * eh)) in
   if (u =? v) then some u else FAIL.
-    
+
+(* This is theorem 1 *)
+
+Lemma phase1_thn1 x y r :
+  format x -> format y -> 0 < x -> 
+  phase1 x y = some r -> r = RND (Rpower x y). 
+Proof.
+move=> xB yB x_pos; rewrite /phase1.
+case E : log1 => [lh ll].
+have lhE : lh = algoPhase1.lh rnd x.
+  by rewrite /algoPhase1.lh; case: log1 E => ? ? [].
+have llE : ll = algoPhase1.ll rnd x.
+  by rewrite /algoPhase1.ll; case: log1 E => ? ? [].
+case E1 : mul1 => [rh rl].
+have rhE : rh = algoPhase1.rh rnd x y.
+  by rewrite /algoPhase1.rh -llE -lhE; case: mul1 E1 => ? ? [].
+have rlE : rl = algoPhase1.rl rnd x y.
+  by rewrite /algoPhase1.rl -llE -lhE; case: mul1 E1 => ? ? [].
+case E2 : exp1 => [eh el].
+have ehE : eh = algoPhase1.eh rnd choice x y.
+  by rewrite /algoPhase1.eh -rhE -rlE; case: exp1 E2 => ? ? [].
+have elE : el = algoPhase1.el rnd choice x y.
+  by rewrite /algoPhase1.el -rhE -rlE; case: exp1 E2 => ? ? [].
+set e := if _ && _ then _ else _.
+have eE : e = algoPhase1.e x by [].
+case: Req_bool_spec => //.
+set u' := RND _; set v' := RND _ => u'Ev' [<-].
+have u'E : u' = algoPhase1.u' rnd choice x y.
+  by rewrite /algoPhase1.u' -ehE -elE -eE.
+have v'E : v' = algoPhase1.v' rnd choice x y.
+  by rewrite /algoPhase1.v' -ehE -elE -eE.
+have [r1Lrh|rhLr1] := Rle_dec r1 rh; last first.
+  rewrite u'E.
+  apply: r1B_phase1_thm1 => //.
+    by rewrite -rhE; lra.
+  by rewrite -u'E -v'E.
+have [rhLr2|r2Lrh] := Rle_dec rh r2.
+  rewrite u'E.
+  apply: r1r2B_phase1_thm1 => //.
+    by rewrite -rhE; lra.
+  by rewrite -u'E -v'E.
+rewrite u'E.
+apply: r2B_phase1_thm1 => //.
+  by rewrite -rhE; lra.
+by rewrite -u'E -v'E.
+Qed.
+
 End algoPhase1.
 
