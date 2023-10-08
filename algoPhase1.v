@@ -187,7 +187,7 @@ by rewrite e2E; apply: generic_format_round; apply: FLT_exp_valid.
 Qed.
 
 Variables x y : R.
-Hypothesis x_pos : 0 < x.
+Hypothesis xB : alpha <= x <= omega.
 Hypothesis xF : format x.
 Hypothesis yF : format y.
 
@@ -237,7 +237,7 @@ Definition e :=
 
 Lemma eI : sqrt 2 / 2 < x < sqrt 2 -> e = R_UP(Rpower 2  (- 57.560)).
 Proof.
-move=> xB.
+move=> xB1.
 have xRB : R_DN (sqrt 2 / 2) <= x <= R_UP (sqrt 2).
   split.
     have <- : R_DN x = x by apply: round_generic.
@@ -255,7 +255,7 @@ Qed.
 
 Lemma eNI : x <= sqrt 2 / 2 \/ sqrt 2 <= x -> e = R_UP(Rpower 2  (- 62.792)).
 Proof.
-case => xB.
+case => xB1.
   have xRB : x <= R_DN (sqrt 2 / 2).
     have <- : R_DN x = x by apply: round_generic.
     by apply: round_le; lra.
@@ -285,9 +285,124 @@ Lemma r2B_phase1_thm1 : r2 < rh -> u' = v' -> u' = RND (Rpower x y).
 Proof.
 Admitted.
 
+(* Move to prelim *)
+
+Lemma format_pos_alpha_omega z : format z -> 0 < z -> alpha <= z.
+
 (* Appendix A-N *)
 Lemma r1r2B_phase1_thm1 : r1 <= rh <= r2 -> u' = v' -> u' = RND (Rpower x y).
 Proof.
+move=> rhB u'Ev'.
+have yhB : Rabs (y * lh) <= 709.7827.
+  case: (Rle_lt_dec  (Rabs (y * lh)) 709.7827) => // {}yhB.
+  suff : r2 < Rabs rh by rewrite  /r1 /r2 in rhB *; split_Rabs; lra.
+  apply: Rlt_le_trans (_ : 709.78269 <= _); first by interval.
+  apply: Rle_trans (_ : 709.7827 * (1 - pow (- 52)) <= _).
+    have -> : 709.7827 = 7097827 / 10000 by lra.
+    by interval.
+  apply: Rle_trans (_ : Rabs (y * lh) * (1 - pow (- 52)) <= _).
+    apply: Rmult_le_compat_r; first by interval.
+    by lra.
+  apply: relative_error_eps_le => //.
+  case: (@format_decomp_prod _ y lh) => // [||m1 [e1 [yhE m1B]]//] //.
+  - by apply/generic_format_FLX_FLT/yF.
+  - suff /generic_format_FLX_FLT : format lh by [].
+    have := @log1_format_h (refl_equal _) _ valid_rnd _ xF.
+    by rewrite /lh; case: log1.
+  have -> : (3 - 1024 - 53 + 53 - 1 = (-917) - 2 * 53 + 1)%Z by lia.
+  apply: is_imul_bound_pow yhE m1B.
+  apply: Rle_trans (_ : 709.7827 <= _); first by rewrite /= /Z.pow_pos /=; lra.
+  by lra.
+have [ylhB|ylhB] := Rle_lt_dec (pow (- 969)) (Rabs (y * lh)).
+  have [llB lhllB lhllB1] : 
+          [/\ Rabs ll <= Rpower 2 (-23.89) * Rabs lh, 
+              Rabs (lh + ll - ln x) <= Rpower 2 (-67.0544) * Rabs (ln x) & 
+              ~ / sqrt 2 < x < sqrt 2 -> 
+              Rabs (lh + ll - ln x) <= Rpower 2 (-73.527) * Rabs (ln x)].
+    have := @err_lem4 (refl_equal _) rnd valid_rnd x xF xB.
+    by rewrite /lh /ll; case: log1.
+  have [rhB1 rlB rlrhB rhrlB [rhrllnB rhrllnB1]] :
+        [/\ pow (-970) <= Rabs rh <= 709.79,
+            Rabs rl <= Rpower 2 (-14.4187), 
+            Rabs (rl / rh) <= Rpower 2 (-23.8899), 
+            Rabs (rh + rl) <= 709.79 & 
+            Rabs (rh + rl - y * ln x) <= Rpower 2 (-57.580)
+            /\ (~ / sqrt 2 < x < sqrt 2 -> Rabs (rh + rl - y * ln x) <= 
+            Rpower 2 (-63.799))].
+    move: yhB ylhB.
+    have := @err_lem5 (refl_equal _) rnd valid_rnd x y xF xB yF.
+    rewrite /rh /rl /lh /ll; case: log1 => xh xl; case: mul1 => xh1 xl1 H H1 H2.
+    by apply: H.
+  have rhF : format rh by admit.
+  have rlF : format rl by admit.
+  have rhB2 : pow (-970) <= Rabs rh by lra. 
+    have [ehelB ehelB1] :   
+      Rabs ((eh + el) / exp (rh + rl) - 1) < Rpower 2 (- 63.78597) /\ 
+      Rabs (el / eh) <= Rpower 2 (- 49.2999).
+    have := @err_lem7 (refl_equal _) rnd valid_rnd choice 
+               rh rl rhF rlF rhB2 rhB rlrhB rlB.
+    by rewrite /eh /el; case: exp1 => xh xl.
+  set r := rh + rl in rhrlB rhrllnB rhrllnB1 ehelB.
+  have ehelrB : Rabs (eh + el - exp r) < Rpower 2 (- 63.78597) *  exp r.
+    apply/Rcomplements.Rlt_div_l; first by apply: exp_pos.
+    rewrite -{2}[exp r]Rabs_pos_eq; last by apply/Rlt_le/exp_pos.
+    rewrite /Rdiv -Rabs_inv -Rabs_mult.
+    suff <- : (eh + el) / exp r - 1 = (eh + el - exp r) * / exp r by [].
+    field; suff : 0 < exp r by lra.
+    by apply: exp_pos.
+  set s := r - y * ln x in rhrllnB rhrllnB1.
+  have  exxyB : Rabs (exp r - Rpower x y) <= Rabs (exp (- s) - 1) * exp r.
+    suff : Rabs (exp r - Rpower x y) = Rabs (exp (- s) - 1) * exp r by lra.
+    rewrite -{2}[exp r]Rabs_pos_eq; last by apply/Rlt_le/exp_pos.
+    rewrite -Rabs_mult -Rabs_Ropp Ropp_minus_distr; congr Rabs.
+    have -> : (exp (-s) - 1) * exp r = exp (-s + r) - exp r.
+      by rewrite exp_plus; lra.
+    have -> : -s + r = y * ln x by rewrite /s; lra.
+    by [].
+  have  ehelxyB :
+     Rabs (eh + el - Rpower x y) <=
+       (Rpower 2 (- 63.78597 ) + Rabs (exp (- s) - 1)) * exp r.
+    have -> : eh + el - Rpower x y = (eh + el - exp r) + (exp r - Rpower x y).
+      by lra.
+    have -> : (Rpower 2 (-63.78597) + Rabs (exp (- s) - 1)) * exp r =
+              Rpower 2 (-63.78597) * exp r + Rabs (exp (- s) - 1) * exp r.
+      by lra.
+    by boundDMI => //; lra.
+  have ehelxyB1 : Rabs (eh + el - Rpower x y) <= Rpower 2 (- 57.5605) * exp r.
+    apply: Rle_trans ehelxyB _.
+    apply: Rmult_le_compat_r; first by apply/Rlt_le/exp_pos.
+    have F : Rabs (exp (- s) - 1) <= Rabs (exp (Rpower 2 (-57.580)) - 1).
+      clear -rhrllnB .
+      set  B := Rpower 2 (- 57.580) in rhrllnB *.
+      have eB : exp (- B) - 1 <= exp (- s) - 1 <= exp B - 1.
+        suff: exp (- B) <= exp (- s) <= exp B by lra.
+        split; first by apply: exp_le; split_Rabs; lra.
+        by apply: exp_le; split_Rabs; lra.
+      have F2 : Rabs (exp (- B) - 1) < Rabs (exp B - 1).
+        by rewrite /B; interval with (i_prec 150).
+      clear - eB F2; split_Rabs; lra.
+    apply: Rle_trans (_ : Rpower 2 (-63.78597) + Rabs (exp (Rpower 2 (-57.580)) - 1) <= _).
+      lra.
+    by interval with (i_prec 100).
+  have ehelxyB2 : ~ / sqrt 2 < x < sqrt 2 -> 
+                    Rabs (eh + el - Rpower x y) <= Rpower 2 (- 62.7924) * exp r.
+    move=> /rhrllnB1 {}rhrllnB.
+    apply: Rle_trans ehelxyB _.
+    apply: Rmult_le_compat_r; first by apply/Rlt_le/exp_pos.
+    have F : Rabs (exp (- s) - 1) <= Rabs (exp (Rpower 2 (-63.799)) - 1).
+      clear -rhrllnB .
+      set  B := Rpower 2 (- 63.799) in rhrllnB *.
+      have eB : exp (- B) - 1 <= exp (- s) - 1 <= exp B - 1.
+        suff: exp (- B) <= exp (- s) <= exp B by lra.
+        split; first by apply: exp_le; split_Rabs; lra.
+        by apply: exp_le; split_Rabs; lra.
+      have F2 : Rabs (exp (- B) - 1) < Rabs (exp B - 1).
+        by rewrite /B; interval with (i_prec 150).
+      clear - eB F2; split_Rabs; lra.
+    apply: Rle_trans (_ : Rpower 2 (-63.78597) +
+                          Rabs (exp (Rpower 2 (- 63.799)) - 1) <= _).
+      lra.
+    by interval with (i_prec 100).
 Admitted.
 
 End Prelim.

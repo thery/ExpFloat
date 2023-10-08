@@ -1806,7 +1806,7 @@ DWR (RND (pow e * h)) (RND (pow e * l)).
 Lemma err_lem7 rh rl :
   format rh -> format rl -> pow (- 970) <= Rabs rh ->
   -0x1.577453f1799a6p+9 <= rh <= 0x1.62e42e709a95bp+9 ->
-  Rabs (rl / rh) < Rpower 2 (- 23.8899) -> Rabs rl < Rpower 2 (- 14.4187) ->
+  Rabs (rl / rh) <= Rpower 2 (- 23.8899) -> Rabs rl <= Rpower 2 (- 14.4187) ->
   let 'DWR eh el := exp1 (DWR rh rl) in 
   Rabs ((eh + el) / exp (rh + rl) - 1) < Rpower 2 (- 63.78597) /\ 
   Rabs (el / eh) <= Rpower 2 (- 49.2999).
