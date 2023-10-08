@@ -62,6 +62,12 @@ Local Notation R_DN := (round beta fexp Zfloor).
 
 Definition hsqrt2 := 0x1.6a09e667f3bccp-1.
 
+Lemma hsqrt2sqrt : sqrt 2 / 2 = / sqrt 2.
+Proof.
+have {2}<- : (sqrt 2) ^ 2 = 2 by apply: pow2_sqrt; interval.
+by field; interval.
+Qed.
+
 Lemma hsqrt2E : hsqrt2 = R_DN (sqrt 2 / 2).
 Proof.
 have hsE : hsqrt2 = Float beta 6369051672525772 (-53).
@@ -197,6 +203,12 @@ Definition ll := let 'DWR _  ll := log1 x in ll.
 Definition rh := let 'DWR rh _  := mul1 (DWR lh ll) y in rh.
 Definition rl := let 'DWR _  rl := mul1 (DWR lh ll) y in rl.
 
+Definition rhF : format rh.
+Proof. by apply: generic_format_round. Qed.
+
+Definition rlF : format rl.
+Proof. by apply: generic_format_round. Qed.
+
 Definition eh := let 'DWR eh _  := exp1 (DWR rh rl) in eh.
 Definition el := let 'DWR _  el := exp1 (DWR rh rl) in el.
 
@@ -272,6 +284,84 @@ rewrite /e hsqrt2E sqrt2E; case: Rlt_bool_spec => /= H; last by rewrite e2E.
 by case: Rlt_bool_spec => /= H1; [lra | rewrite e2E].
 Qed.
 
+Definition mu := 
+  if (Rlt_bool hsqrt2 x) && (Rlt_bool x sqrt2) then Rpower 2 (- 57.5605)
+  else Rpower 2 (- 62.7924).
+
+Lemma muI : sqrt 2 / 2 < x < sqrt 2 -> mu = Rpower 2 (- 57.5605).
+Proof.
+move=> xB1.
+have xRB : R_DN (sqrt 2 / 2) <= x <= R_UP (sqrt 2).
+  split.
+    have <- : R_DN x = x by apply: round_generic.
+    by apply: round_le; lra.
+  have <- : R_UP x = x by apply: round_generic.
+  by apply: round_le; lra.
+have DN_UP_hsqrt2 : R_DN (sqrt 2 / 2) < sqrt 2 / 2 < R_UP (sqrt 2 / 2).
+  by apply/round_DN_UP_lt/hsqrt2NF.
+have DN_UP_sqrt2 : R_DN (sqrt 2) < sqrt 2 < R_UP (sqrt 2).
+  by apply/round_DN_UP_lt/sqrt2NF.
+rewrite /mu hsqrt2E sqrt2E; case: Rlt_bool_spec => /= H; last by lra.
+by case: Rlt_bool_spec => //; lra.
+Qed.
+
+Lemma muNI : x <= sqrt 2 / 2 \/ sqrt 2 <= x -> mu = Rpower 2 (- 62.7924).
+Proof.
+case => xB1.
+  have xRB : x <= R_DN (sqrt 2 / 2).
+    have <- : R_DN x = x by apply: round_generic.
+    by apply: round_le; lra.
+  have DN_UP_hsqrt2 : R_DN (sqrt 2 / 2) < sqrt 2 / 2 < R_UP (sqrt 2 / 2).
+    by apply/round_DN_UP_lt/hsqrt2NF.
+  by rewrite /mu hsqrt2E sqrt2E; case: Rlt_bool_spec => //= H; lra.
+have xRB : R_UP (sqrt 2) <= x.
+  have <- : R_UP x = x by apply: round_generic.
+  by apply: round_le; lra.
+have DN_UP_sqrt2 : R_DN (sqrt 2) < sqrt 2 < R_UP (sqrt 2).
+  by apply/round_DN_UP_lt/sqrt2NF.
+rewrite /mu hsqrt2E sqrt2E; case: Rlt_bool_spec => //= H.
+by case: Rlt_bool_spec => //= H1; lra.
+Qed.
+
+Definition tau := 
+  if (Rlt_bool hsqrt2 x) && (Rlt_bool x sqrt2) then Rpower 2 (- 57.5604) 
+  else Rpower 2 (- 62.7923).
+
+Lemma tauI : sqrt 2 / 2 < x < sqrt 2 -> tau = Rpower 2 (- 57.5604).
+Proof.
+move=> xB1.
+have xRB : R_DN (sqrt 2 / 2) <= x <= R_UP (sqrt 2).
+  split.
+    have <- : R_DN x = x by apply: round_generic.
+    by apply: round_le; lra.
+  have <- : R_UP x = x by apply: round_generic.
+  by apply: round_le; lra.
+have DN_UP_hsqrt2 : R_DN (sqrt 2 / 2) < sqrt 2 / 2 < R_UP (sqrt 2 / 2).
+  by apply/round_DN_UP_lt/hsqrt2NF.
+have DN_UP_sqrt2 : R_DN (sqrt 2) < sqrt 2 < R_UP (sqrt 2).
+  by apply/round_DN_UP_lt/sqrt2NF.
+rewrite /tau hsqrt2E sqrt2E; case: Rlt_bool_spec => //= H; last by lra.
+by case: Rlt_bool_spec => //= H1; lra.
+Qed.
+
+Lemma tauNI : x <= sqrt 2 / 2 \/ sqrt 2 <= x -> tau = Rpower 2 (- 62.7923).
+Proof.
+case => xB1.
+  have xRB : x <= R_DN (sqrt 2 / 2).
+    have <- : R_DN x = x by apply: round_generic.
+    by apply: round_le; lra.
+  have DN_UP_hsqrt2 : R_DN (sqrt 2 / 2) < sqrt 2 / 2 < R_UP (sqrt 2 / 2).
+    by apply/round_DN_UP_lt/hsqrt2NF.
+  by rewrite /tau hsqrt2E sqrt2E; case: Rlt_bool_spec => //= H; lra.
+have xRB : R_UP (sqrt 2) <= x.
+  have <- : R_UP x = x by apply: round_generic.
+  by apply: round_le; lra.
+have DN_UP_sqrt2 : R_DN (sqrt 2) < sqrt 2 < R_UP (sqrt 2).
+  by apply/round_DN_UP_lt/sqrt2NF.
+rewrite /tau hsqrt2E sqrt2E; case: Rlt_bool_spec => //= H.
+by case: Rlt_bool_spec => /= H1; lra.
+Qed.
+
 Definition u' := RND (eh + RND (el - e * eh)).
 Definition v' := RND (eh + RND (el + e * eh)).
 
@@ -329,8 +419,8 @@ have [ylhB|ylhB] := Rle_lt_dec (pow (- 969)) (Rabs (y * lh)).
     have := @err_lem5 (refl_equal _) rnd valid_rnd x y xF xB yF.
     rewrite /rh /rl /lh /ll; case: log1 => xh xl; case: mul1 => xh1 xl1 H H1 H2.
     by apply: H.
-  have rhF : format rh by admit.
-  have rlF : format rl by admit.
+  have rhF := rhF.
+  have rlF := rlF.
   have rhB2 : pow (-970) <= Rabs rh by lra. 
     have [ehelB ehelB1 ehB] :
       [/\    
@@ -341,6 +431,9 @@ have [ylhB|ylhB] := Rle_lt_dec (pow (- 969)) (Rabs (y * lh)).
     have := @err_lem7 (refl_equal _) rnd valid_rnd choice 
                rh rl rhF rlF rhB2 rhB rlrhB rlB.
     by rewrite /eh /el; case: exp1 => xh xl.
+  have elB1 : Rabs el <= Rpower 2 (- 49.2999) * Rabs eh.
+    apply/Rcomplements.Rle_div_l; first by interval.
+    by rewrite /Rdiv -Rabs_inv -Rabs_mult.
   set r := rh + rl in rhrlB rhrllnB rhrllnB1 ehelB.
   have ehelrB : Rabs (eh + el - exp r) < Rpower 2 (- 63.78597) *  exp r.
     apply/Rcomplements.Rlt_div_l; first by apply: exp_pos.
@@ -402,6 +495,15 @@ have [ylhB|ylhB] := Rle_lt_dec (pow (- 969)) (Rabs (y * lh)).
                           Rabs (exp (Rpower 2 (- 63.799)) - 1) <= _).
       lra.
     by interval with (i_prec 100).
+  have ehelxyB3 : Rabs (eh + el - Rpower x y) <= mu * exp r.
+    have [xB1|xB1]:= Rle_lt_dec x (sqrt 2 / 2).
+      rewrite muNI; last by lra.
+      by apply: ehelxyB2; rewrite -hsqrt2sqrt; lra.
+    have [xB2|xB2]:= Rle_lt_dec (sqrt 2) x.
+      rewrite muNI; last by lra.
+      by apply: ehelxyB2; rewrite -hsqrt2sqrt; lra.
+    rewrite muI; last by lra.
+    by apply: ehelxyB1; lra.
   have erB : exp r < (1 + Rpower 2 (- 49.2999)) / (1 - Rpower 2 (- 63.78597)) *
                      Rabs eh.
     apply: Rlt_le_trans
@@ -420,11 +522,8 @@ have [ylhB|ylhB] := Rle_lt_dec (pow (- 969)) (Rabs (y * lh)).
       by apply: exp_pos.
     rewrite [_/_]Rmult_comm Rmult_assoc.
     apply: Rmult_le_compat_l; first by interval.
-    suff : Rabs el <= Rpower 2 (- 49.2999) * Rabs eh.
-      by clear; split_Rabs; lra.
-    apply/Rcomplements.Rle_div_l; first by interval.
-    by rewrite /Rdiv -Rabs_inv -Rabs_mult.
-  have ehelxyB3 : Rabs ((eh + el) - Rpower x y) <= Rpower 2 (- 57.5604) * eh.
+    by clear -elB1; split_Rabs; lra.
+  have ehelxyB4 : Rabs ((eh + el) - Rpower x y) <= Rpower 2 (- 57.5604) * eh.
     apply: Rle_trans ehelxyB1 _.
     apply: Rle_trans (_ : Rpower 2 (-57.5605) * 
                           (1 + Rpower 2 (-49.2999)) / (1 - Rpower 2 (-63.78597)) 
@@ -433,7 +532,7 @@ have [ylhB|ylhB] := Rle_lt_dec (pow (- 969)) (Rabs (y * lh)).
       by rewrite -Rmult_assoc; lra.
     rewrite Rabs_pos_eq; last by interval.
     by apply: Rmult_le_compat_r; interval.
-  have ehelxyB4 : ~ / sqrt 2 < x < sqrt 2 -> 
+  have ehelxyB5 : ~ / sqrt 2 < x < sqrt 2 -> 
                 Rabs ((eh + el) - Rpower x y) <= Rpower 2 (- 62.7923) * eh.
     move=> /ehelxyB2 {}ehelxyB1.
     apply: Rle_trans ehelxyB1 _.
@@ -444,6 +543,107 @@ have [ylhB|ylhB] := Rle_lt_dec (pow (- 969)) (Rabs (y * lh)).
       by rewrite -Rmult_assoc; lra.
     rewrite Rabs_pos_eq; last by interval.
     by apply: Rmult_le_compat_r; interval.
+  have ehelxyB6 : Rabs ((eh + el) - Rpower x y) <= tau * eh.
+    have [xB1|xB1]:= Rle_lt_dec x (sqrt 2 / 2).
+      rewrite tauNI; last by lra.
+      by apply: ehelxyB5; rewrite -hsqrt2sqrt; lra.
+    have [xB2|xB2]:= Rle_lt_dec (sqrt 2) x.
+      rewrite tauNI; last by lra.
+      by apply: ehelxyB5; rewrite -hsqrt2sqrt; lra.
+    rewrite tauI; last by lra.
+    by apply: ehelxyB4; lra.
+  pose u1' := el - e * eh.
+  pose v1' := el + e * eh.
+  have eB : tau + pow (- 83) <= e <= 2 * tau.
+    have [xB1|xB1]:= Rle_lt_dec x (sqrt 2 / 2).
+      rewrite eNI ?tauNI -?e2E; try by lra.
+      by interval.
+    have [xB2|xB2]:= Rle_lt_dec (sqrt 2) x.
+      rewrite tauNI; last by lra.
+      rewrite eNI ?tauNI -?e2E; try by lra.
+      by interval.
+    rewrite eI ?tauI -?e1E; try by lra.
+    by interval with (i_prec 100).
+  suff : u' <= RND (Rpower x y) <= v' by lra.
+  split.
+    apply: Rle_trans (_ : RND (eh + el - tau * eh) <= _); last first.
+      apply: round_le.
+      by clear -ehelxyB6; split_Rabs; lra.
+    apply: round_le.
+    suff : RND (u1') <= el - tau * eh by rewrite /u1'; lra.
+    apply: Rle_trans (_ : u1' + ulp u1' <= _).
+      suff : Rabs (RND u1' - u1') <= ulp u1'.
+        by clear; split_Rabs; lra.
+      by apply: error_le_ulp.
+    suff : ulp u1' <= (e - tau) * eh by rewrite /u1'; lra.
+    apply: Rle_trans (_ : pow (- 83) * eh <= _); last first.
+      apply: Rmult_le_compat_r; first by interval.
+      by lra.
+    have u1'B : Rabs u1' <= Rpower 2 (- 49.2905) * eh.
+      apply: Rle_trans (_ : Rabs el + e * eh <= _).
+        suff : 0 <= e * eh.
+          by rewrite /u1'; clear; split_Rabs; lra.
+        by rewrite /e; do 2 case: Rlt_bool => //=; interval.
+      apply: Rle_trans (_ : (Rpower 2 (- 49.2999) + 2 * tau) * eh <= _); 
+          last first.
+        apply: Rmult_le_compat_r; first by interval.
+        by rewrite /tau; do 2 case: Rlt_bool => //=; interval.
+      have -> : (Rpower 2 (-49.2999) + 2 * tau) * eh = 
+                 Rpower 2 (-49.2999) * eh + 2 * tau * eh by lra.
+      apply: Rplus_le_compat.
+        by rewrite -[eh]Rabs_pos_eq; [lra|interval].
+      by apply: Rmult_le_compat_r; [interval | lra].
+    have [pLu1'|u1'Lp] := Rle_dec (pow (emin + p - 1)) (Rabs u1'). 
+      apply: Rle_trans (_ : Rabs u1' * pow (1 - p) <= _).
+        by apply: ulp_FLT_le.
+      apply: Rle_trans (_ : Rpower 2 (-49.2905) * eh * pow (1 - p) <= _).
+        by apply: Rmult_le_compat_r; first by interval.
+      rewrite Rmult_comm -Rmult_assoc.
+      apply: Rmult_le_compat_r; first by interval.
+      by interval.
+    rewrite ulp_subnormal //; first by interval with (i_prec 100).
+    rewrite [(_ + _)%Z]/=; rewrite [(_ - _)%Z]/= in u1'Lp.
+    apply: Rle_lt_trans (_ : pow (- 1022) < _); first by lra.
+    by apply: bpow_lt; lia.
+  apply: Rle_trans (_ : RND (eh + el + tau * eh) <= _).
+    apply: round_le.
+    by clear -ehelxyB6; split_Rabs; lra.
+  apply: round_le.
+  suff : el + tau * eh <= RND (v1') by rewrite /v1'; lra.
+  apply: Rle_trans (_ : v1' - ulp v1' <= _); last first.
+    suff : Rabs (RND v1' - v1') <= ulp v1'.
+      by clear; split_Rabs; lra.
+    by apply: error_le_ulp.
+  suff : ulp v1' <= (e - tau) * eh by rewrite /v1'; lra.
+  apply: Rle_trans (_ : pow (- 83) * eh <= _); last first.
+    apply: Rmult_le_compat_r; first by interval.
+    by lra.
+  have v1'B : Rabs v1' <= Rpower 2 (- 49.2905) * eh.
+    apply: Rle_trans (_ : Rabs el + e * eh <= _).
+      suff : 0 <= e * eh.
+        by rewrite /v1'; clear; split_Rabs; lra.
+      by rewrite /e; do 2 case: Rlt_bool => //=; interval.
+    apply: Rle_trans (_ : (Rpower 2 (- 49.2999) + 2 * tau) * eh <= _); 
+        last first.
+      apply: Rmult_le_compat_r; first by interval.
+      by rewrite /tau; do 2 case: Rlt_bool => //=; interval.
+    have -> : (Rpower 2 (-49.2999) + 2 * tau) * eh = 
+                Rpower 2 (-49.2999) * eh + 2 * tau * eh by lra.
+    apply: Rplus_le_compat.
+      by rewrite -[eh]Rabs_pos_eq; [lra|interval].
+    by apply: Rmult_le_compat_r; [interval | lra].
+  have [pLv1'|v1'Lp] := Rle_dec (pow (emin + p - 1)) (Rabs v1'). 
+    apply: Rle_trans (_ : Rabs v1' * pow (1 - p) <= _).
+      by apply: ulp_FLT_le.
+    apply: Rle_trans (_ : Rpower 2 (-49.2905) * eh * pow (1 - p) <= _).
+      by apply: Rmult_le_compat_r; first by interval.
+    rewrite Rmult_comm -Rmult_assoc.
+    apply: Rmult_le_compat_r; first by interval.
+    by interval.
+  rewrite ulp_subnormal //; first by interval with (i_prec 100).
+  rewrite [(_ + _)%Z]/=; rewrite [(_ - _)%Z]/= in v1'Lp.
+  apply: Rle_lt_trans (_ : pow (- 1022) < _); first by lra.
+  by apply: bpow_lt; lia.
 Admitted.
 
 End Prelim.
