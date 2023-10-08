@@ -285,10 +285,6 @@ Lemma r2B_phase1_thm1 : r2 < rh -> u' = v' -> u' = RND (Rpower x y).
 Proof.
 Admitted.
 
-(* Move to prelim *)
-
-Lemma format_pos_alpha_omega z : format z -> 0 < z -> alpha <= z.
-
 (* Appendix A-N *)
 Lemma r1r2B_phase1_thm1 : r1 <= rh <= r2 -> u' = v' -> u' = RND (Rpower x y).
 Proof.
@@ -336,9 +332,12 @@ have [ylhB|ylhB] := Rle_lt_dec (pow (- 969)) (Rabs (y * lh)).
   have rhF : format rh by admit.
   have rlF : format rl by admit.
   have rhB2 : pow (-970) <= Rabs rh by lra. 
-    have [ehelB ehelB1] :   
-      Rabs ((eh + el) / exp (rh + rl) - 1) < Rpower 2 (- 63.78597) /\ 
-      Rabs (el / eh) <= Rpower 2 (- 49.2999).
+    have [ehelB ehelB1 ehB] :
+      [/\    
+        Rabs ((eh + el) / exp (rh + rl) - 1) < Rpower 2 (- 63.78597), 
+        Rabs (el / eh) <= Rpower 2 (- 49.2999) &
+        pow (- 991) <= eh
+      ].
     have := @err_lem7 (refl_equal _) rnd valid_rnd choice 
                rh rl rhF rlF rhB2 rhB rlrhB rlB.
     by rewrite /eh /el; case: exp1 => xh xl.
@@ -403,6 +402,48 @@ have [ylhB|ylhB] := Rle_lt_dec (pow (- 969)) (Rabs (y * lh)).
                           Rabs (exp (Rpower 2 (- 63.799)) - 1) <= _).
       lra.
     by interval with (i_prec 100).
+  have erB : exp r < (1 + Rpower 2 (- 49.2999)) / (1 - Rpower 2 (- 63.78597)) *
+                     Rabs eh.
+    apply: Rlt_le_trans
+       (_ : / (1 - Rpower 2 (- 63.78597 )) * Rabs (eh + el) <= _).
+      clear -ehelB.
+      rewrite Rmult_comm.
+      apply/Rcomplements.Rlt_div_r; first by interval.
+      suff : Rabs ((eh + el) - exp r) < Rpower 2 (-63.78597) * exp r.
+        by split_Rabs; lra.
+      apply/Rcomplements.Rlt_div_l; first by apply: exp_pos.
+      rewrite -{2}[exp r]Rabs_pos_eq; last by apply/Rlt_le/exp_pos.
+      rewrite /Rdiv -Rabs_inv -Rabs_mult.
+      suff <- : (eh + el) / exp r - 1 = (eh + el - exp r) * / exp r by [].
+      field.
+      suff : 0 < exp r by lra.
+      by apply: exp_pos.
+    rewrite [_/_]Rmult_comm Rmult_assoc.
+    apply: Rmult_le_compat_l; first by interval.
+    suff : Rabs el <= Rpower 2 (- 49.2999) * Rabs eh.
+      by clear; split_Rabs; lra.
+    apply/Rcomplements.Rle_div_l; first by interval.
+    by rewrite /Rdiv -Rabs_inv -Rabs_mult.
+  have ehelxyB3 : Rabs ((eh + el) - Rpower x y) <= Rpower 2 (- 57.5604) * eh.
+    apply: Rle_trans ehelxyB1 _.
+    apply: Rle_trans (_ : Rpower 2 (-57.5605) * 
+                          (1 + Rpower 2 (-49.2999)) / (1 - Rpower 2 (-63.78597)) 
+                          * Rabs eh <= _).
+      rewrite !Rmult_assoc; apply: Rmult_le_compat_l; first by interval.
+      by rewrite -Rmult_assoc; lra.
+    rewrite Rabs_pos_eq; last by interval.
+    by apply: Rmult_le_compat_r; interval.
+  have ehelxyB4 : ~ / sqrt 2 < x < sqrt 2 -> 
+                Rabs ((eh + el) - Rpower x y) <= Rpower 2 (- 62.7923) * eh.
+    move=> /ehelxyB2 {}ehelxyB1.
+    apply: Rle_trans ehelxyB1 _.
+    apply: Rle_trans (_ : Rpower 2 (- 62.7924) * 
+                          (1 + Rpower 2 (-49.2999)) / (1 - Rpower 2 (-63.78597)) 
+                          * Rabs eh <= _).
+      rewrite !Rmult_assoc; apply: Rmult_le_compat_l; first by interval.
+      by rewrite -Rmult_assoc; lra.
+    rewrite Rabs_pos_eq; last by interval.
+    by apply: Rmult_le_compat_r; interval.
 Admitted.
 
 End Prelim.
@@ -470,7 +511,7 @@ Definition phase1 (x y : R) :=
 (* This is theorem 1 *)
 
 Lemma phase1_thn1 x y r :
-  format x -> format y -> 0 < x -> 
+  format x -> format y -> alpha <= x <= omega -> 
   phase1 x y = some r -> r = RND (Rpower x y). 
 Proof.
 move=> xB yB x_pos; rewrite /phase1.

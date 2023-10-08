@@ -1657,6 +1657,15 @@ apply: Rlt_le_trans (_ : pow (mag beta l) <= _).
 by apply: bpow_le; lia.
 Qed.
 
+Lemma ehB : r1 <= rh <= r2 -> pow (- 991) <= eh.
+Proof.
+move=> rhB1.
+have <- : RND (pow (- 991)) = pow (- 991).
+  apply: round_generic.
+  by apply: generic_format_bpow.
+by apply/round_le/powehLB.
+Qed.
+
 Lemma elehB : r1 <= rh <= r2 -> Rabs (el / eh) <= Rpower 2 (- 49.2999).
 Proof.
 move=> rhB1.
@@ -1808,8 +1817,10 @@ Lemma err_lem7 rh rl :
   -0x1.577453f1799a6p+9 <= rh <= 0x1.62e42e709a95bp+9 ->
   Rabs (rl / rh) <= Rpower 2 (- 23.8899) -> Rabs rl <= Rpower 2 (- 14.4187) ->
   let 'DWR eh el := exp1 (DWR rh rl) in 
-  Rabs ((eh + el) / exp (rh + rl) - 1) < Rpower 2 (- 63.78597) /\ 
-  Rabs (el / eh) <= Rpower 2 (- 49.2999).
+  [/\
+    Rabs ((eh + el) / exp (rh + rl) - 1) < Rpower 2 (- 63.78597), 
+    Rabs (el / eh) <= Rpower 2 (- 49.2999) &
+    pow (- 991) <= eh].
 Proof.
 move=> rhF rlF rhB rhB1 rlrhB rlB.
 case E: exp1 => [eh el].
@@ -1856,14 +1867,15 @@ have -> : el = algoExp1.el rnd rh rl choice.
     by case: nth E1 => ? ? [].
   by congr (RND (_ * _) * _ - RND (RND (_ * _) * _)).
 split.
-  rewrite ehelE1 //; try lra.
+- rewrite ehelE1 //; try lra.
   have -> : exp (rh + rl) * (1 + e_exp rnd rh rl choice) / exp (rh + rl) - 1 =
              e_exp rnd rh rl choice.
     field.
     have : 0 < exp (rh + rl) by apply: exp_pos.
     by lra.
   by apply: e_expB => //; lra.
-by apply: elehB => //; lra.
+- by apply: elehB => //; lra.
+by apply: ehB.
 Qed.
 
 End algoExp1.
