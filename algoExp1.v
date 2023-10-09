@@ -1788,9 +1788,9 @@ let r0 := -0x1.74910ee4e8a27p+9 in
 let r1 := -0x1.577453f1799a6p+9 in
 let r2 := 0x1.62e42e709a95bp+9 in
 let r3 := 0x1.62e4316ea5df9p+9 in
-if r3 <? rh then DWR omega omega else 
-if rh <? r0 then DWR alpha alpha else 
-if (rh <? r1) || (r2 <? rh) then DWR Nan Nan else
+if r3 <? rh then some (DWR omega omega) else 
+if rh <? r0 then None else 
+if (rh <? r1) || (r2 <? rh) then some (DWR Nan Nan) else
 let INVLN2 := 0x1.71547652b82fep+12 in
 let k := Znearest choice (RND (rh * INVLN2)) in 
 let LN2H := 0x1.62e42fefa39efp-13 in 
@@ -1810,20 +1810,35 @@ let 'DWR qh ql := q1 z in
 let 'DWR h s := exactMul ph qh in
 let t := RND (pl * qh + s) in 
 let l := RND (ph * ql + t) in 
-DWR (RND (pow e * h)) (RND (pow e * l)).
+some (DWR (RND (pow e * h)) (RND (pow e * l))).
 
-Lemma err_lem7 rh rl :
+Lemma exp1_good_range rh rl :
+  -0x1.577453f1799a6p+9 <= rh <= 0x1.62e42e709a95bp+9 ->
+  ~ (exp1 (DWR rh rl) = None).
+Proof.
+rewrite /exp1.
+case: Rlt_bool_spec => //.
+case: Rlt_bool_spec; first by lra.
+case: Rlt_bool_spec => //.
+case: Rlt_bool_spec => //=.
+case: nth => h3 l3 /=.
+by case: nth => h4 l4.
+Qed.
+
+Lemma err_lem7 rh rl eh el :
   format rh -> format rl -> pow (- 970) <= Rabs rh ->
   -0x1.577453f1799a6p+9 <= rh <= 0x1.62e42e709a95bp+9 ->
   Rabs (rl / rh) <= Rpower 2 (- 23.8899) -> Rabs rl <= Rpower 2 (- 14.4187) ->
-  let 'DWR eh el := exp1 (DWR rh rl) in 
+  exp1 (DWR rh rl) = some (DWR eh el) -> 
   [/\
     Rabs ((eh + el) / exp (rh + rl) - 1) < Rpower 2 (- 63.78597), 
     Rabs (el / eh) <= Rpower 2 (- 49.2999) &
     pow (- 991) <= eh].
 Proof.
 move=> rhF rlF rhB rhB1 rlrhB rlB.
-case E: exp1 => [eh el].
+case E: exp1 => [[xh xl]|]; last by discriminate.
+case => xhE xlE.
+rewrite {xh}xhE in E; rewrite {xl}xlE in E.
 have rhB2 : pow (-970) <= Rabs rh <= 709.79.
   by split; [lra | interval].
 have rhrlB : Rabs (rh + rl) <= 709.79 by interval.

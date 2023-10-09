@@ -209,8 +209,8 @@ Proof. by apply: generic_format_round. Qed.
 Definition rlF : format rl.
 Proof. by apply: generic_format_round. Qed.
 
-Definition eh := let 'DWR eh _  := exp1 (DWR rh rl) in eh.
-Definition el := let 'DWR _  el := exp1 (DWR rh rl) in el.
+Definition eh := if exp1 (DWR rh rl) is some (DWR eh _) then eh else 0.
+Definition el := if exp1 (DWR rh rl) is some (DWR _ el) then el else 0.
 
 Lemma sqrt2NF : ~ format (sqrt 2).
 Proof.
@@ -428,9 +428,10 @@ have [ylhB|ylhB] := Rle_lt_dec (pow (- 969)) (Rabs (y * lh)).
         Rabs (el / eh) <= Rpower 2 (- 49.2999) &
         pow (- 991) <= eh
       ].
+    have := @exp1_good_range rnd choice rh rl rhB. 
     have := @err_lem7 (refl_equal _) rnd valid_rnd choice 
-               rh rl rhF rlF rhB2 rhB rlrhB rlB.
-    by rewrite /eh /el; case: exp1 => xh xl.
+               rh rl _ _ rhF rlF rhB2 rhB rlrhB rlB.
+    by rewrite /eh /el; case: exp1 => //[] [xh xl] /(_ xh xl (refl_equal _)).
   have elB1 : Rabs el <= Rpower 2 (- 49.2999) * Rabs eh.
     apply/Rcomplements.Rle_div_l; first by interval.
     by rewrite /Rdiv -Rabs_inv -Rabs_mult.
@@ -859,7 +860,6 @@ Local Notation ulp := (ulp beta fexp).
 
 (* Algo Phase 1 *)
 
-Definition Nan := omega + 1.
 Local Notation " x <? y " := (Rlt_bool x y).
 Local Notation FAIL := None.
 Local Notation R_UP := (round beta fexp Zceil).
@@ -869,13 +869,14 @@ Local Notation " x =? y " := (Req_bool x y).
 Definition phase1 (x y : R) := 
   let l := log1 x in 
   let r := mul1 l y in 
-  let 'DWR eh el := exp1 r in 
-  let e := 
-    if (0x1.6a09e667f3bccp-1 <? x) && (x <? 0x1.6a09e667f3bcdp+0) then 
-      0x1.5b4a6bd3fff4ap-58 else 0x1.27b3b3b4bb6dfp-63 in 
-  let u := RND (eh + RND (el - e * eh)) in 
-  let v := RND (eh + RND (el + e * eh)) in
-  if (u =? v) then some u else FAIL.
+  if exp1 r is some (DWR eh el) then
+    let e := 
+      if (0x1.6a09e667f3bccp-1 <? x) && (x <? 0x1.6a09e667f3bcdp+0) then 
+        0x1.5b4a6bd3fff4ap-58 else 0x1.27b3b3b4bb6dfp-63 in 
+    let u := RND (eh + RND (el - e * eh)) in 
+    let v := RND (eh + RND (el + e * eh)) in
+      if (u =? v) then some u else FAIL
+  else FAIL.
 
 (* This is theorem 1 *)
 
@@ -894,11 +895,15 @@ have rhE : rh = algoPhase1.rh rnd x y.
   by rewrite /algoPhase1.rh -llE -lhE; case: mul1 E1 => ? ? [].
 have rlE : rl = algoPhase1.rl rnd x y.
   by rewrite /algoPhase1.rl -llE -lhE; case: mul1 E1 => ? ? [].
-case E2 : exp1 => [eh el].
+case E2 : exp1 => [[eh el]|]; last by discriminate.
 have ehE : eh = algoPhase1.eh rnd choice x y.
-  by rewrite /algoPhase1.eh -rhE -rlE; case: exp1 E2 => ? ? [].
+  rewrite /algoPhase1.eh -rhE -rlE; case: exp1 E2 => [[xh xl]|];
+    last by discriminate.
+  by case.
 have elE : el = algoPhase1.el rnd choice x y.
-  by rewrite /algoPhase1.el -rhE -rlE; case: exp1 E2 => ? ? [].
+  rewrite /algoPhase1.el -rhE -rlE; case: exp1 E2 => [[xh xl]|];
+    last by discriminate.
+  by case.
 set e := if _ && _ then _ else _.
 have eE : e = algoPhase1.e x by [].
 case: Req_bool_spec => //.
