@@ -399,14 +399,14 @@ have yhB : Rabs (y * lh) <= 709.7827.
   apply: is_imul_bound_pow yhE m1B.
   apply: Rle_trans (_ : 709.7827 <= _); first by rewrite /= /Z.pow_pos /=; lra.
   by lra.
+have [llB lhllB lhllB1] : 
+        [/\ Rabs ll <= Rpower 2 (-23.89) * Rabs lh, 
+            Rabs (lh + ll - ln x) <= Rpower 2 (-67.0544) * Rabs (ln x) & 
+            ~ / sqrt 2 < x < sqrt 2 -> 
+            Rabs (lh + ll - ln x) <= Rpower 2 (-73.527) * Rabs (ln x)].
+  have := @err_lem4 (refl_equal _) rnd valid_rnd x xF xB.
+  by rewrite /lh /ll; case: log1.
 have [ylhB|ylhB] := Rle_lt_dec (pow (- 969)) (Rabs (y * lh)).
-  have [llB lhllB lhllB1] : 
-          [/\ Rabs ll <= Rpower 2 (-23.89) * Rabs lh, 
-              Rabs (lh + ll - ln x) <= Rpower 2 (-67.0544) * Rabs (ln x) & 
-              ~ / sqrt 2 < x < sqrt 2 -> 
-              Rabs (lh + ll - ln x) <= Rpower 2 (-73.527) * Rabs (ln x)].
-    have := @err_lem4 (refl_equal _) rnd valid_rnd x xF xB.
-    by rewrite /lh /ll; case: log1.
   have [rhB1 rlB rlrhB rhrlB [rhrllnB rhrllnB1]] :
         [/\ pow (-970) <= Rabs rh <= 709.79,
             Rabs rl <= Rpower 2 (-14.4187), 
@@ -644,6 +644,175 @@ have [ylhB|ylhB] := Rle_lt_dec (pow (- 969)) (Rabs (y * lh)).
   rewrite [(_ + _)%Z]/=; rewrite [(_ - _)%Z]/= in v1'Lp.
   apply: Rle_lt_trans (_ : pow (- 1022) < _); first by lra.
   by apply: bpow_lt; lia.
+have rhB1 : Rabs rh <= pow (- 969).
+  apply: Rabs_round_le => //.
+  by apply: Rlt_le.
+have rlB : Rabs rl <= pow (- 992).
+  rewrite /rl [Rabs _]/=.
+  set s := y * lh - rh.
+  have sB : Rabs (RND s) <= pow (- 1022).
+    apply: Rabs_round_le => //.
+    have -> : Rabs s = Rabs (rh - y * lh).
+      by clear; rewrite /s; split_Rabs; lra.
+    apply: Rle_trans (_ : ulp (y * lh) <= _); first by apply: error_le_ulp.
+    by apply: bound_ulp.
+  have yll : Rabs (y * ll) < Rpower 2 (- 992.89).
+    rewrite Rabs_mult.
+    apply: Rle_lt_trans (_ : Rabs y * (Rpower 2 (-23.89) * Rabs lh) < _).
+      by apply: Rmult_le_compat_l => //; apply: Rabs_pos.
+    rewrite Rmult_comm Rmult_assoc -Rabs_mult [lh * _]Rmult_comm.
+    have -> : -992.89 = (- 23.89) + (-969) by lra.
+    rewrite Rpower_plus.
+    apply: Rmult_lt_compat_l => //; first by interval.
+    by rewrite -pow_Rpower.
+  have ylsB : Rabs (y * ll + RND s) <= Rpower 2 (- 992.88).
+    apply: Rle_trans (_ : Rpower 2 (- 992.89) + pow (- 1022) <= _);
+        last by interval.
+    by boundDMI; first by lra.
+  rewrite -[round _ _ _ _]/(RND _) -[round _ _ _ s]/(RND _).
+  apply: Rle_trans (_ : Rpower 2 (- 992.88) * (1 + pow (- 52)) <= _);
+      last by interval.
+  have [pLy|yLp] := 
+      Rle_dec (bpow beta (emin + p - 1)) (Rabs (y * ll + RND s)). 
+    apply: Rle_trans (_ : Rabs (y * ll + RND s) * (1 + pow (- 52)) <= _).
+      by apply/Rlt_le/relative_error_FLT_alt.
+    by apply: Rmult_le_compat_r; first by interval.
+  apply: Rle_trans (_ : pow (emin + p - 1) <= _); last by interval.
+  apply: Rabs_round_le  => //.
+  by rewrite -[bpow _ _]/(pow _); lra.
+pose k := Znearest choice (RND (rh * INVLN2)).
+have k_eq0 : k = 0%Z.
+  apply: Znearest_imp.
+  apply: Rle_lt_trans (_ : pow (- 2) < _); last by interval.
+  rewrite !Rsimp01.
+  apply: Rabs_round_le => //.
+  rewrite Rabs_mult.
+  set xx := Rabs _ in rhB1 *.
+  by interval.
+pose zh := RND (rh - IZR k * LN2H).
+have zhE : zh = rh.
+  by rewrite /zh k_eq0 !Rsimp01 round_generic //; apply: rhF.
+pose zl := RND (rl - IZR k * LN2L).
+have zlE : zl = rl.
+  by rewrite /zl k_eq0 !Rsimp01 round_generic //; apply: rlF.
+pose z := RND (zh + zl).
+have zE : z = RND (rh + rl) by rewrite /z zhE zlE.
+have zB : Rabs z <= Rpower 2 (- 968.9).
+  rewrite zE.
+  have [pLy|yLp] := 
+      Rle_dec (bpow beta (emin + p - 1)) (Rabs (rh + rl)). 
+    apply: Rle_trans (_ : Rabs (rh + rl) * (1 + pow (- 52)) <= _).
+      by apply/Rlt_le/relative_error_FLT_alt.
+    by interval.
+  apply: Rle_trans (_ : pow (emin + p - 1) <= _); last by interval.
+  apply: Rabs_round_le  => //.
+  by rewrite -[bpow _ _]/(pow _); lra.
+pose e := (k / 2 ^ 12)%Z.
+have eE : e = 0%Z by rewrite /e k_eq0.
+pose i2 := ((k - e * 2 ^ 12) / 2 ^ 6)%Z.
+have i2E : i2 = 0%Z by rewrite /i2 k_eq0 eE.
+pose i1 := ((k - e * 2 ^ 12 - i2 * 2 ^ 6))%Z.
+have i1E : i1 = 0%Z by rewrite /i1 k_eq0 eE i2E.
+pose h2 := (nth (0,0) T1 (Z.to_nat i2)).1.
+have h2E : h2 = 1 by rewrite /h2 i2E.
+pose l2 := (nth (0,0) T1 (Z.to_nat i2)).2.
+have l2E : l2 = 0 by rewrite /l2 i2E.
+pose h1 := (nth (0,0) T2 (Z.to_nat i1)).1.
+have h1E : h1 = 1 by rewrite /h1 i1E.
+pose l1 := (nth (0,0) T2 (Z.to_nat i1)).2.
+have l1E : l1 = 0 by rewrite /l1 i1E.
+pose ph := let 'DWR ph s := exactMul h1 h2 in ph.
+have phE : ph = 1.
+  rewrite /ph h1E h2E /exactMul /= ?Rsimp01.
+  by apply: round_generic; apply: format1.
+pose s := let 'DWR ph s := exactMul h1 h2 in s.
+have sE : s = 0.
+  rewrite /s h1E h2E /exactMul /= ?Rsimp01.
+  rewrite [round _ _ _ 1]round_generic ?Rsimp01.
+    by apply: round_0.
+  by apply: format1.
+pose t := RND (l1 * h2 + s).
+have tE : t = 0 by rewrite /t l1E h2E sE !Rsimp01 round_0.
+pose pl := RND (h1 * l2 + t).
+have plE : pl = 0 by rewrite /pl h1E l2E tE !Rsimp01 round_0.
+pose qh := let 'DWR qh ql := q1 z in qh.
+pose ql := let 'DWR qh ql := q1 z in ql.
+pose h := let 'DWR h s := exactMul ph qh in h.
+have hE : h = qh.
+  by rewrite /h phE /= !Rsimp01 round_generic //; apply: generic_format_round.
+pose s' := let 'DWR h s := exactMul ph qh in s.
+have s'E : s' = 0.
+  rewrite /s' /= phE !Rsimp01 [round _ _ _ qh] round_generic.
+    by rewrite !Rsimp01 round_0.
+  by apply: generic_format_round.
+pose t' := RND (pl * qh + s').
+have t'E : t' = 0 by rewrite /t' s'E plE !Rsimp01 round_0.
+pose l' := RND (ph * ql + t').
+have l'E : l' = ql.
+  rewrite /l' t'E phE !Rsimp01 round_generic //.
+  by apply: generic_format_round.
+have ehE : eh = qh.
+  rewrite /eh /exp1 -/k.
+  case: Rlt_bool_spec => [|_].
+    have : rh <= 0x1.62e4316ea5df9p9%xR by rewrite /r1 /r2 in rhB; lra.
+    by lra.
+  case: Rlt_bool_spec => [|_].
+    have : (-0x1.74910ee4e8a27p9)%xR  <= rh by rewrite /r1 /r2 in rhB; lra.
+    by lra.
+  case: Rlt_bool_spec => [|_].
+    have : (-0x1.577453f1799a6p9)%xR <= rh <= rh by rewrite /r1 /r2 in rhB; lra.
+    by lra.
+  rewrite [false || _]/=.
+  case: Rlt_bool_spec => [|_].
+    have : rh <= 0x1.62e42e709a95bp9%xR by rewrite /r1 /r2 in rhB; lra.
+    by lra.
+  case E : nth => [xx yy].
+  have -> : xx = h2 by rewrite /h2; case: nth E => /= ? ? [].
+  have -> : yy = l2 by rewrite /l2; case: nth E => /= ? ? [].
+  case E1 : nth => [xx1 yy1].
+  have -> : xx1 = h1 by rewrite /h1; case: nth E1 => /= ? ? [].
+  have -> : yy1 = l1 by rewrite /l1; case: nth E1 => /= ? ? [].
+  case E2 : exactMul => [xx2 yy2].
+  have -> : xx2 = ph by rewrite /ph; case: exactMul E2 => /= ? ? [].
+  have -> : yy2 = s by rewrite /s; case: exactMul E2 => /= ? ? [].
+  case E3 : q1 => [xx3 yy3].
+  have -> : xx3 = qh by rewrite /qh; case: q1 E3 => /= ? ? [].
+  have -> : yy3 = ql by rewrite /ql; case: q1 E3 => /= ? ? [].
+  case E4 : exactMul => [xx4 yy4].
+  have -> : xx4 = h by rewrite /h; case: exactMul E4 => /= ? ? [].
+  rewrite k_eq0 pow0E !Rsimp01 round_generic //.
+  by apply: generic_format_round.
+have elE : el = ql.
+  rewrite /el /exp1 -/k.
+  case: Rlt_bool_spec => [|_].
+    have : rh <= 0x1.62e4316ea5df9p9%xR by rewrite /r1 /r2 in rhB; lra.
+    by lra.
+  case: Rlt_bool_spec => [|_].
+    have : (-0x1.74910ee4e8a27p9)%xR  <= rh by rewrite /r1 /r2 in rhB; lra.
+    by lra.
+  case: Rlt_bool_spec => [|_].
+    have : (-0x1.577453f1799a6p9)%xR <= rh <= rh by rewrite /r1 /r2 in rhB; lra.
+    by lra.
+  rewrite [false || _]/=.
+  case: Rlt_bool_spec => [|_].
+    have : rh <= 0x1.62e42e709a95bp9%xR by rewrite /r1 /r2 in rhB; lra.
+    by lra.
+  case E : nth => [xx yy].
+  have -> : xx = h2 by rewrite /h2; case: nth E => /= ? ? [].
+  have -> : yy = l2 by rewrite /l2; case: nth E => /= ? ? [].
+  case E1 : nth => [xx1 yy1].
+  have -> : xx1 = h1 by rewrite /h1; case: nth E1 => /= ? ? [].
+  have -> : yy1 = l1 by rewrite /l1; case: nth E1 => /= ? ? [].
+  case E2 : exactMul => [xx2 yy2].
+  have -> : xx2 = ph by rewrite /ph; case: exactMul E2 => /= ? ? [].
+  have -> : yy2 = s by rewrite /s; case: exactMul E2 => /= ? ? [].
+  case E3 : q1 => [xx3 yy3].
+  have -> : xx3 = qh by rewrite /qh; case: q1 E3 => /= ? ? [].
+  have -> : yy3 = ql by rewrite /ql; case: q1 E3 => /= ? ? [].
+  case E4 : exactMul => [xx4 yy4].
+  have -> : yy4 = s' by rewrite /s'; case: exactMul E4 => /= ? ? [].
+  rewrite k_eq0 pow0E !Rsimp01 round_generic //.
+  by apply: generic_format_round.
 Admitted.
 
 End Prelim.
