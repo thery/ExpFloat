@@ -1334,11 +1334,13 @@ Definition eh := RND (pow e * h).
 Definition el := RND (pow e * l).
 
 Definition r0 := -0x1.74910ee4e8a27p+9.
+Definition pr0 := -0x1.74910ee4e8a28p+9.
 Definition r1 := -0x1.577453f1799a6p+9.
 Definition r2 := 0x1.62e42e709a95bp+9.
 Definition r3 := 0x1.62e4316ea5df9p+9.
 
 Definition r0f := Float beta (-6554261530774055) (- 43).
+Definition pr0f := Float beta (-6554261530774056) (- 43).
 Definition r1f := Float beta (-6042113805883814) (- 43).
 Definition r2f := Float beta (6243314366523739) (- 43).
 Definition r3f := Float beta (6243315169779193) (- 43).
@@ -1351,6 +1353,27 @@ Proof.
 rewrite -r0fE.
 apply: generic_format_FLT.
 apply: FLT_spec (refl_equal _) _ _ => /=; lia.
+Qed.
+
+Fact pr0fE : F2R pr0f = pr0.
+Proof. by rewrite /pr0 /F2R /Q2R /= /Z.pow_pos /=; lra. Qed.
+
+Lemma format_pr0 : format pr0.
+Proof.
+rewrite -pr0fE.
+apply: generic_format_FLT.
+apply: FLT_spec (refl_equal _) _ _ => /=; lia.
+Qed.
+
+Lemma pr0fE1 : pred beta fexp r0 = pr0.
+Proof.
+have -> : r0 = - (0x1.74910ee4e8a27p9) by rewrite /r0; lra.
+rewrite pred_opp succ_eq_pos; last by lra.
+rewrite ulp_neq_0; last by lra.
+rewrite /cexp.
+have -> : mag beta 0x1.74910ee4e8a27p9%xR = 10%Z :> Z.
+  by apply: mag_unique_pos; split; interval.
+by rewrite /= /Z.pow_pos /pr0 /=; lra.
 Qed.
 
 Fact r1fE : F2R r1f = r1.
