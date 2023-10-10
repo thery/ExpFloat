@@ -1338,6 +1338,52 @@ Definition r1 := -0x1.577453f1799a6p+9.
 Definition r2 := 0x1.62e42e709a95bp+9.
 Definition r3 := 0x1.62e4316ea5df9p+9.
 
+Definition r0f := Float beta (-6554261530774055) (- 43).
+Definition r1f := Float beta (-6042113805883814) (- 43).
+Definition r2f := Float beta (6243314366523739) (- 43).
+Definition r3f := Float beta (6243315169779193) (- 43).
+
+Fact r0fE : F2R r0f = r0.
+Proof. by rewrite /r0 /F2R /Q2R /= /Z.pow_pos /=; lra. Qed.
+
+Lemma format_r0 : format r0.
+Proof.
+rewrite -r0fE.
+apply: generic_format_FLT.
+apply: FLT_spec (refl_equal _) _ _ => /=; lia.
+Qed.
+
+Fact r1fE : F2R r1f = r1.
+Proof. rewrite /r1 /F2R /Q2R /= /Z.pow_pos /=; lra.
+Qed.
+
+Lemma format_r1 : format r1.
+Proof.
+rewrite -r1fE.
+apply: generic_format_FLT.
+apply: FLT_spec (refl_equal _) _ _ => /=; lia.
+Qed.
+
+Fact r2fE : F2R r2f = r2.
+Proof. by rewrite /r2 /F2R /Q2R /= /Z.pow_pos /=; lra. Qed.
+
+Lemma format_r2 : format r2.
+Proof.
+rewrite -r2fE.
+apply: generic_format_FLT.
+apply: FLT_spec (refl_equal _) _ _ => /=; lia.
+Qed.
+
+Fact r3fE : F2R r3f = r3.
+Proof. by rewrite /r3 /F2R /Q2R /= /Z.pow_pos /=; lra. Qed.
+
+Lemma format_r3 : format r3.
+Proof.
+rewrite -r3fE.
+apply: generic_format_FLT.
+apply: FLT_spec (refl_equal _) _ _ => /=; lia.
+Qed.
+
 Definition e''' := (h + l) / ((ph + pl) * (qh + ql)) - 1.
 
 Lemma hlE : h + l = (ph + pl) * (qh + ql) * (1 + e''').
@@ -1779,7 +1825,6 @@ Variable choice : Z -> bool.
 
 (* Algo Exp 1 *)
 
-Definition Nan := omega + 1.
 Local Notation " x <? y " := (Rlt_bool x y).
 
 Definition exp1 r := 
@@ -1789,8 +1834,8 @@ let r1 := -0x1.577453f1799a6p+9 in
 let r2 := 0x1.62e42e709a95bp+9 in
 let r3 := 0x1.62e4316ea5df9p+9 in
 if r3 <? rh then some (DWR omega omega) else 
-if rh <? r0 then None else 
-if (rh <? r1) || (r2 <? rh) then some (DWR Nan Nan) else
+if rh <? r0 then some (DWR alpha (- alpha)) else 
+if (rh <? r1) || (r2 <? rh) then None else
 let INVLN2 := 0x1.71547652b82fep+12 in
 let k := Znearest choice (RND (rh * INVLN2)) in 
 let LN2H := 0x1.62e42fefa39efp-13 in 
@@ -1819,8 +1864,8 @@ Proof.
 rewrite /exp1.
 case: Rlt_bool_spec => //.
 case: Rlt_bool_spec; first by lra.
-case: Rlt_bool_spec => //.
-case: Rlt_bool_spec => //=.
+case: Rlt_bool_spec; first by lra.
+case: Rlt_bool_spec; first by lra.
 case: nth => h3 l3 /=.
 by case: nth => h4 l4.
 Qed.
