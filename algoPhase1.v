@@ -627,120 +627,103 @@ Lemma r1B_phase1_thm1 : rh < r1 -> u' = v' -> u' = RND (Rpower x y).
 Proof.
 Admitted.
 
+Lemma xy_omega : r3 < rh -> omega < Rpower x y.
+Proof.
+move=> r3B.
+have ylnxLB : Rabs rh * (1 - pow (- 52)) * (1 - Rpower 2 (-23.89)) / (1 + eln) 
+                <= Rabs (y * ln x).
+  by apply: ylnxLB; rewrite /r2 /r3 in r3B *; lra.
+have r3_43B : r3 + pow (- 43) <= rh.
+  have <- : succ beta fexp r3 = r3 + pow (- 43).
+    rewrite succ_eq_pos; last by rewrite /r3; interval.
+    rewrite ulp_neq_0; last by rewrite /r3; interval.
+    congr (_ + pow _).
+    rewrite /cexp /fexp.
+    rewrite (mag_unique_pos beta _ 10); first lia.
+    by split; rewrite /r3; interval.
+  apply: succ_le_lt => //; first by apply: format_r3.
+  by apply: rhF.
+  apply: Rlt_le_trans (_ : exp (709.782712893384) <= _).
+    by rewrite /omega /p /emax; interval with (i_prec 100).
+  apply: exp_le.
+  rewrite -[y * ln x]Rabs_pos_eq.
+    apply: Rle_trans ylnxLB.
+    have elnB : Rpower 2 (-73.527) <= eln <= Rpower 2 (-67.0544).
+      by rewrite /eln; case: (_ && _) => /=; split; try lra; interval.
+    rewrite Rabs_pos_eq.
+    clear r3B.
+    by interval with (i_prec 100).
+  by interval.
+have [//|ylnx_neg] := Rle_lt_dec 0 (y * ln x).
+suff : rh <= 0 by rewrite /r3 in r3B *; lra.
+have <- : RND 0 = 0 by apply: round_0.
+apply: round_le => //.
+have [llB HH1 HH2] : 
+      [/\ Rabs ll <= Rpower 2 (-23.89) * Rabs lh, 
+          Rabs (lh + ll - ln x) <= Rpower 2 (-67.0544) * Rabs (ln x) & 
+          ~ / sqrt 2 < x < sqrt 2 -> 
+          Rabs (lh + ll - ln x) <= Rpower 2 (-73.527) * Rabs (ln x)].
+  have := @err_lem4 (refl_equal _) rnd valid_rnd x xF xB.
+  by rewrite /lh /ll; case: log1.
+have [->|lh_neq0] := Req_dec lh 0; first by lra.
+have lnx_neq0 : ln x <> 0 by nra.
+have F1 : Rabs ((lh + ll)/ ln x - 1) <= Rpower 2 (-67.0544).
+  have -> : (lh + ll) / ln x - 1 = (lh + ll - ln x) / ln x by field; lra.
+  rewrite Rabs_mult Rabs_inv.
+  apply/Rcomplements.Rle_div_l => //.
+  by split_Rabs; lra.
+have F2 : 1 - Rpower 2 (-67.0544) <= (lh + ll) / ln x <= 1 + Rpower 2 (-67.0544).
+  by clear -F1; split_Rabs; lra.
+have F3 : (lh + ll) / ln x = (1 + ll / lh) * (lh / ln x).
+  by field; lra.
+rewrite F3 in F2.
+have F4 : Rabs (ll / lh) <= Rpower 2 (-23.89).
+  rewrite Rabs_mult Rabs_inv.
+  apply/Rcomplements.Rle_div_l => //.
+  by clear -lh_neq0; split_Rabs; lra.
+have F5 : 1 - Rpower 2 (-23.89) <= 1 + ll / lh <= 1 + Rpower 2 (-23.89).
+  by clear -F4; split_Rabs; lra.
+have F6 : (1 - Rpower 2 (-67.0544)) / (1 + ll / lh) <= (lh / ln x) <= 
+          (1 + Rpower 2 (-67.0544)) / (1 + ll / lh).
+  split.
+    apply/Rcomplements.Rle_div_l; last by lra.
+    case: F5 => FF1 FF2.
+    apply: Rlt_gt.
+    apply: Rlt_le_trans FF1.
+    by interval.
+  apply/(Rcomplements.Rle_div_r (lh / ln x)); last by lra.
+  case: F5 => FF1 FF2.
+  apply: Rlt_gt.
+  apply: Rlt_le_trans FF1.
+  by interval.
+have F7 : (1 - Rpower 2 (-67.0544)) / (1 + Rpower 2 (-23.89)) <= (lh / ln x) <= 
+          (1 + Rpower 2 (-67.0544)) / (1 - Rpower 2 (-23.89)).
+  case: F6 => FF1 FF2.
+  split.
+    apply: Rle_trans _ FF1.
+    apply: Rmult_le_compat_l; first by interval.
+    apply: Rinv_le.
+      case: F5 => FF3 FF4.
+      apply: Rlt_gt.
+      apply: Rlt_le_trans FF3.
+      by interval.
+    by lra.
+  apply: Rle_trans FF2 _.
+  apply: Rmult_le_compat_l; first by interval.
+  apply: Rinv_le.
+    by interval.
+  by lra.
+have -> : y * lh = y * ln x * (lh / ln x) by field.
+suff : 0 <= lh / ln x by clear -ylnx_neg; nra.
+apply: Rle_trans (_ : (1 - Rpower 2 (-67.0544)) / (1 + Rpower 2 (-23.89)) <= _).
+  by interval.
+by lra.
+Qed.
+
 (* Appendix A-M *)
 Lemma r2B_phase1_thm1 : r2 < rh -> u' = v' -> u' = RND (Rpower x y).
 Proof.
 move=> rhB.
-have elnB := elnB.
-have lnxB :  Rabs (lh + ll) / (1  + eln) <= Rabs (ln x).
-  apply/Rcomplements.Rle_div_l; first by lra.
-  by have hllnxB := hllnxB; split_Rabs; nra.
-have [llB _ _] : 
-        [/\ Rabs ll <= Rpower 2 (-23.89) * Rabs lh, 
-            Rabs (lh + ll - ln x) <= Rpower 2 (-67.0544) * Rabs (ln x) & 
-            ~ / sqrt 2 < x < sqrt 2 -> 
-            Rabs (lh + ll - ln x) <= Rpower 2 (-73.527) * Rabs (ln x)].
-  have := @err_lem4 (refl_equal _) rnd valid_rnd x xF xB.
-  by rewrite /lh /ll; case: log1.
-have lnxB1 :  Rabs lh * (1 - Rpower 2 (-23.89)) / (1 + eln) <= Rabs (ln x).
-  apply: Rle_trans _ lnxB.
-  apply: Rmult_le_compat_r; first by apply: Rinv_0_le_compat; lra.
-  by split_Rabs; nra.
-have lnxB2 : Rabs (y * lh) * (1 - Rpower 2 (-23.89)) / (1 + eln) <= 
-             Rabs (y * ln x).
-  rewrite !Rabs_mult [_ / _]Rmult_assoc Rmult_assoc.
-  apply: Rmult_le_compat_l; first apply: Rabs_pos.
-  by rewrite -Rmult_assoc.
-have ylhB : Rabs rh * (1 - pow (- 52)) <= Rabs (y * lh).
-  have -> : rh = RND (y * lh) by [].
-  have [ex [exB ->]]: exists eps : R, 
-     Rabs eps < pow (- p + 1) /\ RND (y * lh) = (y * lh) * (1 + eps).
-    have:= @relative_error_ex _ _ _ (emin + p); apply => //.
-      by rewrite /fexp => k kL; lia.
-    have [//|ylhLe] := Rle_lt_dec (pow (emin + p)) (Rabs (y * lh)).
-    have : Rabs (RND (y * lh)) <= pow (emin + p).
-      apply: Rabs_round_le => //.
-      by rewrite -[bpow _ _]/(pow _); lra.
-    have -> : RND (y * lh) = rh by [].
-    have : pow (emin + p) < Rabs rh by interval.
-    by lra.
-  rewrite Rabs_mult [Rabs (1 + _)]Rabs_pos_eq; last by interval.
-  have exMB : 0 <= (1 + ex) * (1 - pow (-52)) <= 1.
-    by split; interval with (i_prec 70).
-  suff : 0 <= Rabs (y * lh) by nra.
-  apply: Rabs_pos.
-have lnxB3 : Rabs rh * (1 - pow (- 52))  * (1 - Rpower 2 (-23.89)) / (1 + eln) <= 
-             Rabs (y * ln x).
-have r3B : r3 < rh -> omega < Rpower x y.
-  move=> r3B.
-  have r3_43B : r3 + pow (- 43) <= rh.
-    have <- : succ beta fexp r3 = r3 + pow (- 43).
-      rewrite succ_eq_pos; last by rewrite /r3; interval.
-      rewrite ulp_neq_0; last by rewrite /r3; interval.
-      congr (_ + pow _).
-      rewrite /cexp /fexp.
-      rewrite (mag_unique_pos beta _ 10); first lia.
-      by split; rewrite /r3; interval.
-    apply: succ_le_lt => //; first by apply: format_r3.
-    by apply: rhF.
-  apply: Rlt_le_trans (_ : exp (709.783) <= _).
-    by rewrite /omega /p /emax; interval with (i_prec 100).
-  apply: exp_le.
-  interval_intro (Rabs rh * (1 - pow (-52)) * (1 - Rpower 2 (-23.89)) / (1 + eln))
-    with (i_prec 200). 
-
-  rewrite /p /emax.
-    Search concl: (succ _ _ _ <= _).
-      rewrite /r3.
-      interval.
-      rewrite /r3.
-      interval.
-      rewrite /r3.
-      interval.
-      
-      admit.
-      interval.
-       interval.
-  
- , we have rh ≥ ρ3 + 2−43 , and it
-then follows from Eq. (3) that xy > 21024 ,apply: Rmult_le_compat_r; first by apply: Rinv_0_le_compat; lra.
-  
-  
-
-interval_intro ((1 + ex) * (1 - pow (-52))) with (i_prec 400).
-  move=> HH.
-  hav
-  lra.
-
-Search (Rabs (round _ _ _ _) <= bpow _ _).
-apply:= 
-have : pow (emin + p) + 1 < RND xx -> pow (emin + p) <= xx
-apply: Rle_trans (_ : r2 <= _).
-by rewrite /r2; interval.
-have : r2 <= RND (y * lh).
-  rewrite /emin /emax.
-  have -> : (Z.max (k - p) (3 - 1024 - p) = Z.max k (3 - 1024) - p)%Z.
-    lia.
-  suff : (k <= Z.max k (3 - 1024))%Z by lia.
-  lia.
-
-  rewrite Z.max_r.
-  ; lia.
-
-  case: Z.max_spec.
-  Search Z.max.
-  rewrite /Z.max.
-
-  k - p < emin
-
-Search "rel" "error".
-Search concl : (Rabs _ * (1 - _) <= Rabs _).
-  rewrite /rh /=.
-Print rh.
-have := relative_error_FLT_alt.
-Compute (emin + p - 1)%Z.
-interval_intro (exp (pow (- 1022))).
-interval_intro ((1 + Rpower 2 (-23.89)) / (1 -  Rpower 2 (- 67.0544))).
 Admitted.
 
 
