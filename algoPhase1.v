@@ -504,31 +504,20 @@ have [llB _ _] :
   have := @err_lem4 (refl_equal _) rnd valid_rnd x xF xB.
   by rewrite /lh /ll; case: log1.
 have ylhB : Rabs (y * lh) <= Rabs rh * (1 + pow (- 52)).
-(* Is this true ?*)
-  admit.
-(* 
-  have -> : rh = RND (y * lh) by [].
-  have [ex [exB ->]]: exists eps : R, 
-     Rabs eps < pow (- p + 1) /\ RND (y * lh) = (y * lh) * (1 + eps).
-    have:= @relative_error_ex _ _ _ (emin + p); apply => //.
-      by rewrite /fexp => k kL; lia.
-    have [//|ylhLe] := Rle_lt_dec (pow (emin + p)) (Rabs (y * lh)).
-    have : Rabs (RND (y * lh)) <= pow (emin + p).
-      apply: Rabs_round_le => //.
-      by rewrite -[bpow _ _]/(pow _); lra.
-    have -> : RND (y * lh) = rh by [].
-    have : pow (emin + p) < Rabs rh.
-      apply: Rlt_le_trans rhB1.
-      by interval.
-    by lra.
-  rewrite [Rabs (_ * (1 + _))]Rabs_mult.
-  rewrite [Rabs (1 + _)]Rabs_pos_eq; last by interval.
-  have exMB : 1 <= (1 + ex) * (1 + pow (-52)).
-  interval_intro ((1 + ex) * (1 + pow (-52))) with (i_prec 100).
-    by split; interval with (i_prec 470).
-  suff : 0 <= Rabs (y * lh) by nra.
-  by apply: Rabs_pos.
-  *)
+  have rhE : rh = RND (y * lh) by [].
+  rewrite rhE in rhB1 *.
+  have F1 : Rabs (RND (y * lh) - (y * lh)) <= ulp (RND (y * lh)).
+    by apply: error_le_ulp_round.
+  have F2 :=  @ulp_FLT_le beta emin p (RND (y * lh)).
+  have F3 : Rabs (RND (y * lh) - (y * lh)) <= Rabs (RND (y * lh)) * pow (1 - p).
+    suff : pow (emin + p - 1) <= Rabs (RND (y * lh)) by lra.
+    apply: Rle_trans rhB1.
+    interval.
+  have F4 : Rabs (y * lh) - Rabs (RND (y * lh)) <= 
+       Rabs (RND (y * lh) - (y * lh)) by clear; split_Rabs; lra.
+  clear -F3 F4.
+  rewrite [(1 - p)%Z]/= in F3.
+  by split_Rabs; lra.
 apply: Rle_trans (_ : Rabs (y * lh) * (1 + Rpower 2 (-23.89)) / (1 - eln) <= _)
        ; last first.
   apply: Rmult_le_compat_r; first by apply: Rinv_0_le_compat; lra.
