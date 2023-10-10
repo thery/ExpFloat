@@ -1442,7 +1442,7 @@ have [->|rh_neq0] := Req_dec rh 0; first by interval.
 have rlhB:  Rabs rl <= Rpower 2 (-23.8899) * Rabs rh.
   apply/Rcomplements.Rle_div_l; first by split_Rabs; lra.
   by rewrite /Rdiv -Rabs_inv -Rabs_mult.
-have [rh_pos|rh_neg] := Rle_gt_dec 0 rh; first by interval.
+have [rh_pos|rh_neg] := Rle_lt_dec 0 rh; first by interval.
 suff : (-0x1.72b0feb06bbe9p-15)%xR <= rl by lra.
 rewrite [Rabs rh]Rabs_left in rlhB; last by lra.
 have F : Rpower 2 (-23.8899) * r1 <= rl.
@@ -1493,7 +1493,7 @@ Qed.
 Lemma powehLB : r1 <= rh <= r2 -> pow (- 991) <= pow e * h.
 Proof.
 move=> rhB1.
-have [rl_neg|rl_pos] := Rle_gt_dec l 0.
+have [rl_neg|rl_pos] := Rle_lt_dec l 0.
   apply: Rle_trans (_ : pow e * (h + l) <= _); first by apply: powehlLB.
   apply: Rmult_le_compat_l; last by lra.
   by apply: bpow_ge_0.
@@ -1531,7 +1531,7 @@ have [->|rh_neq0] := Req_dec rh 0; first by interval.
 have rlhB:  Rabs rl <= Rpower 2 (-23.8899) * Rabs rh.
   apply/Rcomplements.Rle_div_l; first by split_Rabs; lra.
   by rewrite /Rdiv -Rabs_inv -Rabs_mult.
-have [rh_pos|rh_neg] := Rle_gt_dec 0 rh; last by interval.
+have [rh_pos|rh_neg] := Rle_lt_dec 0 rh; last by interval.
 suff :  rl <= 0x1.7f09093c9fe5bp-15 by lra.
 rewrite [Rabs rh]Rabs_pos_eq in rlhB; last by lra.
 have F : rl <= Rpower 2 (-23.8899) * r2.
@@ -1581,7 +1581,7 @@ Qed.
 Lemma powehUB : r1 <= rh <= r2 -> pow e * h <= omega.
 Proof.
 move=> rhB1.
-have [rl_pos|rl_neg] := Rle_gt_dec 0 l.
+have [rl_pos|rl_neg] := Rle_lt_dec 0 l.
   apply: Rle_trans (_ : pow e * (h + l) <= _); last by apply: powehlUB.
   apply: Rmult_le_compat_l; last by lra.
   by apply: bpow_ge_0.
