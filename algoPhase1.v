@@ -627,9 +627,15 @@ Lemma r1B_phase1_thm1 : rh < r1 -> u' = v' -> u' = RND (Rpower x y).
 Proof.
 Admitted.
 
-Lemma xy_omega : r3 < rh -> omega < Rpower x y.
+Lemma ulp_omega : ulp omega = pow (emax - p).
+Proof.
+Admitted.
+
+Lemma xy_omega : r3 < rh -> omega + ulp (omega) < Rpower x y.
 Proof.
 move=> r3B.
+have -> : omega + ulp (omega) = pow 1024.
+  by rewrite ulp_omega /omega bpow_plus /emax; lra.
 have ylnxLB : Rabs rh * (1 - pow (- 52)) * (1 - Rpower 2 (-23.89)) / (1 + eln) 
                 <= Rabs (y * ln x).
   by apply: ylnxLB; rewrite /r2 /r3 in r3B *; lra.
