@@ -629,7 +629,11 @@ Admitted.
 
 Lemma ulp_omega : ulp omega = pow (emax - p).
 Proof.
-Admitted.
+rewrite ulp_neq_0; last by interval.
+congr (pow _); rewrite /cexp /fexp.
+rewrite (mag_unique_pos beta _ emax); first lia.
+by split; interval with (i_prec 100).
+Qed.
 
 Lemma xy_omega : r3 < rh -> omega + ulp (omega) < Rpower x y.
 Proof.
@@ -678,6 +682,7 @@ have F1 : Rabs ((lh + ll)/ ln x - 1) <= Rpower 2 (-67.0544).
   rewrite Rabs_mult Rabs_inv.
   apply/Rcomplements.Rle_div_l => //.
   by split_Rabs; lra.
+
 have F2 : 1 - Rpower 2 (-67.0544) <= (lh + ll) / ln x <= 1 + Rpower 2 (-67.0544).
   by clear -F1; split_Rabs; lra.
 have F3 : (lh + ll) / ln x = (1 + ll / lh) * (lh / ln x).
