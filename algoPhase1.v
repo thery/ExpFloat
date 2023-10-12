@@ -562,7 +562,7 @@ have hlb2: 0 < 1 - Rpower 2 (-67.0544) by interval.
 have: Rabs ( (1 + ll / lh) * (lh / ln x)  - 1) <= eln.
   apply/(Rmult_le_reg_r (Rabs (ln x))); first by apply/Rabs_pos_lt.
   rewrite -Rabs_mult Rmult_minus_distr_r Rmult_1_l.
-  have->: (1 + ll/lh)*(lh/ln x)*ln x - ln x = (lh + ll - ln x) by field; lra.
+  have->:(1 + ll/lh)*(lh/ln x) * ln x - ln x = (lh + ll - ln x) by field; lra.
   by apply/hllnxB.
 set lllh := ll/lh;set lhln:= lh/(ln x).
 have:  Rabs (lllh) <= Rpower 2 (-23.89).
