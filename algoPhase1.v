@@ -603,18 +603,17 @@ have elnB : Rpower 2 (-73.527) <= eln <= Rpower 2 (-67.0544).
 interval with (i_prec 70).
 Qed.
 
-Search concl:Valid_rnd.
 
-Hypothesis basic_rnd : (rnd = (Znearest choice) \/ 
+Notation basic_rnd rnd := (rnd = (Znearest choice) \/ 
                          rnd = Ztrunc \/ rnd = Zaway \/ 
                          rnd = Zfloor \/ rnd = Zceil).
 
 
 
 (* Appendix A-L *)
-Lemma r1B_phase1_thm1 : rh < r1 -> u' = v' -> u' = RND (Rpower x y).
+Lemma r1B_phase1_thm1 : basic_rnd rnd -> rh  < r1 -> u' = v' -> u' = RND (Rpower x y).
 Proof.
-move=>rhB.
+move=> basic_rnd rhB.
 have alphaF: format alpha by apply/generic_format_bpow; rewrite /fexp; lia.
 have alpha_pos: 0 < alpha by rewrite /alpha; move: (bpow_gt_0 beta (-1074)); lra.
 have apha_pos' : 0 < pow emin by rewrite /emin.
