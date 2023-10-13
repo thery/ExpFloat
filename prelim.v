@@ -14,6 +14,62 @@ Unset Printing Implicit Defensive.
 
 Section Prelim.
 
+Lemma Rabs_round_ge_bpow (beta : radix) (emin prec : Z) :
+  (0 < prec)%Z ->
+  forall rnd : R -> Z,
+  Valid_rnd rnd ->
+  forall x e,
+  (emin <= e)%Z -> bpow beta e <= Rabs x -> 
+  bpow beta e <= Rabs (round beta (FLT_exp emin prec) rnd x).
+Proof.
+move=> Hp rnd Vrnd x e eLm; set RND := round _ _ _.
+have HP : Prec_gt_0 prec by [].
+have HV := @FLT_exp_valid emin prec HP.
+have [x_pos|x_neg] := Rle_lt_dec 0 x.
+  rewrite !Rabs_pos_eq //; last first.
+    have <- : RND 0 = 0 by apply: round_0.
+    by apply: round_le.
+  move=> eLf; have <- : RND (bpow beta e) = bpow beta e.
+    by apply/round_generic/generic_format_FLT_bpow.
+  by apply: round_le.
+rewrite !Rabs_left1; try lra; last first.
+  have <- : RND 0 = 0 by apply: round_0.
+  by apply: round_le; lra.
+move=> eLf; have <- : - RND (- bpow beta e) = bpow beta e.
+  rewrite [RND _]round_generic; try lra.
+  by apply/generic_format_opp/generic_format_FLT_bpow.
+suff: RND x <= RND (- bpow beta e) by lra.
+by apply: round_le; lra.
+Qed.
+
+Lemma Rabs_round_le_bpow (beta : radix) (emin prec : Z) :
+  (0 < prec)%Z ->
+  forall rnd : R -> Z,
+  Valid_rnd rnd ->
+  forall x e,
+  (emin <= e)%Z -> Rabs x <= bpow beta e -> 
+  Rabs (round beta (FLT_exp emin prec) rnd x) <= bpow beta e.
+Proof.
+move=> Hp rnd Vrnd x e eLm; set RND := round _ _ _.
+have HP : Prec_gt_0 prec by [].
+have HV := @FLT_exp_valid emin prec HP.
+have [x_pos|x_neg] := Rle_lt_dec 0 x.
+  rewrite !Rabs_pos_eq //; last first.
+    have <- : RND 0 = 0 by apply: round_0.
+    by apply: round_le.
+  move=> eLf; have <- : RND (bpow beta e) = bpow beta e.
+    by apply/round_generic/generic_format_FLT_bpow.
+  by apply: round_le.
+rewrite !Rabs_left1; try lra; last first.
+  have <- : RND 0 = 0 by apply: round_0.
+  by apply: round_le; lra.
+move=> eLf; have <- : - RND (- bpow beta e) = bpow beta e.
+  rewrite [RND _]round_generic; try lra.
+  by apply/generic_format_opp/generic_format_FLT_bpow.
+suff: RND (- bpow beta e) <= RND x by lra.
+by apply: round_le; lra.
+Qed.
+
 Lemma relative_error_FLT_alt (beta : radix) (emin prec : Z) :
   (0 < prec)%Z ->
   forall rnd : R -> Z,
