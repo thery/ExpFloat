@@ -603,17 +603,13 @@ have elnB : Rpower 2 (-73.527) <= eln <= Rpower 2 (-67.0544).
 interval with (i_prec 70).
 Qed.
 
-
-Notation basic_rnd rnd := (rnd = (Znearest choice) \/ 
+Hypothesis  basic_rnd : (rnd = (Znearest choice) \/ 
                          rnd = Ztrunc \/ rnd = Zaway \/ 
                          rnd = Zfloor \/ rnd = Zceil).
-
-
-
 (* Appendix A-L *)
-Lemma r1B_phase1_thm1 : basic_rnd rnd -> rh  < r1 -> u' = v' -> u' = RND (Rpower x y).
+Lemma r1B_phase1_thm1 : rh  < r1 -> u' = v' -> u' = RND (Rpower x y).
 Proof.
-move=> basic_rnd rhB.
+move=> rhB.
 have alphaF: format alpha by apply/generic_format_bpow; rewrite /fexp; lia.
 have alpha_pos: 0 < alpha by rewrite /alpha; move: (bpow_gt_0 beta (-1074)); lra.
 have apha_pos' : 0 < pow emin by rewrite /emin.
@@ -1285,6 +1281,7 @@ Admitted.
 
 End Prelim.
 
+
 Section algoPhase1.
 
 Let p := 53%Z.
@@ -1304,6 +1301,7 @@ Local Notation u_gt_0 := (u_gt_0 p beta).
 Variable rnd : R -> Z.
 Context ( valid_rnd : Valid_rnd rnd ).
 
+
 Local Notation float := (float radix2).
 Local Notation fexp := (FLT_exp emin p).
 Local Notation format := (generic_format radix2 fexp).
@@ -1318,6 +1316,10 @@ Local Notation mul1 := (mul1 rnd).
 Local Notation q1 := (q1 rnd).
 Variable choice : Z -> bool.
 Local Notation exp1 := (exp1 rnd choice).
+
+Hypothesis  basic_rnd : (rnd = (Znearest choice) \/ 
+                         rnd = Ztrunc \/ rnd = Zaway \/ 
+                         rnd = Zfloor \/ rnd = Zceil).
 
 Let alpha := pow (- 1074).
 Let omega := (1 - pow (-p)) * pow emax.
