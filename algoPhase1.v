@@ -630,11 +630,14 @@ have -> : alpha / 2 = pow (emin - 1).
   by rewrite bpow_plus powN1 /alpha /=; lra.
 rewrite pow_Rpower //; apply: exp_increasing.
 have ylnx_neg:= (ylnx_neg rhB).
-have F : ~ r1 < rh < r2.
-  have : r0 < r1 by interval.
-  by lra.
+have F : pow (emin + p) <= Rabs (y * lh).
+  apply: Rle_trans (_ : pow (emin + p + 1) <= _); first by interval.
+  have [//|ylhLp] := Rle_lt_dec (pow (emin + p +1)) (Rabs (y * lh)).
+  have: pow (emin + p + 1) < Rabs rh by interval.
+  suff : Rabs rh <= pow (emin + p + 1) by lra.
+  by apply: Rabs_round_le_bpow => //; rewrite -[bpow _ _]/(pow _); lra.
 have G := ylnxLB F.
-move:G.
+move: G.
 rewrite - Rabs_Ropp Rabs_pos_eq; last by rewrite /r0 in rhB; lra.
 rewrite -Rabs_Ropp Rabs_pos_eq;last by lra.
 rewrite /Rdiv !Rmult_assoc Ropp_mult_distr_l_reverse.
