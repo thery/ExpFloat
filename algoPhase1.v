@@ -659,7 +659,7 @@ Hypothesis  basic_rnd : (rnd = (Znearest choice) \/
                          rnd = Ztrunc \/ rnd = Zaway \/ 
                          rnd = Zfloor \/ rnd = Zceil).
 (* Appendix A-L *)
-Lemma r1B_phase1_thm1 : rh  < r1 -> u' = v' -> u' = RND (Rpower x y).
+Lemma r1B_phase1_thm1_r0 : rh  < r0 -> u' = v' -> u' = RND (Rpower x y).
 Proof.
 move=> rhB.
 have alphaF: format alpha by apply/generic_format_bpow; rewrite /fexp; lia.
@@ -670,115 +670,114 @@ have alpha_2 : alpha / 2 = pow (emin - 1).
 have eB : e2 <= e <= e1 by rewrite /e ; case:(_ && _); rewrite /e1 /e2; lra.
 rewrite /e1 /e2 in eB.
 move=> uv'E; suff h: u' <= RND (Rpower x y) <= v' by lra.
-case: (Rlt_le_dec rh r0)=> rhr0.
-  have xy_alphaB:= xy_alphaB rhr0.
-  have ehE: eh = alpha.
-    rewrite /eh /exp1 Rlt_bool_false; last by rewrite /r0 in rhr0; lra.
-    rewrite Rlt_bool_true; last by exact:rhr0.
-    by rewrite /alpha /beta.
-  have elE: el = -alpha.
-    rewrite /el /exp1 Rlt_bool_false; last by rewrite /r0 in rhr0; lra.
-    rewrite Rlt_bool_true; last by exact:rhr0.
-    by rewrite /alpha /beta.
-  have uemin: ulp (pow (emin)) = pow (emin).
-    rewrite ulp_neq_0  /cexp /fexp.
-      by rewrite mag_bpow Z.max_r //.
-    by lra.
-   have succ0:  succ beta fexp 0 = pow emin.
-     by rewrite succ_0 ulp_FLT_0.
-  have RND_DN_xy: round beta fexp Zfloor (Rpower x y) = 0.
-    apply/round_DN_eq.
-      by apply/generic_format_0.
-    rewrite succ0; split.
-      by rewrite /Rpower; apply/Rlt_le/exp_pos.
-    apply/(Rlt_trans _ (pow (emin - 1))); first lra.
-    by apply/bpow_lt; lia.
-  have RND_UP_xy: round beta fexp Zceil (Rpower x y) = pow emin.
-    apply/round_UP_eq.
-      by apply/generic_format_bpow; rewrite /fexp; lia.
-    rewrite -succ0  pred_succ; last apply/generic_format_0; split.
-      by rewrite /Rpower; apply/exp_pos.
-    apply/(Rle_trans _ (pow (emin - 1))); first lra.
-    by rewrite succ0; apply/bpow_le; lia.
-  rewrite /u' /v' ehE elE.
-  have h1: -alpha < (- alpha + e * alpha)< 0 by  nra.
-  have h2: - 2* alpha < (- alpha - e * alpha) < -alpha by nra.
-  have h3: pred beta fexp 0 = - pow emin by rewrite pred_0 ulp_FLT_0.
-  split.
-    apply/(Rle_trans _ (RND 0) ).
-      apply/round_le.
-      suff: RND (- alpha - e * alpha) <= - alpha by lra.
-      rewrite -[X in _ <= X](round_generic beta fexp).
-        by apply/round_le; lra.
-      by apply/generic_format_opp.
-    by apply/round_le/Rlt_le/exp_pos.
-  case: basic_rnd=>[rndE|].
-    have->: RND (Rpower x y) = 0.
-      rewrite rndE.
-      rewrite round_N_eq_DN=>//.
-      by rewrite   RND_DN_xy   RND_UP_xy -/alpha; lra.
-    have ->: 0 = RND 0 by rewrite round_0.
+have xy_alphaB:= xy_alphaB rhB.
+have ehE: eh = alpha.
+  rewrite /eh /exp1 Rlt_bool_false; last by rewrite /r0 in rhB; lra.
+  rewrite Rlt_bool_true; last by exact:rhB.
+  by rewrite /alpha /beta.
+have elE: el = -alpha.
+  rewrite /el /exp1 Rlt_bool_false; last by rewrite /r0 in rhB; lra.
+  rewrite Rlt_bool_true; last by exact:rhB.
+  by rewrite /alpha /beta.
+have uemin: ulp (pow (emin)) = pow (emin).
+  rewrite ulp_neq_0  /cexp /fexp.
+    by rewrite mag_bpow Z.max_r //.
+  by lra.
+ have succ0:  succ beta fexp 0 = pow emin.
+   by rewrite succ_0 ulp_FLT_0.
+have RND_DN_xy: round beta fexp Zfloor (Rpower x y) = 0.
+  apply/round_DN_eq.
+    by apply/generic_format_0.
+  rewrite succ0; split.
+    by rewrite /Rpower; apply/Rlt_le/exp_pos.
+  apply/(Rlt_trans _ (pow (emin - 1))); first lra.
+  by apply/bpow_lt; lia.
+have RND_UP_xy: round beta fexp Zceil (Rpower x y) = pow emin.
+  apply/round_UP_eq.
+    by apply/generic_format_bpow; rewrite /fexp; lia.
+  rewrite -succ0  pred_succ; last apply/generic_format_0; split.
+    by rewrite /Rpower; apply/exp_pos.
+  apply/(Rle_trans _ (pow (emin - 1))); first lra.
+  by rewrite succ0; apply/bpow_le; lia.
+rewrite /u' /v' ehE elE.
+have h1: -alpha < (- alpha + e * alpha)< 0 by  nra.
+have h2: - 2* alpha < (- alpha - e * alpha) < -alpha by nra.
+have h3: pred beta fexp 0 = - pow emin by rewrite pred_0 ulp_FLT_0.
+split.
+  apply/(Rle_trans _ (RND 0) ).
     apply/round_le.
-    suff : -alpha <= RND (- alpha + e * alpha) by lra.
-    have {1}-> : -alpha = RND (- alpha) 
-      by rewrite round_generic // ;apply/generic_format_opp.
-    by apply/round_le; lra.
-  move=> rndE.
-  suff : u' <> v' by lra.
-  rewrite /u' /v'.
-  have hepf: round beta fexp Zfloor  (- alpha + e * alpha) = -alpha.
-    apply/round_DN_eq; first by apply/generic_format_opp.
-    rewrite succ_opp pred_bpow /fexp Z.max_r ; try lra; last lia.
-    suff->: (pow (-1074) = pow emin)  by lra.
-    by congr bpow; lia.
-  have hepc: round beta fexp Zceil  (- alpha + e * alpha) = 0.
-    apply/round_UP_eq; first by apply/generic_format_0.
-    rewrite pred_0 ulp_FLT_0.
-    have ->: pow emin = alpha by [].
-    by lra.
-  have h4: 2 * alpha = pow (emin + 1).
-    have-> : 2 = pow 1 by [].
-    by rewrite -bpow_plus; congr bpow; lia.
-  have hemf: round beta fexp Zfloor  (- alpha - e * alpha) = - (2*alpha).
-    apply/round_DN_eq.
-      rewrite h4; apply/generic_format_opp/generic_format_bpow;
-      by rewrite /fexp ; lia.
-    rewrite succ_opp  h4 pred_bpow /fexp Z.max_r ; try lra; last lia.
-    rewrite -h4; have<-: alpha = pow emin by [].
-    lra.
-  have hemc: round beta fexp Zceil  (- alpha -  e * alpha) = - alpha.
-    apply/round_UP_eq; first by apply/generic_format_opp.
-    rewrite pred_opp succ_eq_pos.
-      split; try lra.
-      suff: ulp alpha = alpha by lra.
-      by have ->: alpha = pow emin  by [].
-    by apply/bpow_ge_0.
-  case: rndE=> [->|]; rewrite elE ehE.
-    rewrite !(round_generic _ _ _ (alpha + _)) !round_ZR_UP; try lra.
-      by rewrite   hepc Rplus_0_r.
-    rewrite   hemc.
+    suff: RND (- alpha - e * alpha) <= - alpha by lra.
+    rewrite -[X in _ <= X](round_generic beta fexp).
+      by apply/round_le; lra.
+    by apply/generic_format_opp.
+  by apply/round_le/Rlt_le/exp_pos.
+case: basic_rnd=>[rndE|].
+  have->: RND (Rpower x y) = 0.
+    rewrite rndE.
+    rewrite round_N_eq_DN=>//.
+    by rewrite   RND_DN_xy   RND_UP_xy -/alpha; lra.
+  have ->: 0 = RND 0 by rewrite round_0.
+  apply/round_le.
+   suff : -alpha <= RND (- alpha + e * alpha) by lra.
+  have {1}-> : -alpha = RND (- alpha) 
+    by rewrite round_generic // ;apply/generic_format_opp.
+  by apply/round_le; lra.
+move=> rndE.
+suff : u' <> v' by lra.
+rewrite /u' /v'.
+have hepf: round beta fexp Zfloor  (- alpha + e * alpha) = -alpha.
+  apply/round_DN_eq; first by apply/generic_format_opp.
+  rewrite succ_opp pred_bpow /fexp Z.max_r ; try lra; last lia.
+  suff->: (pow (-1074) = pow emin)  by lra.
+  by congr bpow; lia.
+have hepc: round beta fexp Zceil  (- alpha + e * alpha) = 0.
+  apply/round_UP_eq; first by apply/generic_format_0.
+  rewrite pred_0 ulp_FLT_0.
+  have ->: pow emin = alpha by [].
+  by lra.
+have h4: 2 * alpha = pow (emin + 1).
+  have-> : 2 = pow 1 by [].
+  by rewrite -bpow_plus; congr bpow; lia.
+have hemf: round beta fexp Zfloor  (- alpha - e * alpha) = - (2*alpha).
+  apply/round_DN_eq.
+    rewrite h4; apply/generic_format_opp/generic_format_bpow;
+    by rewrite /fexp ; lia.
+  rewrite succ_opp  h4 pred_bpow /fexp Z.max_r ; try lra; last lia.
+  rewrite -h4; have<-: alpha = pow emin by [].
+  lra.
+have hemc: round beta fexp Zceil  (- alpha -  e * alpha) = - alpha.
+  apply/round_UP_eq; first by apply/generic_format_opp.
+  rewrite pred_opp succ_eq_pos.
+    split; try lra.
+    suff: ulp alpha = alpha by lra.
+    by have ->: alpha = pow emin  by [].
+  by apply/bpow_ge_0.
+case: rndE=> [->|]; rewrite elE ehE.
+  rewrite !(round_generic _ _ _ (alpha + _)) !round_ZR_UP; try lra.
+    by rewrite   hepc Rplus_0_r.
+  rewrite   hemc.
+  have->:  (alpha + - alpha) = 0 by lra.
+  by apply/generic_format_0.
+case=> [->|].
+  rewrite !(round_generic _ _ _ (alpha + _)) !round_AW_DN; try lra.
+    rewrite   hepf.
     have->:  (alpha + - alpha) = 0 by lra.
     by apply/generic_format_0.
-  case=> [->|].
-    rewrite !(round_generic _ _ _ (alpha + _)) !round_AW_DN; try lra.
-      rewrite   hepf.
-      have->:  (alpha + - alpha) = 0 by lra.
-      by apply/generic_format_0.
-    rewrite   hemf.
-    have->:  (alpha + - (2 * alpha)) = - alpha  by lra.
-    by apply/generic_format_opp.
-  case => [->|].
-    rewrite hepf hemf !round_generic; first lra.
-      have->:(alpha + - alpha) = 0 by lra.
-      by apply/generic_format_0.
-    have->:  (alpha + - (2 * alpha)) = - alpha by lra.
-    by apply/generic_format_opp. 
-  move ->.
-  rewrite hepc hemc !round_generic; first lra.
-    by rewrite Rplus_0_r.
-  have->: (alpha + - alpha) = 0 by lra.
-  by apply/generic_format_0.
-Admitted.
+  rewrite   hemf.
+  have->:  (alpha + - (2 * alpha)) = - alpha  by lra.
+  by apply/generic_format_opp.
+case => [->|].
+  rewrite hepf hemf !round_generic; first lra.
+    have->:(alpha + - alpha) = 0 by lra.
+    by apply/generic_format_0.
+  have->:  (alpha + - (2 * alpha)) = - alpha by lra.
+  by apply/generic_format_opp. 
+move ->.
+rewrite hepc hemc !round_generic; first lra.
+  by rewrite Rplus_0_r.
+have->: (alpha + - alpha) = 0 by lra.
+by apply/generic_format_0.
+Qed.
 
 Lemma ulp_omega : ulp omega = pow (emax - p).
 Proof.
@@ -889,6 +888,13 @@ apply: Rle_trans (_ : (1 - Rpower 2 (-67.0544)) / (1 + Rpower 2 (-23.89)) <= _).
   by interval.
 by lra.
 Qed.
+
+Lemma r1B_phase1_thm1 : rh  < r1 -> u' = v' -> u' = RND (Rpower x y).
+Proof.
+move=> rhB.
+case:(Rlt_le_dec rh r0)=> rhr0; first by apply/r1B_phase1_thm1_r0.
+Admitted.
+
 
 Lemma xy_omega_r2 : 0 < x -> rh <= r2 -> Rpower x y < omega.
 Proof.
