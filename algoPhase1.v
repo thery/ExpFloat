@@ -1274,6 +1274,7 @@ pose zl := RND (rl - IZR k * LN2L).
 have zlE : zl = rl.
   by rewrite /zl k_eq0 !Rsimp01 round_generic //; apply: rlF.
 pose z := RND (zh + zl).
+have zF : format z by apply: generic_format_round.
 have zE : z = RND (rh + rl) by rewrite /z zhE zlE.
 have zB : Rabs z <= Rpower 2 (- 968.9).
   rewrite zE.
@@ -1391,6 +1392,79 @@ have elE : el = ql.
   have -> : yy4 = s' by rewrite /s'; case: exactMul E4 => /= ? ? [].
   rewrite k_eq0 pow0E !Rsimp01 round_generic //.
   by apply: generic_format_round.
+pose q := RND (Q4 * z + Q3).
+have qB : Rabs q <= pow (- 2).
+  apply: Rabs_round_le_bpow => //.
+  by interval.
+pose q' := RND (q * z + Q2).
+have q'B : Rabs q' <= 1.
+  have <- : pow 0 = 1 by [].
+  apply: Rabs_round_le_bpow => //.
+  by interval.
+pose h0 := RND(q' * z + Q1).
+have h0F : format h0 by apply: generic_format_round.
+pose f0 := Float beta 4503599627370497 (- 52).
+have f0F : format f0.
+  apply: generic_format_FLT.
+  apply: FLT_spec (refl_equal _) _ _ => /=; lia.
+have h0B : Rabs h0 <= 2.
+  have <- : pow 1 = 2 by [].
+  apply: Rabs_round_le_bpow => //.
+  by interval with (i_prec 100).
+pose h1' := let 'DWR h1 _ := exactMul z h0 in h1.
+pose l1' := let 'DWR _ l1 := exactMul z h0 in l1.
+have h1'E : h1' = RND (z * h0) by [].
+pose f := Float beta 4826838566504036 (- 1020).
+have fF : format f.
+  apply: generic_format_FLT.
+  apply: FLT_spec (refl_equal _) _ _ => /=; lia.
+have fB : f <= Rpower 2 (-967.9) by interval with (i_prec 100).
+have ulpf : ulp f = pow (- 1020).
+  rewrite ulp_neq_0; last by rewrite /F2R /= /Z.pow_pos; interval.
+  congr (pow _); rewrite /cexp /fexp.
+  suff -> : mag beta f = (- 967)%Z :> Z by lia.
+  rewrite /F2R /= /Z.pow_pos /=.
+  by apply: mag_unique_pos; split; interval.
+pose f1 := Float beta 4826838566504036 (- 1021).
+have f1F : format f1.
+  apply: generic_format_FLT.
+  apply: FLT_spec (refl_equal _) _ _ => /=; lia.
+have f1B : f1 <= Rpower 2 (-968.9) by interval with (i_prec 200).
+have ulpf1 : ulp f1 = pow (- 1021).
+  rewrite ulp_neq_0; last by rewrite /F2R /= /Z.pow_pos; interval.
+  congr (pow _); rewrite /cexp /fexp.
+  suff -> : mag beta f1 = (- 968)%Z :> Z by lia.
+  rewrite /F2R /= /Z.pow_pos /=.
+  by apply: mag_unique_pos; split; interval.
+have f1B1 : f1 < Rpower 2 (-968.9) < succ beta fexp f1.
+  rewrite succ_eq_pos; last by rewrite /F2R /= /Z.pow_pos /=; interval.
+  by rewrite ulpf1 /F2R /= /Z.pow_pos /=; split;
+      interval with (i_prec 100).
+have fE : f = 2 * f1 :> R.
+  by rewrite /F2R /= /Z.pow_pos /=; lra.
+have {}zB : Rabs z <= f1.
+  have [//|f1Lz] := Rle_lt_dec (Rabs z) f1.
+  suff : succ beta fexp f1 <= Rabs z by lra.
+  apply: succ_le_lt => //.
+  by apply/generic_format_abs/generic_format_round.
+have h0zB : Rabs (z * h0) <= f.
+  rewrite fE Rabs_mult Rmult_comm.
+  by apply: Rmult_le_compat; try lra; apply: Rabs_pos.
+have h1'B1 : Rabs h1' <= f.
+  by apply: format_Rabs_round_ge.
+have l1'B1 : Rabs l1' <= Rpower 2 (- 967.9).
+  apply: Rle_trans (_ : pow (- 1074) + Rabs (h1' -  z * h0) <= _).
+    suff : Rabs l1' - Rabs (h1' - z * h0) <= pow (-1074) by lra.
+    apply: Rle_trans (_ : Rabs (h1' + l1' -  z * h0) <= _).
+      by clear; split_Rabs; lra.
+    by apply/Rlt_le/error_exactMul.
+  suff : Rabs (h1' - z * h0) <= Rpower 2 (-967.9) - pow (-1074) by lra.
+  apply: Rle_trans (_ : ulp (z * h0) <= _).
+    by apply: error_le_ulp.
+  apply: Rle_trans (_ : ulp f <= _).
+    apply: ulp_le.
+    by rewrite [Rabs f]Rabs_pos_eq // /F2R /=; interval.
+  by rewrite ulpf; interval.
 Admitted.
 
 End Prelim.
