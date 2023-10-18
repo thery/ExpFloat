@@ -59,6 +59,7 @@ Let omega := (1 - pow (-p)) * pow emax.
 Local Notation ulp := (ulp beta fexp).
 Local Notation R_UP := (round beta fexp Zceil).
 Local Notation R_DN := (round beta fexp Zfloor).
+Local Notation R_N := (round beta fexp (Znearest choice)).
 
 Definition hsqrt2 := 0x1.6a09e667f3bccp-1.
 
@@ -655,9 +656,31 @@ have elnB : Rpower 2 (-73.527) <= eln <= Rpower 2 (-67.0544).
 interval with (i_prec 70).
 Qed.
 
-Hypothesis  basic_rnd : (rnd = (Znearest choice) \/ 
-                         rnd = Ztrunc \/ rnd = Zaway \/ 
-                         rnd = Zfloor \/ rnd = Zceil).
+Hypothesis  basic_rnd : rnd = (Znearest choice) \/ 
+                        rnd = Ztrunc \/ rnd = Zaway \/ 
+                        rnd = Zfloor \/ rnd = Zceil.
+
+Lemma basic_rnd_pos : 
+  [\/ forall x, 0 <= x -> RND x = R_UP x,
+      forall x, 0 <= x -> RND x = R_DN x |
+      forall x, 0 <= x -> RND x = R_N x].
+Proof.
+(have [|[|[|[]]]] := basic_rnd) => ->.
+- by apply: Or33.
+- apply: Or32 => x1 x1_pos.
+  rewrite /round; rewrite Ztrunc_floor //.
+  rewrite /scaled_mantissa.
+  have : 0 < pow (- cexp x1) by apply: bpow_gt_0.
+  by nra.
+- apply: Or31 => x1 x1_pos.
+  rewrite /round; rewrite Zaway_ceil //.
+  rewrite /scaled_mantissa.
+  have : 0 < pow (- cexp x1) by apply: bpow_gt_0.
+  by nra.
+- by apply: Or32.
+by apply: Or31.
+Qed.
+  
 (* Appendix A-L *)
 Lemma r1B_phase1_thm1_r0 : rh  < r0 -> u' = v' -> u' = RND (Rpower x y).
 Proof.
@@ -1465,6 +1488,30 @@ have l1'B1 : Rabs l1' <= Rpower 2 (- 967.9).
     apply: ulp_le.
     by rewrite [Rabs f]Rabs_pos_eq // /F2R /=; interval.
   by rewrite ulpf; interval.
+have qhE : qh = let 'DWR qh _ := fastSum Q0 h1' l1' in qh.
+  by [].
+have qlE : ql = let 'DWR _ ql := fastSum Q0 h1' l1' in ql.
+have qhE1 : qh = RND (Q0 + h1') by [].
+have qlE1 : ql = RND (RND (h1' - RND (qh - Q0)) + l1').
+have mag1E : mag beta 1 = 1%Z :> Z.
+  apply: mag_unique.
+  rewrite /F2R /= /Z.pow_pos /=.
+  by split; interval.
+have pred1 : pred beta fexp 1 = 1 - pow (- 53).
+  rewrite pred_eq_pos; last by interval.
+  rewrite /pred_pos mag1E pow0E.
+  by case: Req_bool_spec => //; lra.
+have suc1 : succ beta fexp 1 = 1 + pow (- 52).
+  rewrite succ_eq_pos; last by interval.
+  by rewrite ulp_neq_0 /cexp ?mag1E.
+have [HR_UP|HR_DN|HR_N] := basic_rnd_pos.
+- have [h1'_neg|h1'_neg] := Rle_lt_dec h1' 0.
+    have qhE2 : qh = 1.
+      rewrite qhE1 HR_UP; last by clear h1'_neg; interval.
+      apply: round_UP_eq; first by apply: format1.
+      rewrite pred1; split.
+        by clear h1'_neg; interval with (i_prec 100).
+      by rewrite /Q0; lra.
 Admitted.
 
 End Prelim.
@@ -1519,8 +1566,6 @@ Local Notation ulp := (ulp beta fexp).
 
 Local Notation " x <? y " := (Rlt_bool x y).
 Local Notation FAIL := None.
-Local Notation R_UP := (round beta fexp Zceil).
-Local Notation R_DN := (round beta fexp Zfloor).
 Local Notation " x =? y " := (Req_bool x y).
 
 Definition phase1 (x y : R) := 
