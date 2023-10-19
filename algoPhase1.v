@@ -991,6 +991,23 @@ apply: round_UP_eq; first by apply: generic_format_succ.
 by rewrite pred_succ //; lra.
 Qed.
 
+Lemma round_down_gt x1 y1 : format y1 -> x1 < y1 -> R_DN x1 < y1.
+Proof.
+move=> y1F x1Ly1.
+pose y2 := pred beta fexp y1.
+have y2Ly1 : y2 < y1.
+  rewrite /y2.
+  have [->|y1_neq0] := Req_dec y1 0; last by apply: pred_lt_id.
+  by rewrite pred_0 ulp_FLT_0; interval with (i_prec 100).
+have [x1Ly2|y2Lx1] := Rle_lt_dec x1 y2.
+  apply: Rle_lt_trans _ y2Ly1.
+  have <- : R_DN y2 = y2 by apply/round_generic/generic_format_pred.
+  by apply: round_le.
+suff -> : R_DN x1 = y2 by [].
+apply: round_DN_eq; first by apply: generic_format_pred.
+by rewrite succ_pred //; lra.
+Qed.
+
 Lemma succ_bpow (e : Z) : 
  (emin <= e + 1 - p)%Z -> succ beta fexp (pow e) = pow e + pow (e + 1 - p).
 Proof.
@@ -1335,7 +1352,7 @@ have pred1 : pred beta fexp 1 = 1 - pow (- 53).
   by case: Req_bool_spec => //; lra.
 have ulp1E : ulp 1 = pow (- 52).
   by rewrite ulp_neq_0 /cexp ?mag1E.
-have suc1 : succ beta fexp 1 = 1 + pow (- 52).
+have succ1 : succ beta fexp 1 = 1 + pow (- 52).
   by rewrite succ_eq_pos; [lra|interval].
 have rpower1B : Rabs (Rpower x y - 1) < /2 * pow (- 53).
   rewrite /Rpower.
@@ -1344,7 +1361,7 @@ have rpowerN : R_N (Rpower x y) = 1.
   suff : R_N (Rpower x y) <= 1 /\ 1 <= R_N (Rpower x y) by lra.
   split.
     apply: round_N_le_midp => //.
-    rewrite suc1.
+    rewrite succ1.
     apply: Rlt_le_trans (_ : (1 + (1 + pow (-53))) / 2 <= _).
      clear - rpower1B; split_Rabs; lra.
     by interval with (i_prec 100).
@@ -1566,11 +1583,143 @@ have F52 : format (pow (- 52)) by apply: generic_format_bpow.
 have FN52 : format (- pow (- 52)) by apply: generic_format_opp.
 have FNS52 : format (succ beta fexp (- pow (- 52))).
    by apply: generic_format_succ.
-have [HR_C|[HR_Z|[HR_X|[HR_V|HR_UP]]]] := basic_rnd.
+have F53 : format (pow (- 53)) by apply: generic_format_bpow.
+have FN53 : format (- pow (- 53)) by apply: generic_format_opp.
+have FP53 : format (pred beta fexp (pow (- 53))).
+   by apply: generic_format_pred.
+have [HR_C|[HR_Z|[HR_X|[HR_DN|HR_UP]]]] := basic_rnd.
 - admit.
 - admit.
 - admit.
-- admit.
+- rewrite HR_DN.
+  have [h1'_pos|h1'_neg] := Rle_lt_dec 0 h1'.
+    have qhE2 : qh = 1.
+      rewrite qhE1 HR_DN.
+      apply: round_DN_eq => //.
+      rewrite succ1; split.
+        by rewrite /Q0; lra.
+      by clear h1'_pos; interval with (i_prec 100).
+    have qlE2 : ql = R_DN (h1' + l1').
+      rewrite qlE1 qhE2 HR_DN !(Rsimp01, round_0).
+      by congr (R_DN (_ + _)); apply/round_generic/generic_format_round.    
+    suff : u' < v' by lra.
+    rewrite /u' /v' ehE elE qhE2 Rsimp01 !HR_DN.
+    apply: Rlt_le_trans (_ : R_DN 1 <= _).
+      rewrite [R_DN 1]round_generic //.
+      suff ->: R_DN (1 + R_DN (ql - e)) = pred beta fexp 1.
+        by apply: pred_lt_id; lra.
+      have qlB : Rabs ql <= pow (- 960).
+        rewrite qlE2.
+        by apply: Rabs_round_le => //; interval.
+      have eqlB : ql - e  < 0.
+        have : ql - e2 < 0 by interval.
+        rewrite /e; case: (_ && _); try lra.
+        have : e2 < e1 by interval.
+        by lra.
+      have RDN_neg : R_DN (ql - e) < 0.
+        by apply: round_down_gt => //; apply: generic_format_0.
+      have RDNB : - R_DN (ql - e) <= pow (- 53).
+        rewrite -[- R_DN (ql - e)]Rabs_right ?Rabs_Ropp //; last by lra.
+        apply: Rabs_round_le_bpow => //.
+        apply: Rle_trans (_ : Rabs ql + Rabs e <= _).
+          by clear; split_Rabs; lra.
+        apply: Rle_trans (_ : Rabs ql + Rabs e1 <= _); last by interval.
+        suff : Rabs e <= Rabs e1 by lra.
+        rewrite /e; case: (_ && _); first lra.
+        by rewrite !Rabs_pos_eq; try lra; interval.
+      apply: round_DN_eq; first by apply: generic_format_pred.
+      rewrite succ_pred //.
+      split; last by lra.
+      by rewrite pred1; lra.
+    apply: round_le.
+    suff : R_DN 0 <= R_DN (ql + e) by rewrite round_0; lra.
+    apply: round_le.
+    suff : 0 <= ql + e2.
+      rewrite /e; case: (_ && _); try lra.
+      have : e2 < e1 by interval.
+      by lra.
+    suff : Rabs ql <= e2 by clear; split_Rabs; lra.
+    rewrite qlE2.
+    apply: format_Rabs_round_ge; first by apply: e2F.
+    by interval.
+  have qhE2 : qh = pred beta fexp 1.
+    rewrite qhE1 HR_DN.
+    apply: round_DN_eq; first by apply: generic_format_pred.
+    rewrite succ_pred //.
+    split; last by rewrite /Q0; lra.
+    rewrite pred1 -[h1']Ropp_involutive -[-h1']Rabs_left //.
+    by interval with (i_prec 100).
+  have qlE2 : ql = R_DN (pred beta fexp (pow (- 53)) + l1').
+    rewrite qlE1 qhE2 pred1 HR_DN; congr (R_DN (_ + _)).
+    have -> : 1 - pow (-53) - Q0 = - pow (- 53) by rewrite /Q0; lra.
+    apply: round_DN_eq => //.
+    rewrite succ_pred // round_generic //.
+    split; last by lra.
+    rewrite pred_bpow -[fexp _]/(- 106)%Z.
+    by interval with (i_prec 100).
+  have F531 : pred beta fexp (pow (- 53)) = pow (-53) - pow (- 106).
+    by rewrite pred_bpow -[fexp _]/(- 106)%Z; lra.
+  have F532 : pred beta fexp (pred beta fexp (pow (-53))) = 
+                pow (-53) - pow (- 106) - pow (- 106).
+    rewrite pred_bpow pred_eq_pos -[fexp _]/(- 106)%Z; last interval.
+    rewrite /pred_pos.
+    have Fmag : mag beta (pow (-53) - pow (-106)) = (- 53)%Z :> Z.
+      apply: mag_unique_pos.
+      by split; interval with (i_prec 100).
+    rewrite Fmag.
+    case: Req_bool_spec => [H|_].
+      suff : pow (-53 - 1) < pow (-53) - pow (-106) by lra.
+      by interval.
+    rewrite ulp_neq_0 /cexp /fexp; last by interval.
+    by rewrite Fmag -[Z.max _ _]/(- 106)%Z; lra.
+  suff : u' < v' by lra.
+  rewrite /u' /v' ehE elE qhE2 HR_DN.
+  apply: Rlt_le_trans (_ : R_DN 1 <= _); last first.
+    apply: round_le.
+    suff : pow (- 53) <= R_DN (ql + e * pred beta fexp 1).
+      by rewrite pred1; lra.
+    have <- : R_DN (pow (- 53)) = pow (- 53) by apply: round_generic.
+    apply: round_le.
+    rewrite qlE2 pred1.
+    have [l1'_pos|l1'_neg] := Rle_lt_dec 0 l1'.
+      suff -> : R_DN (pred beta fexp (pow (-53)) + l1') = 
+                      pred beta fexp (pow (-53)).
+        rewrite pred_bpow /e //.
+        by case: (_ && _); interval.
+      apply: round_DN_eq => //.
+      rewrite succ_pred //.
+      split; first by lra.
+      by rewrite pred_bpow; interval with (i_prec 100).
+    suff -> : R_DN (pred beta fexp (pow (- 53)) + l1') = 
+              pred beta fexp (pred beta fexp (pow (- 53))).
+      by rewrite F532 /e; case: (_ && _); interval.
+    apply: round_DN_eq; first by apply: generic_format_pred.
+    rewrite succ_pred //; split; last by lra.
+    rewrite F532 F531.
+    by interval with (i_prec 100).
+  rewrite [R_DN 1]round_generic //.
+  apply: round_down_gt => //.    
+  apply: Rlt_le_trans (_ : pred beta fexp 1 + (pow (- 53)) <= _); last first.
+    by rewrite pred1; lra.
+  suff : R_DN (ql - e * pred beta fexp 1) < pow (- 53) by lra.
+  apply: round_down_gt => //.
+  rewrite qlE2.
+  have [l1'_pos|l1'_neg] := Rle_lt_dec 0 l1'.
+    suff -> : R_DN (pred beta fexp (pow (- 53)) + l1') = 
+                    pred beta fexp (pow (- 53)).
+      rewrite pred_bpow pred1 -[fexp _]/(- 106)%Z /e //.
+      by case: (_ && _); interval.
+    apply: round_DN_eq => //.
+    rewrite succ_pred //.
+    split; first by lra.
+    by rewrite pred_bpow; interval with (i_prec 100).
+  suff -> : R_DN (pred beta fexp (pow (- 53)) + l1') = 
+            pred beta fexp (pred beta fexp (pow (- 53))).
+    by rewrite F532 /e pred1; case: (_ && _); interval.
+  apply: round_DN_eq; first by apply: generic_format_pred.
+  rewrite succ_pred //; split; last by lra.
+  rewrite F532 F531.
+  by interval with (i_prec 100).
 - rewrite HR_UP.
   have [h1'_neg|h1'_pos] := Rle_lt_dec h1' 0.
     have qhE2 : qh = 1.
@@ -1621,16 +1770,16 @@ have [HR_C|[HR_Z|[HR_X|[HR_V|HR_UP]]]] := basic_rnd.
     apply: round_UP_eq; first by apply: generic_format_succ.
     rewrite pred_succ //.
     split; first by lra.
-    by rewrite suc1; lra.
+    by rewrite succ1; lra.
   have qhE2 : qh = succ beta fexp 1.
     rewrite qhE1 HR_UP.
     apply: round_UP_eq; first by apply: generic_format_succ.
     rewrite pred_succ //.
     split; first by rewrite /Q0; lra.
-    rewrite suc1 -[h1']Rabs_pos_eq; last by lra.
+    rewrite succ1 -[h1']Rabs_pos_eq; last by lra.
     by interval with (i_prec 100).
   have qlE2 : ql = R_UP (succ beta fexp (- pow (- 52)) + l1').
-    rewrite qlE1 qhE2 suc1 HR_UP; congr (R_UP (_ + _)).
+    rewrite qlE1 qhE2 succ1 HR_UP; congr (R_UP (_ + _)).
     have -> : 1 + pow (-52) - Q0 = pow (- 52) by rewrite /Q0; lra.
     apply: round_UP_eq => //.
     rewrite pred_succ // round_generic //.
@@ -1657,10 +1806,10 @@ have [HR_C|[HR_Z|[HR_X|[HR_V|HR_UP]]]] := basic_rnd.
   apply: Rle_lt_trans (_ : R_UP 1 < _).
     apply: round_le.
     suff : R_UP (ql - e * succ beta fexp 1) <= - pow (- 52).
-      by rewrite suc1; lra.
+      by rewrite succ1; lra.
     have <- : R_UP (- pow (- 52)) = - pow (- 52) by apply: round_generic.
     apply: round_le.
-    rewrite qlE2 suc1.
+    rewrite qlE2 succ1.
     have [l1'_neg|l1'_pos] := Rle_lt_dec l1' 0.
       suff -> : R_UP (succ beta fexp (- pow (-52)) + l1') = 
                       succ beta fexp (- pow (-52)).
@@ -1681,14 +1830,14 @@ have [HR_C|[HR_Z|[HR_X|[HR_V|HR_UP]]]] := basic_rnd.
   rewrite round_generic //.
   apply: round_up_lt => //.    
   apply: Rle_lt_trans (_ : succ beta fexp 1 + (- pow (-52)) < _).
-    by rewrite suc1; lra.
+    by rewrite succ1; lra.
   suff : - pow (-52) < R_UP (ql + e * succ beta fexp 1) by lra.
   apply: round_up_lt => //.
   rewrite qlE2.
   have [l1'_neg|l1'_pos] := Rle_lt_dec l1' 0.
     suff -> : R_UP (succ beta fexp (- pow (-52)) + l1') = 
                     succ beta fexp (- pow (-52)).
-      rewrite succ_opp pred_bpow suc1 -[fexp _]/(- 105)%Z /e //.
+      rewrite succ_opp pred_bpow succ1 -[fexp _]/(- 105)%Z /e //.
       by case: (_ && _); interval.
     apply: round_UP_eq => //.
     rewrite pred_succ //.
@@ -1696,7 +1845,7 @@ have [HR_C|[HR_Z|[HR_X|[HR_V|HR_UP]]]] := basic_rnd.
     by rewrite succ_opp pred_bpow; interval with (i_prec 100).
   suff -> : R_UP (succ beta fexp (- pow (-52)) + l1') = 
             succ beta fexp (succ beta fexp (- pow (- 52))).
-    by rewrite F522 /e suc1; case: (_ && _); interval.
+    by rewrite F522 /e succ1; case: (_ && _); interval.
   apply: round_UP_eq.
     by apply: generic_format_succ.
   rewrite pred_succ //; split; first by lra.
