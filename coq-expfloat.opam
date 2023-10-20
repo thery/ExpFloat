@@ -56,7 +56,7 @@ Algorithm Exp1 :
 - [Lemma 7](./algoExp1.v#L1896-L1901)
 
 Algorithm Phase1 :
-- [algorith Phase 1](./algoPhase1.v#L2008-L2018)"""
+- [algorithm Phase 1](./algoPhase1.v#L2008-L2018)"""
 
 build: [make "-j%{jobs}%"]
 install: [make "install"]
