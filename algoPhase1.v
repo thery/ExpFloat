@@ -991,22 +991,14 @@ apply: round_UP_eq; first by apply: generic_format_succ.
 by rewrite pred_succ //; lra.
 Qed.
 
-Lemma round_down_gt x1 y1 : format y1 -> x1 < y1 -> R_DN x1 < y1.
+
+Lemma round_down_gt x1 y1 :  x1 < y1 -> R_DN x1 < y1.
 Proof.
-move=> y1F x1Ly1.
-pose y2 := pred beta fexp y1.
-have y2Ly1 : y2 < y1.
-  rewrite /y2.
-  have [->|y1_neq0] := Req_dec y1 0; last by apply: pred_lt_id.
-  by rewrite pred_0 ulp_FLT_0; interval with (i_prec 100).
-have [x1Ly2|y2Lx1] := Rle_lt_dec x1 y2.
-  apply: Rle_lt_trans _ y2Ly1.
-  have <- : R_DN y2 = y2 by apply/round_generic/generic_format_pred.
-  by apply: round_le.
-suff -> : R_DN x1 = y2 by [].
-apply: round_DN_eq; first by apply: generic_format_pred.
-by rewrite succ_pred //; lra.
+move=> x1Ly1.
+apply/(Rle_lt_trans _ x1)=>//.
+case: (round_DN_UP_le x1);lra.
 Qed.
+
 
 Lemma succ_bpow (e : Z) : 
  (emin <= e + 1 - p)%Z -> succ beta fexp (pow e) = pow e + pow (e + 1 - p).

@@ -23,6 +23,7 @@ Variable choice : Z -> bool.
 Hypothesis choice_sym: forall x, choice x  = negb (choice (- (x + 1))).
 
 Local Notation fexp := (FLX_exp p).
+(* Hypothesis valid_fexp : Valid_exp fexp. *)
 Local Notation format := (generic_format beta fexp).
 Local Notation cexp := (cexp beta fexp).
 Local Notation mant := (scaled_mantissa beta fexp).
@@ -492,14 +493,13 @@ Qed.
 
 (* About round down                                                           *)
 
-Local Notation RD := (round beta fexp Zfloor).
 
-Lemma round_DN_UP_le (x : R) :
+Lemma round_DN_UP_le (x : R) fexp (valid_fexp : Valid_exp fexp):
   round beta fexp Zfloor x <=  x <= round beta fexp Zceil x.
 Proof.
 case : (generic_format_EM beta fexp  x)=> Fx.
   rewrite !round_generic //; lra.
-suff: RD x < x < round beta fexp Zceil x by lra.
+suff: round beta fexp Zfloor x < x < round beta fexp Zceil x by lra.
 by apply: round_DN_UP_lt.
 Qed.
 
