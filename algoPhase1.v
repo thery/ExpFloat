@@ -996,7 +996,7 @@ Lemma round_down_gt x1 y1 :  x1 < y1 -> R_DN x1 < y1.
 Proof.
 move=> x1Ly1.
 apply/(Rle_lt_trans _ x1)=>//.
-case: (round_DN_UP_le x1);lra.
+case:(@round_DN_UP_le beta  x1 fexp);lra.
 Qed.
 
 
