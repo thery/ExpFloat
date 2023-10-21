@@ -1,4 +1,4 @@
-Require Import ZArith Reals  Psatz.
+Require Import ZArith Reals Psatz.
 From mathcomp Require Import all_ssreflect all_algebra.
 From Flocq Require Import Core Relative Sterbenz Operations Mult_error.
 From Interval Require Import Tactic.
@@ -249,6 +249,11 @@ Qed.
 
 Definition e := 
   if (Rlt_bool hsqrt2 x) && (Rlt_bool x sqrt2) then e1 else e2.
+
+Lemma eF : format e.
+Proof.
+rewrite /e; case: (_ && _); [apply: e1F|apply: e2F].
+Qed.
 
 Lemma eI : sqrt 2 / 2 < x < sqrt 2 -> e = R_UP(Rpower 2  (- 57.560)).
 Proof.
@@ -1636,7 +1641,65 @@ have fPP53E: fPP53 = pow (-53) - pow (- 106) - pow (- 106).
   rewrite ulp_neq_0 /cexp /fexp; last by interval.
   by rewrite Fmag -[Z.max _ _]/(- 106)%Z; lra.
 have [HR_N|[HR_Z|[HR_A|[HR_DN|HR_UP]]]] := basic_rnd.
-- admit.
+- have qhE2 : qh = 1.
+    rewrite qhE1 HR_N.
+    have [->|h1'_neq0] := Req_dec h1' 0.
+      by rewrite !Rsimp01 round_generic //.
+    have [h1'_pos|h1'_neg] := Rle_lt_dec 0 h1'; last first.
+      have qhU : R_UP (Q0 + h1') = 1.
+        apply: round_UP_eq => //.
+        rewrite -/pred1 pred1E; split.
+          by clear h1'_neg; interval with (i_prec 100).
+        by rewrite /Q0; lra.
+      have qhD : R_DN (Q0 + h1') = pred1.
+        apply: round_DN_eq; first by apply: generic_format_pred.
+        rewrite succ_pred //.
+        split; last by rewrite /Q0; lra.
+        rewrite pred1E -[h1']Ropp_involutive -[-h1']Rabs_left //.
+        by interval with (i_prec 100).
+      rewrite -qhU; apply: round_N_eq_UP.
+      by rewrite qhU qhD pred1E; interval with (i_prec 100).
+    have qhU : R_UP (Q0 + h1') = succ1.
+      apply: round_UP_eq; first by apply: generic_format_succ.
+      rewrite pred_succ // succ1E.
+      split; first by rewrite /Q0; lra.
+      by interval with (i_prec 100).
+    have qhD : R_DN (Q0 + h1') = 1.
+      apply: round_DN_eq => //.
+      rewrite -/succ1 succ1E //.
+      split; first by rewrite /Q0; lra.
+      by interval with (i_prec 100).
+    rewrite -qhD; apply: round_N_eq_DN.
+    by rewrite qhU qhD succ1E; interval with (i_prec 100).
+  have qlE2 : ql = R_N (h1' + l1').
+    rewrite qlE1 qhE2 HR_N !(Rsimp01, round_0).
+    by congr (R_N (_ + _)); apply/round_generic/generic_format_round.
+  rewrite HR_N rpowerN //; last first.
+  suff : u' <= R_N 1 /\ R_N 1 <= v'.
+    by rewrite -u'Ev' round_generic //; lra.
+  split.
+    rewrite /u' HR_N; apply: round_le.
+    rewrite ehE elE qhE2 Rsimp01.
+    suff: R_N (ql - e) <= R_N 0.
+      rewrite [R_N 0]round_generic //; first by lra.
+      by apply: generic_format_0.
+    apply: round_le.
+    suff : ql <= R_N e.
+      rewrite round_generic //; first by lra.
+      by apply: eF.
+    rewrite qlE2; apply: round_le.
+    by rewrite /e; case: (_ && _); interval.
+  rewrite /v' HR_N; apply: round_le.
+  rewrite ehE elE qhE2 Rsimp01.
+  suff: R_N 0 <= R_N (ql + e).
+    rewrite [R_N 0]round_generic //; first by lra.
+    by apply: generic_format_0.
+  apply: round_le.
+  suff : R_N (- e) <= ql.
+    rewrite round_generic //; first by lra.
+    by apply/generic_format_opp/eF.
+  rewrite qlE2; apply: round_le.
+  by rewrite /e; case: (_ && _); interval.
 - rewrite HR_Z.
   have [h1'_pos|h1'_neg] := Rle_lt_dec 0 h1'.
     have qhE2 : qh = 1.
@@ -2044,7 +2107,7 @@ apply: Rle_lt_trans (_ : fN52 + e * succ1 < _).
 suff : fN52 < R_UP (fSN52 + l1') by lra.
 apply: round_up_lt => //.
 by rewrite /fN52 fSN52E; interval with (i_prec 100).
-Admitted.
+Qed.
 
 End Prelim.
 
