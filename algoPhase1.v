@@ -60,6 +60,7 @@ Local Notation ulp := (ulp beta fexp).
 Local Notation R_UP := (round beta fexp Zceil).
 Local Notation R_DN := (round beta fexp Zfloor).
 Local Notation R_A := (round beta fexp Zaway).
+Local Notation R_Z := (round beta fexp Ztrunc).
 Local Notation R_N := (round beta fexp (Znearest choice)).
 
 Definition hsqrt2 := 0x1.6a09e667f3bccp-1.
@@ -1634,9 +1635,103 @@ have fPP53E: fPP53 = pow (-53) - pow (- 106) - pow (- 106).
     by interval.
   rewrite ulp_neq_0 /cexp /fexp; last by interval.
   by rewrite Fmag -[Z.max _ _]/(- 106)%Z; lra.
-have [HR_C|[HR_Z|[HR_A|[HR_DN|HR_UP]]]] := basic_rnd.
+have [HR_N|[HR_Z|[HR_A|[HR_DN|HR_UP]]]] := basic_rnd.
 - admit.
-- admit.
+- rewrite HR_Z.
+  have [h1'_pos|h1'_neg] := Rle_lt_dec 0 h1'.
+    have qhE2 : qh = 1.
+      rewrite qhE1 HR_Z round_ZR_DN; last by interval.
+      apply: round_DN_eq => //.
+      rewrite -/succ1 succ1E; split.
+        by rewrite /Q0; lra.
+      by clear h1'_pos; interval with (i_prec 100).
+    have qlE2 : ql = R_Z (h1' + l1').
+      rewrite qlE1 qhE2 HR_Z !(Rsimp01, round_0).
+      by congr (R_Z (_ + _)); apply/round_generic/generic_format_round.
+    have qlB : Rabs ql <= pow (- 960).
+      rewrite qlE2.
+      by apply: Rabs_round_le => //; interval.
+    suff : u' < v' by lra.
+    rewrite /u' /v' ehE elE qhE2 Rsimp01 !HR_Z.
+    apply: Rlt_le_trans (_ : R_Z 1 <= _).
+      rewrite [R_Z 1]round_generic //.
+      rewrite round_ZR_DN; last first.
+        suff : R_Z (- 1) <= R_Z (ql - e).
+          rewrite round_generic; first by lra.
+          by apply: generic_format_opp.
+        apply: round_le.
+        by rewrite /e; case: (_ && _); interval.
+      apply: round_down_gt.
+      suff : R_Z (ql - e) < 0 by lra.
+      have <- : succ beta fexp (pred beta fexp 0) = 0.
+        by apply/succ_pred/generic_format_0.
+      apply: succ_gt_ge.
+        by rewrite pred_0 ulp_FLT_0; interval with (i_prec 100).
+      have <- : R_Z (pred beta fexp 0) = pred beta fexp 0.
+        by apply/round_generic/generic_format_pred/generic_format_0.
+      apply: round_le.
+      by rewrite pred_0 ulp_FLT_0 /e; case: (_ && _); interval.
+    apply: round_le.
+    suff : 0 <= R_Z (ql + e) by lra.
+    have <- : R_Z 0 = 0 by apply/round_generic/generic_format_0.
+    apply: round_le.
+    by rewrite /e; case: (_ && _); interval.
+  have qhE2 : qh = pred1.
+    rewrite qhE1 HR_Z round_ZR_DN; last by interval.
+    apply: round_DN_eq; first by apply: generic_format_pred.
+    rewrite succ_pred //.
+    split; last by rewrite /Q0; lra.
+    rewrite pred1E -[h1']Ropp_involutive -[-h1']Rabs_left //.
+    by interval with (i_prec 100).
+  have qlE2 : ql = R_DN (fP53 + l1').
+    rewrite qlE1 qhE2 pred1E HR_Z.
+    have -> : 1 - pow (-53) - Q0 = - pow (- 53) by rewrite /Q0; lra.
+    rewrite [R_Z (- _)]round_generic //.
+    have -> : R_Z (h1' - - pow (-53)) = fP53.
+      rewrite round_ZR_DN; last by interval.
+      apply: round_DN_eq => //.
+      rewrite succ_pred // fP53E; split; try interval with (i_prec 100).
+      by lra.
+    apply: round_ZR_DN.
+    by rewrite fP53E; interval.
+  suff : u' < v' by lra.
+  rewrite /u' /v' ehE elE qhE2 HR_Z.
+  apply: Rlt_le_trans (_ : R_Z 1 <= _); last first.
+    apply: round_le.
+    suff : f53 <= R_Z (ql + e * pred1).
+      by rewrite pred1E /f53; lra.
+    have <- : R_Z f53 = f53 by apply: round_generic.
+    apply: round_le.
+    rewrite qlE2 pred1E /f53.
+    apply: Rle_trans (_ : fPP53 + e * (1 - pow (-53)) <= _).
+      by rewrite fPP53E /e; case: (_ && _); interval.
+    suff : fPP53 <= R_DN (fP53 + l1') by lra.
+    have <- : R_DN fPP53 = fPP53 by apply: round_generic.
+    apply: round_le.
+    by rewrite fPP53E fP53E; interval with (i_prec 100).
+  rewrite [R_Z 1]round_generic //.
+  rewrite round_ZR_DN; last first.
+    suff : R_Z (- pred1) <= R_Z (ql - e * pred1).
+      rewrite round_generic; first by lra.
+      by apply: generic_format_opp.
+    apply: round_le.
+    apply: Rle_trans (_ : fPP53 - e * pred1 <= _).
+      by rewrite pred1E fPP53E /e; case: (_ && _); interval.
+    suff : R_DN fPP53 <= ql by rewrite round_generic //; lra.
+    rewrite qlE2; apply: round_le.
+    by rewrite fPP53E fP53E; interval with (i_prec 100).
+  apply: round_down_gt => //.    
+  apply: Rle_lt_trans (_ : pred1 + R_Z (f53 - e * pred1)  < _).
+    apply: Rplus_le_compat_l.
+    apply: round_le.
+    suff : ql <= R_DN f53 by rewrite round_generic //; lra.
+    rewrite qlE2; apply: round_le.
+    by rewrite fP53E /f53; interval with (i_prec 100).
+  suff: R_Z (f53 - e * pred1) < f53 by rewrite {2}pred1E /f53; lra.
+  rewrite round_ZR_DN; last first.
+    by rewrite /f53 pred1E /e; case: (_ && _); interval.
+  apply: round_down_gt.
+  by rewrite pred1E /e /f53; case: (_ && _); interval.
 - rewrite HR_A.
   have [h1'_neg|h1'_pos] := Rle_lt_dec h1' 0.
     have qhE2 : qh = 1.
