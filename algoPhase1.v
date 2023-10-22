@@ -666,29 +666,9 @@ Hypothesis  basic_rnd : rnd = (Znearest choice) \/
                         rnd = Ztrunc \/ rnd = Zaway \/ 
                         rnd = Zfloor \/ rnd = Zceil.
 
-Lemma basic_rnd_pos : 
-  [\/ forall x, 0 <= x -> RND x = R_UP x,
-      forall x, 0 <= x -> RND x = R_DN x |
-      forall x, 0 <= x -> RND x = R_N x].
-Proof.
-(have [|[|[|[]]]] := basic_rnd) => ->.
-- by apply: Or33.
-- apply: Or32 => x1 x1_pos.
-  rewrite /round; rewrite Ztrunc_floor //.
-  rewrite /scaled_mantissa.
-  have : 0 < pow (- cexp x1) by apply: bpow_gt_0.
-  by nra.
-- apply: Or31 => x1 x1_pos.
-  rewrite /round; rewrite Zaway_ceil //.
-  rewrite /scaled_mantissa.
-  have : 0 < pow (- cexp x1) by apply: bpow_gt_0.
-  by nra.
-- by apply: Or32.
-by apply: Or31.
-Qed.
   
 (* Appendix A-L *)
-Lemma r1B_phase1_thm1_r0 : rh  < r0 -> u' = v' -> u' = RND (Rpower x y).
+Lemma r1B_phase1_thm1_r0 : rh < r0 -> u' = v' -> u' = RND (Rpower x y).
 Proof.
 move=> rhB.
 have alphaF: format alpha by apply/generic_format_bpow; rewrite /fexp; lia.
@@ -918,12 +898,18 @@ apply: Rle_trans (_ : (1 - Rpower 2 (-67.0544)) / (1 + Rpower 2 (-23.89)) <= _).
 by lra.
 Qed.
 
-Lemma r1B_phase1_thm1 : rh  < r1 -> u' = v' -> u' = RND (Rpower x y).
+Lemma r1B_phase1_thm1 : 
+  rh < r1 -> exp1 (DWR rh rl) <> None -> u' = v' -> u' = RND (Rpower x y).
 Proof.
-move=> rhB.
-case:(Rlt_le_dec rh r0)=> rhr0; first by apply/r1B_phase1_thm1_r0.
-Admitted.
-
+move=> rhB exp1E.
+have [rhr0|r0rh] := Rlt_le_dec rh r0; first by apply/r1B_phase1_thm1_r0.
+move: exp1E.
+rewrite /exp1; case: Rlt_bool_spec; rewrite -/r3 => HH.
+  suff : rh < r3 by lra.
+  by interval.
+case: Rlt_bool_spec; rewrite -/r0; first by lra.
+case: Rlt_bool_spec; rewrite -/r1 //=; lra.
+Qed.
 
 Lemma xy_omega_r2 : 0 < x -> rh <= r2 -> Rpower x y < omega.
 Proof.
@@ -976,10 +962,19 @@ by lra.
 Qed.
 
 (* Appendix A-M *)
-Lemma r2B_phase1_thm1 : r2 < rh -> u' = v' -> u' = RND (Rpower x y).
+Lemma r2B_phase1_thm1 : 
+  r2 < rh -> exp1 (DWR rh rl) <> None -> u' = v' -> u' = RND (Rpower x y).
 Proof.
-move=> rhB.
-Admitted.
+move=> rhB exp1E.
+move: exp1E.
+rewrite /exp1; case: Rlt_bool_spec; rewrite -/r3 //.
+case: Rlt_bool_spec; rewrite -/r0 => rhB1.
+  suff : r0 <= rh by lra.
+  by interval.
+case: Rlt_bool_spec; rewrite -/r1 //= => rhB2.
+case: Rlt_bool_spec; rewrite -/r2 //= => rhB3.
+by lra.
+Qed.
 
 Lemma round_up_lt x1 y1 : format x1 -> x1 < y1 -> x1 < R_UP y1.
 Proof.

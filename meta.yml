@@ -49,11 +49,12 @@ description: |-
   - [relative error for T1](./algoExp1.v#L548-L549)
   - [table T2](./tableT2.v#L76-L142)
   - [relative error for T2](./algoExp1.v#L504-L505)
-  - [algorithm Exp1](./algoExp1.v#L1853-L1881)
-  - [Lemma 7](./algoExp1.v#L1896-L1901)
+  - [algorithm Exp1](./algoExp1.v#L1856-L1884)
+  - [Lemma 7](./algoExp1.v#L1911-L1909)
 
   Algorithm Phase1 :
-  - [algorithm Phase 1](./algoPhase1.v#L2008-L2018)
+  - [algorithm Phase 1](./algoPhase1.v#L2161-L2171)
+  - [Theorem 1](./algoPhase1.v#L2175-L2177)
 
 authors:
 - name: Laurent Théry

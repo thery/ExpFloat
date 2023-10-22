@@ -1850,13 +1850,16 @@ Variable choice : Z -> bool.
 
 Local Notation " x <? y " := (Rlt_bool x y).
 
+(* With the format FLT_exp there is no overflow so by contrast to the 
+   paper we do not deal with it, so we always fail when rh > r2 *)
+
 Definition exp1 r := 
 let 'DWR rh rl := r in 
 let r0 := -0x1.74910ee4e8a27p+9 in
 let r1 := -0x1.577453f1799a6p+9 in
 let r2 := 0x1.62e42e709a95bp+9 in
 let r3 := 0x1.62e4316ea5df9p+9 in
-if r3 <? rh then some (DWR omega omega) else 
+if r3 <? rh then (* some (DWR omega omega) *) None else 
 if rh <? r0 then some (DWR alpha (- alpha)) else 
 if (rh <? r1) || (r2 <? rh) then None else
 let INVLN2 := 0x1.71547652b82fep+12 in
@@ -1886,6 +1889,8 @@ Lemma exp1_good_range rh rl :
 Proof.
 rewrite /exp1.
 case: Rlt_bool_spec => //.
+  rewrite -/r2 -/r3 => ?; suff: r2 < rh by lra.
+  interval.
 case: Rlt_bool_spec; first by lra.
 case: Rlt_bool_spec; first by lra.
 case: Rlt_bool_spec; first by lra.
