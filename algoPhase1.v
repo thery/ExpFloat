@@ -2206,9 +2206,8 @@ have v'E : v' = algoPhase1.v' rnd choice x y.
   by rewrite /algoPhase1.v' -ehE -elE -eE.
 have [r1Lrh|rhLr1] := Rle_dec r1 rh; last first.
   rewrite u'E.
-  apply: r1B_phase1_thm1 => //.
-    by rewrite -rhE; lra.
-  by rewrite -u'E -v'E.
+  apply: r1B_phase1_thm1 =>//; try lra.
+  by rewrite -rhE -rlE E2.
 have [rhLr2|r2Lrh] := Rle_dec rh r2.
   rewrite u'E.
   apply: r1r2B_phase1_thm1 => //.
@@ -2216,7 +2215,8 @@ have [rhLr2|r2Lrh] := Rle_dec rh r2.
   by rewrite -u'E -v'E.
 rewrite u'E.
 apply: r2B_phase1_thm1 => //.
-  by rewrite -rhE; lra.
++ by rewrite -rhE; lra.
++ by rewrite -rhE -rlE E2.
 by rewrite -u'E -v'E.
 Qed.
 
