@@ -2119,7 +2119,7 @@ Definition phase1 (x y : R) :=
 
 (* This is theorem 1 *)
 
-Lemma phase1_thn1 x y r :
+Lemma phase1_thm1 x y r :
   format x -> format y -> alpha <= x <= omega -> 
   phase1 x y = some r -> r = RND (Rpower x y). 
 Proof.
