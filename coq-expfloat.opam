@@ -18,17 +18,26 @@ Exponential in binary 64
 Progress
 
 Algorithm FastTwoSum : 
+- [Algorithm FastTwoSum](./prelim.v#L562-L564)
 - [Bounds on the error of FastTwoSum](./Fast2Sum_robust_flt.v#L946-L953)
 
+Algorithm ExactMul  :
+- [Algorithm ExactMult](./prelim.v#L497-L499)
+- [Lemma 0](./prelim.v#L525-L526)
+
+Algorithm FastSum  :
+- [Algorithm FastSum](./prelim.v#L588-L589)
+- [Lemma 1](./prelim.v#L729-L732)
+
 Algorithm P1 : 
-- [Algotiyhm P1](./algoP1.v#L356-L364)
+- [Algorithm P1](./algoP1.v#L356-L364)
 - [Absolute error of Sollya polynomial](./algoP1.v#L150-L151)
 - [Relative error of Sollya polynomial](./algoP1.v#L338-L340)
 - [Bound of `ph` of algorithm P1](./algoP1.v#L1710-L1715)
 - [Bound of `pl` of algorithm P1](./algoP1.v#L1732-L1737)
-- [Absolute error of algorithm P1](./algoP1.v#L1743-L1748)
+- [Absolute error of algorithm P1 (first part Lemma 2)](./algoP1.v#L1743-L1748)
 - [Relative error of algorithm P1](./algoP1.v#L1754-L1760)
-- [Refined relative error of algorithm P1](./algoP1.v#L1767-L1773)
+- [Refined relative error of algorithm P1 (second part Lemma 2)](./algoP1.v#L1767-L1773)
 
 Algorithm Log1 :
 - [Definition of the `INVERSE` table](./tableINVERSE.v#L47-L78)
@@ -52,8 +61,8 @@ Algorithm Exp1 :
 - [relative error for T1](./tableT1.v#L208-L211)
 - [table T2](./tableT2.v#L76-L142)
 - [relative error for T2](./tableT2.v#L209-L212)
-- [algorithm Exp1](./algoExp1.v#L1848-L1876)
-- [Lemma 7](./algoExp1.v#L1893-L1901)
+- [algorithm Exp1](./algoExp1.v#L1847-L1875)
+- [Lemma 7](./algoExp1.v#L1892-L1900)
 
 Algorithm Phase1 :
 - [algorithm Phase 1](./algoPhase1.v#L2144-L2154)

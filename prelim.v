@@ -97,6 +97,24 @@ have -> : (cexp f2 - cexp f1 + cexp f1 = cexp f2)%Z by lia.
 by lra.
 Qed.
 
+Local Notation R_UP := (round beta fexp Zceil).
+
+Lemma round_up_lt x1 y1 : x1 < y1 -> x1 < R_UP y1.
+Proof.
+move=> x1Ly1.
+apply: Rlt_le_trans x1Ly1 _.
+case:(@round_DN_UP_le beta y1 fexp);lra.
+Qed.
+
+Local Notation R_DN := (round beta fexp Zfloor).
+
+Lemma round_down_gt x1 y1 : x1 < y1 -> R_DN x1 < y1.
+Proof.
+move=> x1Ly1.
+apply: Rle_lt_trans _ x1Ly1.
+case:(@round_DN_UP_le beta  x1 fexp);lra.
+Qed.
+
 End Prelim.
 
 Section FltPrelim.
@@ -275,6 +293,45 @@ suff : (emin + p <= mag beta f)%Z by lia.
 apply: mag_ge_bpow.
 apply: Rle_trans fB.
 apply: bpow_le; lia.
+Qed.
+
+Lemma ulp_omega : ulp omega = pow (emax - p).
+Proof.
+have beta_ge_2 : 2 <= IZR beta.
+  by apply/IZR_le; have := radix_gt_1 beta; lia.
+rewrite ulp_neq_0; last by have := omega_gt_0; lra.
+congr (pow _); rewrite /cexp /FLT.
+rewrite (mag_unique_pos beta _ emax); first lia.
+split; rewrite /omega.
+  have -> : (1 - pow (- p)) * pow emax = 
+            (IZR beta * (1 - pow (- p))) * pow (emax - 1).
+    have -> : pow emax = pow 1 * pow (emax - 1).
+      by rewrite -bpow_plus; congr (pow _); lia.
+    rewrite -Rmult_assoc; congr (_ * _).
+    by rewrite pow1E; lra.
+  rewrite -{1}[pow (_ - 1)]Rmult_1_l; apply: Rmult_le_compat_r.
+    by apply: bpow_ge_0.
+  apply: Rle_trans (_ : IZR beta * (1 - pow (- 1)) <= _).
+    suff -> : IZR beta * (1 - pow (- 1)) = IZR beta - 1 by lra.
+    have -> : pow (-1) = / IZR beta by rewrite /= /Z.pow_pos /= Zmult_1_r.
+    by field; lra.
+  apply: Rmult_le_compat_l; first by lra.
+  suff : pow (- p) <= pow (- 1) by lra.
+  apply: bpow_le; lia.
+rewrite -{2}[pow emax]Rmult_1_l; apply: Rmult_lt_compat_r.
+  by apply: bpow_gt_0.
+suff : 0 < pow (- p) by lra.
+by apply: bpow_gt_0.
+Qed.
+
+Lemma succ_bpow_FLT (e : Z) : 
+ (emin <= e + 1 - p)%Z -> succ beta FLT (pow e) = pow e + pow (e + 1 - p).
+Proof.
+move=> eminB.
+rewrite succ_eq_pos; last by apply: bpow_ge_0.
+rewrite ulp_bpow.
+have -> : (FLT (e + 1) = e + 1 - p)%Z by rewrite /FLT; lia.
+by [].
 Qed.
 
 Lemma relative_error_eps_le x :

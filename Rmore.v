@@ -146,6 +146,12 @@ suff: / (1 + e) <= / (1 + c) <= / (1 - e) by nra.
 split; apply: Rinv_le_contravar; split_Rabs; nra.
 Qed.
 
+Lemma hsqrt2sqrt : sqrt 2 / 2 = / sqrt 2.
+Proof.
+have {2}<- : (sqrt 2) ^ 2 = 2 by apply: pow2_sqrt; lra.
+by field; have := Rlt_sqrt2_0; lra.
+Qed.
+
 (* sqrt 2 is irrational *)
 
 Lemma sqrt2_irr x y : IZR x / IZR y <> sqrt 2.

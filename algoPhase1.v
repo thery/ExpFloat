@@ -65,12 +65,6 @@ Local Notation R_N := (round beta fexp (Znearest choice)).
 
 Definition hsqrt2 := 0x1.6a09e667f3bccp-1.
 
-Lemma hsqrt2sqrt : sqrt 2 / 2 = / sqrt 2.
-Proof.
-have {2}<- : (sqrt 2) ^ 2 = 2 by apply: pow2_sqrt; interval.
-by field; interval.
-Qed.
-
 Lemma hsqrt2E : hsqrt2 = R_DN (sqrt 2 / 2).
 Proof.
 have hsE : hsqrt2 = Float beta 6369051672525772 (-53).
@@ -788,19 +782,11 @@ have->: (alpha + - alpha) = 0 by lra.
 by apply/generic_format_0.
 Qed.
 
-Lemma ulp_omega : ulp omega = pow (emax - p).
-Proof.
-rewrite ulp_neq_0; last by interval.
-congr (pow _); rewrite /cexp /fexp.
-rewrite (mag_unique_pos beta _ emax); first lia.
-by split; interval with (i_prec 100).
-Qed.
-
 Lemma xy_omega : r3 < rh -> omega + ulp (omega) < Rpower x y.
 Proof.
 move=> r3B.
 have -> : omega + ulp (omega) = pow 1024.
-  by rewrite ulp_omega /omega bpow_plus /emax; lra.
+  by rewrite ulp_omega // /omega bpow_plus /emax [(_ - p)%Z]/=; lra.
 have F : pow (emin + p) <= Rabs (y * lh).
   have [//|ylhLp] := Rle_lt_dec (pow (emin + p)) (Rabs (y * lh)).
   have F : Rabs rh <= pow (emin + p).
@@ -817,6 +803,8 @@ have r3_43B : r3 + pow (- 43) <= rh.
     rewrite ulp_neq_0; last by rewrite /r3; interval.
     congr (_ + pow _).
     rewrite /cexp /fexp.
+    have : omega = 0.
+      rewrite /omega /emax.
     rewrite (mag_unique_pos beta _ 10); first lia.
     by split; rewrite /r3; interval.
   apply: succ_le_lt => //; first by apply: format_r3.
@@ -970,30 +958,6 @@ case: Rlt_bool_spec; rewrite -/r0 => rhB1.
 case: Rlt_bool_spec; rewrite -/r1 //= => rhB2.
 case: Rlt_bool_spec; rewrite -/r2 //= => rhB3.
 by lra.
-Qed.
-
-Lemma round_up_lt x1 y1 : x1 < y1 -> x1 < R_UP y1.
-Proof.
-move=> x1Ly1.
-apply: Rlt_le_trans x1Ly1 _.
-case:(@round_DN_UP_le beta y1 fexp);lra.
-Qed.
-
-Lemma round_down_gt x1 y1 : x1 < y1 -> R_DN x1 < y1.
-Proof.
-move=> x1Ly1.
-apply: Rle_lt_trans _ x1Ly1.
-case:(@round_DN_UP_le beta  x1 fexp);lra.
-Qed.
-
-Lemma succ_bpow (e : Z) : 
- (emin <= e + 1 - p)%Z -> succ beta fexp (pow e) = pow e + pow (e + 1 - p).
-Proof.
-move=> eminB.
-rewrite succ_eq_pos; last by apply: bpow_ge_0.
-rewrite ulp_bpow.
-have -> : (fexp (e + 1) = e + 1 - p)%Z by rewrite /fexp; lia.
-by [].
 Qed.
 
 (* Appendix A-N *)
@@ -1586,7 +1550,7 @@ have fSSN52E : fSSN52 = - pow (-52) + pow (- 105) + pow (- 105).
 pose fPN52 := pred beta fexp (- pow (- 52)).
 have fPN52F : format fPN52 by apply: generic_format_pred.
 have fPN52E : fPN52 = - pow (- 52) - pow (- 104).
-    by rewrite /fPN52 pred_opp succ_bpow // -[(_ - p)%Z]/(- 104)%Z; lra.
+    by rewrite /fPN52 pred_opp succ_bpow_FLT // -[(_ - p)%Z]/(- 104)%Z; lra.
 pose fPPN52 := pred beta fexp fPN52.
 have fPPN52F : format fPPN52 by apply: generic_format_pred.
 have fPPN52E : fPPN52 = - pow (- 52) - pow (- 104) - pow (- 104).
