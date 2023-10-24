@@ -65,8 +65,8 @@ Algorithm Exp1 :
 - [Lemma 7](./algoExp1.v#L1892-L1900)
 
 Algorithm Phase1 :
-- [algorithm Phase 1](./algoPhase1.v#L2108-L2118)
-- [Theorem 1](./algoPhase1.v#L2122-L2124)
+- [algorithm Phase 1](./algoPhase1.v#L2106-L2116)
+- [Theorem 1](./algoPhase1.v#L2120-L2122)
 
 ## Meta
 
