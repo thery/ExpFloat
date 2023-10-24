@@ -41,7 +41,7 @@ description: |-
   - [Lemma 3](./tableINVERSE.v#L192-L197)   
   - [Definition of the `LOGINV` table](./tableLOGINV.v#L107-L291)
   - [Definition of Log1](./algoLog1.v#L227-L238)
-  - [Lemma 4](./algoLog1.v#L2508-L2514)
+  - [Lemma 4](./algoLog1.v#L2506-L2512)
 
   Algorithm Mul1 :
   - [Definition of Mul1](./algoMul1.v#L67-L70)
@@ -62,8 +62,8 @@ description: |-
   - [Lemma 7](./algoExp1.v#L1892-L1900)
 
   Algorithm Phase1 :
-  - [algorithm Phase 1](./algoPhase1.v#L2144-L2154)
-  - [Theorem 1](./algoPhase1.v#L2158-L2160)
+  - [algorithm Phase 1](./algoPhase1.v#L2108-L2118)
+  - [Theorem 1](./algoPhase1.v#L2122-L2124)
 
 authors:
 - name: Laurent Théry
