@@ -1,8 +1,12 @@
 From mathcomp Require Import all_ssreflect.
+From Coquelicot Require Import Coquelicot.
 Require Import Reals  Psatz.
 From Flocq Require Import Core.Raux.
 
 Open Scope R_scope.
+
+Lemma Rabs_0 x : x = 0 -> Rabs x = 0.
+Proof. by move->; rewrite Rabs_R0. Qed.
 
 Lemma Rdiv_1_l x : 1 / x = / x.
 Proof. by rewrite [_ / _]Rmult_1_l. Qed.
@@ -108,4 +112,72 @@ move=> x_pos y_pos k_pos.
 have := pow_pos_lt x y k x_pos y_pos k_pos.
 have := pow_pos_lt y x k y_pos x_pos k_pos.
 lra.
+Qed.
+
+Lemma derive_ln_1px x : 
+  -1 < x -> is_derive (fun x => ln (1 + x)) x (1 / (1 + x)).
+Proof. by move=> *; auto_derive; lra. Qed.
+
+Lemma ln_bound_pos e x : 
+  0 < e < 1 -> 0 <= x < e -> 
+  1 / (1 + e) * x <= ln (1 + x) <=  x * (1 / (1 - e)).
+Proof.
+move=> Be Bx.
+case: (MVT_cor4 (fun x => ln (1 + x)) (fun x => 1 / (1 + x)) 
+         0 e _ x) => [||c].
+- by move=> c Hc; apply: derive_ln_1px; split_Rabs; lra.
+- by split_Rabs; lra.
+rewrite !(ln_1, Rsimp01) => [] [-> H2c].
+suff: / (1 + e) <= / (1 + c) <= / (1 - e) by nra.
+split; apply: Rinv_le_contravar; split_Rabs; nra.
+Qed.
+
+Lemma ln_bound_neg e x : 
+  0 < e < 1 -> -e < x <= 0 -> 
+  1 / (1 - e) * x <= ln (1 + x) <=  x * (1 / (1 + e)).
+Proof.
+move=> Be Bx.
+case: (MVT_cor4 (fun x => ln (1 + x)) (fun x => 1 / (1 + x)) 
+         0 e _ x) => [||c].
+- by move=> c Hc; apply: derive_ln_1px; split_Rabs; lra.
+- by split_Rabs; lra.
+rewrite !(ln_1, Rsimp01) => [] [-> H2c].
+suff: / (1 + e) <= / (1 + c) <= / (1 - e) by nra.
+split; apply: Rinv_le_contravar; split_Rabs; nra.
+Qed.
+
+(* sqrt 2 is irrational *)
+
+Lemma sqrt2_irr x y : IZR x / IZR y <> sqrt 2.
+Proof.
+have s2G : 1 < sqrt 2.
+  by rewrite -sqrt_1; apply: sqrt_lt_1_alt; lra.
+elim/Zcomplements.Z_lt_abs_induction: x y => x IH y xyE.
+have xxE : (x * x = 2 * y * y)%Z.
+  apply: eq_IZR; rewrite !mult_IZR.
+  have -> : 2 = sqrt 2 * sqrt 2.
+    by have /sqrt_sqrt Hf : 0 <= 2 by lra.
+  rewrite -xyE; field => yE.
+  by rewrite yE Rdiv_0_r in xyE; lra.
+have Ex : Z.even x.
+  have := Z.even_mul x x.
+  rewrite xxE.
+  by rewrite -Zmult_assoc Z.even_mul /=; case: Z.even.
+case: (Zaux.Zeven_ex x) => x1; rewrite Ex Zplus_0_r => xE.
+have Ey : Z.even y.
+  have := Z.even_mul y y.
+  have -> : (y * y = 2 * x1 * x1)%Z by lia.
+  by rewrite -Zmult_assoc Z.even_mul /=; case: Z.even.
+case: (Zaux.Zeven_ex y) => y1; rewrite Ey Zplus_0_r => yE.
+have [x_eq0|x_neq0] := Z.eq_dec x 0.
+  have y_eq0 : y = 0%Z by lia.
+  suff : sqrt 2 = 0 by lra.
+  by rewrite -xyE x_eq0 y_eq0; lra.
+have [y_eq0|y_neq0] := Z.eq_dec y 0.
+  have x_eq0 : x = 0%Z by lia.
+  suff : sqrt 2 = 0 by lra.
+  by rewrite -xyE x_eq0 y_eq0; lra.
+case: (IH x1 _ y1); first by lia.
+rewrite -xyE xE yE !mult_IZR; field.
+apply: not_0_IZR; lia.
 Qed.

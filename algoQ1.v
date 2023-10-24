@@ -44,9 +44,9 @@ Local Notation format := (generic_format radix2 fexp).
 Local Notation cexp := (cexp beta fexp).
 Local Notation mant := (scaled_mantissa beta fexp).
 Local Notation RND := (round beta fexp rnd).
-Local Notation fastTwoSum := (fastTwoSum rnd).
-Local Notation exactMul := (exactMul rnd).
-Local Notation fastSum := (fastSum rnd).
+Local Notation fastTwoSum := (fastTwoSum beta emin p rnd).
+Local Notation exactMul := (exactMul beta emin p rnd).
+Local Notation fastSum := (fastSum beta emin p rnd).
 
 Let alpha := pow (- 1074).
 Let omega := (1 - pow (-p)) * pow emax.
@@ -77,7 +77,7 @@ Definition Qf4 : float :=
 Fact Qf0E : F2R Qf0 = Q0.
 Proof. by rewrite /Q0 /F2R /Q2R /= /Z.pow_pos /=; field. Qed.
 
-Lemma format_Q0 : format Q0.
+Lemma Q0F : format Q0.
 Proof.
 rewrite -Qf0E.
 apply: generic_format_FLT.
@@ -87,7 +87,7 @@ Qed.
 Fact Qf1E : F2R Qf1 = Q1.
 Proof. by rewrite /Q1 /F2R /Q2R /= /Z.pow_pos /=; field. Qed.
 
-Lemma format_Q1 : format Q1.
+Lemma Q1F : format Q1.
 Proof.
 rewrite -Qf1E.
 apply: generic_format_FLT.
@@ -97,7 +97,7 @@ Qed.
 Fact Qf2E : F2R Qf2 = Q2.
 Proof. by rewrite /Q2 /F2R /Q2R /= /Z.pow_pos /=; field. Qed.
 
-Lemma format_Q2 : format Q2.
+Lemma Q2F : format Q2.
 Proof.
 rewrite -Qf2E.
 apply: generic_format_FLT.
@@ -107,7 +107,7 @@ Qed.
 Fact Qf3E : F2R Qf3 = Q3.
 Proof. by rewrite /Q3 /F2R /Q2R /= /Z.pow_pos /=; field. Qed.
 
-Lemma format_Q3 : format Q3.
+Lemma Q3F : format Q3.
 Proof.
 rewrite -Qf3E.
 apply: generic_format_FLT.
@@ -117,7 +117,7 @@ Qed.
 Fact Qf4E : F2R Qf4 = Q4.
 Proof. by rewrite /Q4 /F2R /Q2R /= /Z.pow_pos /=; field. Qed.
 
-Lemma format_Q4 : format Q4.
+Lemma Q4F : format Q4.
 Proof.
 rewrite -Qf4E.
 apply: generic_format_FLT.
@@ -134,7 +134,6 @@ Proof.
 move=> *; rewrite /Q /Q0 /Q1 /Q2 /Q3 /Q4.
 interval with (i_prec 90, i_bisect z, i_taylor z).
 Qed.
-
 
 Lemma error_exactMul (a b : R) :
   format a -> format b ->
@@ -195,8 +194,8 @@ have qB1 : pow (emin + p - 1) <= q.
     rewrite -[0](round_0 beta fexp) //.
     apply: round_le.
     by apply: Rle_trans (bpow_ge_0 _ _) Q4zQ3B. 
-  apply: format_Rabs_round_le => //.
-  apply: generic_format_bpow => //.
+  apply: Rabs_round_le_l => //.
+  apply: generic_format_FLT_bpow => //.
   by rewrite Rabs_pos_eq //; apply: Rle_trans (bpow_ge_0 _ _) Q4zQ3B.
 have q_pos : 0 < q by apply: Rlt_le_trans (bpow_gt_0 _ _) qB1.
 have qQB : Rabs (q - Q) <= pow (- 55).
@@ -239,8 +238,8 @@ have q'B1 : pow (emin + p - 1) <= q'.
     rewrite -[0](round_0 beta fexp) //.
     apply: round_le.
     by apply: Rle_trans (bpow_ge_0 _ _) qzQ2B. 
-  apply: format_Rabs_round_le => //.
-  apply: generic_format_bpow => //.
+  apply: Rabs_round_le_l => //.
+  apply: generic_format_FLT_bpow => //.
   by rewrite Rabs_pos_eq //; apply: Rle_trans (bpow_ge_0 _ _) qzQ2B.
 have q'_pos : 0 < q' by apply: Rlt_le_trans (bpow_gt_0 _ _) q'B1.
 have q'Q'B : Rabs (q' - Q') <= Rpower 2 (- 52.999952).
@@ -278,7 +277,7 @@ have h0B1 : pow (emin + p - 1) <= h0.
     rewrite -[0](round_0 beta fexp) //.
     apply: round_le.
     by apply: Rle_trans (bpow_ge_0 _ _) q'zQ1B1. 
-  apply: format_Rabs_round_le => //.
+  apply: Rabs_round_le_l => //.
   apply: generic_format_bpow => //.
   by rewrite Rabs_pos_eq //; apply: Rle_trans (bpow_ge_0 _ _) q'zQ1B1.
 have h0_pos : 0 < h0 by apply: Rlt_le_trans (bpow_gt_0 _ _) h0B1.
@@ -325,19 +324,19 @@ have dh1l1B : Rabs dh1l1 < alpha.
 have h1E : h1 = RND (z * h0) by case: Em => <-.
 have h1B : Rabs h1 < Rpower 2 (- 12.904).
   have [d2 [e2 [d2e2E _ d2B e2B]]]:=
-       @error_round_general (refl_equal _) rnd valid_rnd (z * h0).
-    rewrite h1E d2e2E.
+       error_round_delta_eps_FLT beta emin Hp2 valid_rnd  (z * h0).
+  rewrite h1E d2e2E.
   apply: Rle_lt_trans (Rabs_triang _ _) _.
   rewrite 2!Rabs_mult.
   by interval.
 have l1E : l1 = RND (z * h0 - h1) by case: Em => <- <-.
 have l1B : Rabs l1 <= pow (- 65).
   rewrite l1E.
-  apply: Rabs_round_le => //.
+  apply: Rabs_round_le_r => //; first by apply: generic_format_FLT_bpow.
   apply: Rle_trans (_ : ulp h1 <= _).
     rewrite -Rabs_Ropp Ropp_minus_distr.
     by rewrite h1E; apply: error_le_ulp_round.
-  apply: bound_ulp => //; try lia.
+  apply: bound_ulp_FLT => //; try lia.
   by interval.
 pose e1 := Rpower 2 (-64.9049049).
 have h1l1zH0B : Rabs (h1 + l1 - z * H0) <= e1.
@@ -370,7 +369,7 @@ have qhqlQ0z0B : Rabs (qh + ql - (Q0 + z * H0)) <=
         'DWR h l := fastTwoSum Q0 h1 in
          Rabs (h + l - (Q0 + h1)) <= bpow radix2 (-105) * Rabs h.
       by rewrite Ef2.
-    apply: fastTwoSum_correct => //; first by apply: format_Q0.
+    apply: fastTwoSum_correct => //; first by apply: Q0F.
       by case: Em => <- _; apply: generic_format_round.
     move=> Q0_neq0.
     by interval.
@@ -393,7 +392,7 @@ have vE : v = RND (h1 - RND (qh - Q0)) by case: Ef2 => <- <-.
 have vB : Rabs v <= pow (- 52).
   rewrite vE (round_generic _ _ _ (qh - Q0)); last first.
     rewrite qhE; apply/sma_exact_abs=>//.
-    + by apply/format_Q0.
+    + by apply: Q0F.
     + by rewrite h1E; apply/generic_format_round.
     by interval.
   apply/abs_round_le_generic.
@@ -402,7 +401,7 @@ have vB : Rabs v <= pow (- 52).
   have->: qh - Q0 - h1= qh - (Q0 + h1)by lra.
   apply/(Rle_trans _ (ulp qh)).
     by rewrite qhE; apply/error_le_ulp_round.
-  apply: bound_ulp => //.
+  apply: bound_ulp_FLT => //.
   by interval.
 have Ff : format (pow (- 52) + pow (- 65)).
   have -> : pow (-52) + pow (-65) = Float beta 8193 (- 65). 
@@ -416,7 +415,7 @@ have qlB1 : Rabs ql <= Rpower 2 (- 51.999).
   by apply: Rle_trans qlB _; interval.
 split => //.
 have ulpqlB : ulp ql <= pow (-104).
-  apply: bound_ulp => //.
+  apply: bound_ulp_FLT => //.
   by interval.
 have qhqlQ0z0B1 : Rabs (qh + ql - (Q0 + z * H0)) <= Rpower 2 (- 64.904904).
   apply: Rle_trans (_ : Rpower 2  (- 104.99) + pow (- 104) + 

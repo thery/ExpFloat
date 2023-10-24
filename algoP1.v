@@ -52,7 +52,6 @@ Let omega := (1 - pow (-p)) * pow emax.
 
 Local Notation ulp := (ulp beta fexp).
 
-
 Definition P3 :=   0x1.5555555555558p-2.
 Definition P4 := - 0x1.0000000000003p-2.
 Definition P5 :=   0x1.999999981f535p-3.
@@ -77,7 +76,7 @@ Definition Pf8 : float :=
 Fact Pf3E : F2R Pf3 = P3.
 Proof. by rewrite /P3 /F2R /Q2R /= /Z.pow_pos /=; field. Qed.
 
-Lemma format_P3 : format P3.
+Lemma P3F : format P3.
 Proof.
 rewrite -Pf3E.
 apply: generic_format_FLT.
@@ -87,7 +86,7 @@ Qed.
 Fact Pf4E : F2R Pf4 = P4.
 Proof. by rewrite /P4 /F2R /Q2R /= /Z.pow_pos /=; field. Qed.
 
-Lemma format_P4 : format P4.
+Lemma P4F : format P4.
 Proof.
 rewrite -Pf4E.
 apply: generic_format_FLT.
@@ -97,7 +96,7 @@ Qed.
 Fact Pf5E : F2R Pf5 = P5.
 Proof. by rewrite /P5 /F2R /Q2R /= /Z.pow_pos /=; field. Qed.
 
-Lemma format_P5 : format P5.
+Lemma P5F : format P5.
 Proof.
 rewrite -Pf5E.
 apply: generic_format_FLT.
@@ -107,7 +106,7 @@ Qed.
 Fact Pf6E : F2R Pf6 = P6.
 Proof. by rewrite /P6 /F2R /Q2R /= /Z.pow_pos /=; field. Qed.
 
-Lemma format_P6 : format P6.
+Lemma P6F : format P6.
 Proof.
 rewrite -Pf6E.
 apply: generic_format_FLT.
@@ -117,7 +116,7 @@ Qed.
 Fact Pf7E : F2R Pf7 = P7.
 Proof. by rewrite /P7 /F2R /Q2R /= /Z.pow_pos /=; field. Qed.
 
-Lemma format_P7 : format P7.
+Lemma P7F : format P7.
 Proof.
 rewrite -Pf7E.
 apply: generic_format_FLT.
@@ -127,7 +126,7 @@ Qed.
 Fact Pf8E : F2R Pf8 = P8.
 Proof. by rewrite /P8 /F2R /Q2R /= /Z.pow_pos /=; field. Qed.
 
-Lemma format_P8 : format P8.
+Lemma P8F : format P8.
 Proof.
 rewrite -Pf8E.
 apply: generic_format_FLT.
@@ -256,13 +255,12 @@ move=> e *; rewrite /e /Pz /P3 /P4 /P5 /P6 /P7 /P8.
 interval with (i_prec 80).
 Qed.
 
-
 Lemma PPz_bound_pos x : 
 let e := pow (- 80) in 
    0 < x < e ->  
    Rabs (1 - P x / ln (1 + x)) < Rpower 2 (- 72.423).
 Proof.
-move=>e He.
+move=> e He.
 have Pz_ge0 : 0 <= Pz x.
   apply: Pz_pos.
   by rewrite /e in He; interval.
@@ -351,7 +349,7 @@ have [H1 | H1 ]: pow (- 80) <= Rabs z \/ Rabs z < pow (- 80)
 by apply: PPz_bound.
 Qed.
 
-Notation exactMul := (exactMul rnd).
+Notation exactMul := (exactMul beta emin p rnd).
 
 (* L'algo p_1 *)
 
@@ -903,7 +901,8 @@ pose u_ := algoP1.u.
 pose d0 := (wh - z ^ 2) / (z ^ 2).
 have d0E : wh = z ^ 2 * (1 + d0) by rewrite /d0; field; lra.
 have d0L2u : Rabs d0 < 2 * u_.
-  apply: relative_error_is_min_eps_bound _ imul_zz123 _ _ => //.
+  apply: relative_error_is_min_eps_bound 
+      (_ : (emin <= -123)%Z) imul_zz123 _ _ => //.
     by rewrite /d0 => ->; rewrite Rsimp01.
   by rewrite [in LHS]pow2_mult.
 have P8zP7B : Rpower 2 (- 2.8125) < P8 * z + P7  < Rpower 2 (- 2.8022).
@@ -929,7 +928,7 @@ have d3B : Rabs d3 < 1.505 * u_.
   rewrite /d3 [u_]uE pow_Rpower // [IZR (- p)]/=.
   by interval.
 have twhuB : 0 < t * wh + u < Rpower 2 (- 2.31707).
-  split; first by nra.
+  split; first by clear -tB wh_gt_0 uB; nra.
   apply: Rle_lt_trans
       (_ :  Rpower 2 (-2.802) * (Rpower 2 (-15.91) + pow (- 68)) + 
             (Rpower 2 (- 2.31709) + pow (- 55)) < _); last by interval.
@@ -1408,7 +1407,7 @@ have z1B : 1 <= Rabs z1 < 2.
   by apply: bpow_mag_gt; lra.
 pose wh1 := wh * (pow sf) ^ 2.
 have wh1E : wh1 = RND (z1 ^ 2).
-  rewrite Rpow_mult_distr -pow2M round_bpow_flt; last first .
+  rewrite Rpow_mult_distr -pow2M round_bpow_FLT; last first .
     have z2_neq_0 : z ^ 2 <> 0 by clear -z_neq0; nra.
     rewrite /p /emin /emax -/beta.
     have magzzB : (-121 <= mag beta (z ^ 2))%Z.
@@ -1429,7 +1428,7 @@ have u1''E : u1'' = RND (v' * wh1).
   rewrite /wh1.
   have -> : v' * (wh * pow sf ^ 2) = v' *  wh * (pow (2 * sf)).
     by rewrite pow2M; lra.
-  rewrite round_bpow_flt -/beta.
+  rewrite round_bpow_FLT -/beta.
     by rewrite pow2M // /u1'' /u''; lra.
   have v'wh_neq_0 : v' * wh <> 0.
     by clear -wh_gt_0 v'B; nra.

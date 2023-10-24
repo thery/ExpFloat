@@ -45,8 +45,8 @@ Local Notation cexp := (cexp beta fexp).
 Local Notation mant := (scaled_mantissa beta fexp).
 Local Notation RND := (round beta fexp rnd).
 Local Notation fastTwoSum := (fastTwoSum rnd).
-Local Notation exactMul := (exactMul rnd).
-Local Notation fastSum := (fastSum rnd).
+Local Notation exactMul := (exactMul beta emin p rnd).
+Local Notation fastSum := (fastSum beta emin p rnd).
 Local Notation q1 := (q1 rnd).
 
 Let alpha := pow (- 1074).
@@ -56,7 +56,7 @@ Local Notation ulp := (ulp beta fexp).
 
 Definition INVLN2 := 0x1.71547652b82fep+12.
 
-Lemma format_INVLN2 : format INVLN2.
+Lemma INVLN2F : format INVLN2.
 Proof.
 have -> : INVLN2 = Float beta 6497320848556798 (- 40).
   by rewrite /F2R /INVLN2 /=; lra.
@@ -69,7 +69,7 @@ Proof. by interval with (i_prec 70). Qed.
 
 Definition LN2H := 0x1.62e42fefa39efp-13.
 
-Lemma format_LN2H : format LN2H.
+Lemma LN2HF : format LN2H.
 Proof.
 have -> : LN2H = Float beta 6243314768165359 (- 65).
   by rewrite /F2R /LN2H /=; lra.
@@ -79,7 +79,7 @@ Qed.
 
 Definition LN2L := 0x1.abc9e3b39803fp-68.
 
-Lemma format_LN2L : format LN2L.
+Lemma LN2LF : format LN2L.
 Proof.
 have -> : LN2L = Float beta 7525737178955839 (- 120).
   by rewrite /F2R /LN2L /=; lra.
@@ -145,8 +145,7 @@ have F1: Rabs (RND (rh * INVLN2)) <= 4194347.07.
   by interval.
 have [rhi_neg|rhi_pos] := Rle_lt_dec (rh * INVLN2) 0.
   have rrhi_neg : RND (rh * INVLN2) <= 0.
-    have <- : RND 0 = 0 by rewrite round_0.
-    by apply: round_le.  
+    by apply: round_le_r => //; apply: generic_format_0.
   rewrite Z.abs_neq; last first.
     have <- : Znearest choice 0 = 0%Z by rewrite Znearest_IZR.
     by apply: Znearest_le.
@@ -156,8 +155,7 @@ have [rhi_neg|rhi_pos] := Rle_lt_dec (rh * INVLN2) 0.
   apply: Znearest_le.
   by clear -F1 rrhi_neg; split_Rabs; lra.
 have rrhi_pos : 0 <= RND (rh * INVLN2).
-  have <- : RND 0 = 0 by rewrite round_0.
-  by apply: round_le; lra.
+  by apply: round_le_l; [apply: generic_format_0 | lra].
 rewrite Z.abs_eq; last first.
   have <- : Znearest choice 0 = 0%Z by rewrite Znearest_IZR.
   by apply: Znearest_le.
@@ -239,8 +237,7 @@ Qed.
 Lemma  LN2H_2E: LN2H/2 = Float beta 6243314768165359 (- 66).
 Proof.   by rewrite /F2R /LN2H /=; lra. Qed.
 
-
-Lemma format_LN2H_2 : format (LN2H/2).
+Lemma LN2H_2F : format (LN2H/2).
 Proof.
 rewrite LN2H_2E; apply: generic_format_FLT.
 apply: FLT_spec (refl_equal _) _ _ => /=; lia.
@@ -305,7 +302,7 @@ have rhBkln2hB : Rabs (rh - IZR k * LN2H) <= omega.
 have rhBkln2h_imul_1022: (is_imul (rh - IZR k * LN2H)(pow (- 1022))).
   apply: is_imul_minus.
     have -> : (- 1022 = - 970 - p + 1)%Z by lia.
-    apply: is_imul_bound_pow_format => //.
+    apply: is_imul_bound_pow_format rhF => //.
     by rewrite -[bpow _ _]/(pow _); lra.
   apply: is_imul_pow_le (_ : is_imul _ (pow (- 65))) _; last by lia.
   exists (6243314768165359 * k)%Z.
@@ -314,9 +311,9 @@ have rhBkln2h_imul : is_imul (rh - IZR k * LN2H) alpha.
   by apply: is_imul_pow_le (_ : is_imul _ (pow (- 1022))) _; last by lia.
 have rhBkln2hB13 := rhBkln2hB13.
 case:(Rle_lt_dec (bpow radix2 (-13)) (Rabs rh))=>hrh13.
-  have imul_rh65: is_imul rh (pow (-65)).
+  have imul_rh65 : is_imul rh (pow (-65)).
     have->: (-65 = -13 - 53 + 1)%Z by lia.
-    by apply/is_imul_bound_pow_format.    
+    by apply: (is_imul_bound_pow_format _ rhF).    
   case:imul_LN2H => mln2h mE.
   have [m rhkln2E]: is_imul (rh - IZR k * LN2H)  (pow (-65)).
     apply/is_imul_minus=>//.
@@ -329,7 +326,7 @@ case:(Rle_lt_dec (bpow radix2 (-13)) (Rabs rh))=>hrh13.
     rewrite abs_IZR -bpow_plus -(Rabs_pos_eq (pow (-65))); last by apply/bpow_ge_0.
     rewrite -Rabs_mult -rhkln2E; ring_simplify (53 + -65)%Z.
     apply/(Rle_lt_trans _ (Rpower 2 (-13.528766)))=>//.
-    by rewrite pow_Rpower; last lia; apply/Rpower_lt; lra.
+    by rewrite pow_Rpower; apply/Rpower_lt; lra.
   by lia.
 have  powm1E: pow (-1) = /2  by [].
 have rhINVLN2B: Rabs (rh *  INVLN2) < 0.73 by interval.
@@ -372,7 +369,7 @@ have LN2H_2E:
           LN2H / 2.
   rewrite -powm1E pred_bpow.
   apply/round_UP_eq.
-    by apply/format_LN2H_2.
+    by apply/LN2H_2F.
   by rewrite pred_LN2H_2 ; rewrite /INVLN2 /LN2H /F2R /=; lra.
 
 (* k = 1 *)
@@ -385,7 +382,7 @@ case:kE=> [k1 |kE].
     have-> : 0 = RND 0 by rewrite round_0.
     by apply/round_le; rewrite /INVLN2 ;lra.
   apply/sterbenz=>//.
-    by apply/format_LN2H.
+    by apply/LN2HF.
   split; last interval.
   case: (Rlt_le_dec (RND (rh * INVLN2)) (/2))=>h.
     suff: (k <= 0)%Z by lia.
@@ -416,10 +413,10 @@ case:kE=> [k1 |kE].
 (* k = -1 *)
 case :(Req_dec rh 0)=>[->| rhn0].
   rewrite kE !Rsimp01.
-  by apply/generic_format_opp/generic_format_opp/format_LN2H.
+  by apply/generic_format_opp/generic_format_opp/LN2HF.
 have ->: rh - IZR k * LN2H = LN2H - (-rh) by rewrite kE;lra.
 apply/sterbenz.
-+ by apply/format_LN2H.
++ by apply/LN2HF.
 + by apply/generic_format_opp.
 split; first by interval.
 have rhneg: rh <= 0.
@@ -498,7 +495,7 @@ Lemma zl_err : Rabs (zl - (rl - IZR k * LN2L)) <= pow (- 67).
 Proof.
 have rlkln2lB := rlkln2lB.
 apply: Rle_trans (error_le_ulp _ _ _ _) _.
-apply: bound_ulp => //.
+apply: bound_ulp_FLT => //.
 apply: Rle_lt_trans rlkln2lB _.
 by interval.
 Qed.
@@ -768,13 +765,12 @@ Proof. by []. Qed.
 Lemma phB : 1 <= ph <= 2.
 Proof.
 split.
-  have <- : RND 1 = 1 by apply: round_generic; apply: format1.
-  by apply: round_le; have := h1h2B; lra.
-have <- : RND 2 = 2.
-  apply: round_generic.
+  apply: round_le_l => //; first by apply: format1_FLT.
+  by have := h1h2B; lra.
+apply: round_le_r.
   have <- : pow 1 = 2 by rewrite pow1E.
   by apply: generic_format_bpow.
-by apply: round_le; have := h1h2B; lra.
+by have := h1h2B; lra.
 Qed.
 
 Lemma imul_ph : is_imul ph (pow (- 52)).
@@ -805,7 +801,7 @@ Proof.
 apply: Rle_trans (_ : ulp (h1 * h2) <= _).
 have -> : Rabs s = Rabs (ph - h1 * h2) by rewrite sE; split_Rabs; lra.
 apply: error_le_ulp.
-apply: bound_ulp => //.
+apply: bound_ulp_FLT => //.
 rewrite -[bpow _ _]/2.
 by have := h1h2B; split_Rabs; lra.
 Qed.
@@ -846,7 +842,7 @@ apply: Rle_lt_trans (_ : Rpower 2 (- 51.007) + pow (- 104) < _);
 apply: Rle_trans (_ : Rabs (l1 * h2 + s) + ulp (l1 * h2 + s) <= _).
   by apply: error_le_ulp_add.
 apply: Rplus_le_compat l1h2sB _.
-apply: bound_ulp => //.
+apply: bound_ulp_FLT => //.
 by apply: Rle_lt_trans l1h2sB _; interval.
 Qed.
 
@@ -881,7 +877,7 @@ apply: Rle_lt_trans (_ : Rpower 2 (- 50.6805) + pow (- 103) < _);
 apply: Rle_trans (_ : Rabs (h1 * l2 + t) + ulp (h1 * l2 + t) <= _).
   by apply: error_le_ulp_add.
 apply: Rplus_le_compat h1l2tB _.
-apply: bound_ulp => //.
+apply: bound_ulp_FLT => //.
 by apply: Rle_lt_trans h1l2tB _; interval.
 Qed.
 
@@ -906,7 +902,7 @@ have [i1eq0|i1ne0] := Z.eq_dec i1 0.
     rewrite /pl /t sE phE h1E h2E !Rsimp01.
     rewrite /l1 /l2 /ni1 /ni2 i1eq0 i2eq0 /= !Rsimp01.
     suff -> : RND 1 = 1 by rewrite !Rsimp01 !round_0; lra.
-    by apply: round_generic; apply: format1.
+    by apply: round_generic; apply: format1_FLT.
   have h2B : Rpower 2 (1 / 2 ^ 6) * (1 - pow (- 53)) <= h2.
     apply: T1_h2B2.
     have := ni2B; suff: ni2 <> 0%N by case : ni2.
@@ -916,12 +912,12 @@ have [i1eq0|i1ne0] := Z.eq_dec i1 0.
   apply: Rle_trans (_ : ph - Rabs pl <= _); last by split_Rabs; lra.
   suff : 1.0001 <= ph by have := plB; lra.
   rewrite phE h1E Rsimp01 -[RND h2]Rabs_pos_eq; last first.
-    have <- : RND 0 = 0 by apply: round_0.
-    by apply: round_le; interval.
+    apply: round_le_l; first by apply: generic_format_0.
+    by interval.
   apply: Rle_trans (_ : Rabs (h2) * (1 - pow (-52)) <= _).
     rewrite Rabs_pos_eq; first by interval.
     by apply: Rle_trans h2B; interval.
-  apply: relative_error_eps_le => //.
+  apply: (relative_error_eps_le Hp2) => //.
   by apply: is_imul_pow_le imul_h2 _.
 have h1B1 : Rpower 2 (1 / 2 ^ 12) * (1 - pow (- 53)) <= h1.
   apply: T2_h1B2.
@@ -932,11 +928,11 @@ apply: Rle_trans (_ : 1.0001 - Rpower 2 (- 50.680499) <= _);
 apply: Rle_trans (_ : ph - Rabs pl <= _); last by split_Rabs; lra.
 suff : 1.0001 <= ph by have := plB; lra.
 rewrite phE -[RND _]Rabs_pos_eq; last first.
-  have <- : RND 0 = 0 by apply: round_0.
-    by apply: round_le; have := h1B; have := h2B; nra.
-  apply: Rle_trans (_ : Rabs (h1 * h2) * (1 - pow (-52)) <= _).
+  apply: round_le_l; first by apply: generic_format_0.
+  have := h1B; have := h2B; nra.
+apply: Rle_trans (_ : Rabs (h1 * h2) * (1 - pow (-52)) <= _).
   by have h2B := h2B; interval.
-apply: relative_error_eps_le => //.
+apply: (relative_error_eps_le Hp2) => //.
 by apply: is_imul_pow_le imul_h1h2 _.
 Qed. 
 
@@ -960,11 +956,11 @@ boundDMI; last first.
 boundDMI.
   apply: Rle_trans (_ : ulp (l1 * h2 + s) <= _).
     by apply: error_le_ulp.
-  apply: bound_ulp => //.
+  apply: bound_ulp_FLT => //.
   by apply: Rle_lt_trans l1h2sB _; interval.
 apply: Rle_trans (_ : ulp (h1 * l2 + t) <= _).
   by apply: error_le_ulp.
-apply: bound_ulp => //.
+apply: bound_ulp_FLT => //.
 by apply: Rle_lt_trans h1l2tB _; interval.
 Qed.
 
@@ -1160,8 +1156,7 @@ have h1h2_pos : 0 <= h1 * h2 by have := h1h2B; lra.
 apply: Rle_lt_trans (_ : h1 * h2 * (1 + pow (- 52)) * qh < _).
   apply: Rmult_le_compat_r; first by have := qhB; lra.
   rewrite phE -{2}[h1 * h2]Rabs_pos_eq // -[RND _]Rabs_pos_eq; last first.
-    have <- : RND 0 = 0 by rewrite round_0.
-    by apply: round_le.
+    by apply: round_le_l => //; apply: generic_format_0.
   apply: relative_error_eps_ge => //.
   by apply: is_imul_pow_le imul_h1h2 _.
 apply: Rle_lt_trans 
@@ -1188,14 +1183,12 @@ split.
       by have := phB; split_Rabs; lra.
     by have := qhB; split_Rabs; lra.
   rewrite -[h]Rabs_pos_eq; last first.
-    have <- : RND 0 = 0 by rewrite round_0.
-    apply: round_le.
+    apply: round_le_l; first by apply: generic_format_0.
     by have := phB; have := qhB; nra.
-  apply: relative_error_eps_le => //.
+  apply: (relative_error_eps_le Hp2) => //.
   by apply: is_imul_pow_le imul_phqh _.
-have <- : RND 2 = 2.
-  by rewrite round_generic // -(pow1E beta); apply: generic_format_bpow.
-apply: round_le.
+apply: round_le_r.
+  by rewrite -(pow1E beta); apply: generic_format_bpow.
 by apply/Rlt_le/phqhB.
 Qed.
 
@@ -1204,7 +1197,7 @@ Proof.
 apply: Rle_trans (_ : ulp (ph * qh) <= _).
   rewrite s'E -Rabs_Ropp Ropp_minus_distr.
   by apply: error_le_ulp.
-apply: bound_ulp => //.
+apply: bound_ulp_FLT => //.
 rewrite Rabs_pos_eq; first by apply: phqhB.
 by have := phB; have := qhB; nra.
 Qed.
@@ -1235,7 +1228,7 @@ Lemma e'2B : Rabs e'2 <= pow (- 103).
 Proof.
 apply: Rle_trans (_ : ulp (pl * qh + s') <= _).
   by apply: error_le_ulp.
-apply: bound_ulp => //.
+apply: bound_ulp_FLT => //.
 by apply: Rle_lt_trans plqhs'B _; interval.
 Qed.
 
@@ -1266,7 +1259,7 @@ Lemma e'3B : Rabs e'3 <= pow (- 102).
 Proof.
 apply: Rle_trans (_ : ulp (ph * ql + t') <= _).
   by apply: error_le_ulp.
-apply: bound_ulp => //.
+apply: bound_ulp_FLT => //.
 by apply: Rle_lt_trans phqlt'B _; interval.
 Qed.
 
@@ -1348,7 +1341,7 @@ Definition r3f := Float beta (6243315169779193) (- 43).
 Fact r0fE : F2R r0f = r0.
 Proof. by rewrite /r0 /F2R /Q2R /= /Z.pow_pos /=; lra. Qed.
 
-Lemma format_r0 : format r0.
+Lemma r0F : format r0.
 Proof.
 rewrite -r0fE.
 apply: generic_format_FLT.
@@ -1358,7 +1351,7 @@ Qed.
 Fact pr0fE : F2R pr0f = pr0.
 Proof. by rewrite /pr0 /F2R /Q2R /= /Z.pow_pos /=; lra. Qed.
 
-Lemma format_pr0 : format pr0.
+Lemma pr0F : format pr0.
 Proof.
 rewrite -pr0fE.
 apply: generic_format_FLT.
@@ -1380,7 +1373,7 @@ Fact r1fE : F2R r1f = r1.
 Proof. rewrite /r1 /F2R /Q2R /= /Z.pow_pos /=; lra.
 Qed.
 
-Lemma format_r1 : format r1.
+Lemma r1F : format r1.
 Proof.
 rewrite -r1fE.
 apply: generic_format_FLT.
@@ -1390,7 +1383,7 @@ Qed.
 Fact r2fE : F2R r2f = r2.
 Proof. by rewrite /r2 /F2R /Q2R /= /Z.pow_pos /=; lra. Qed.
 
-Lemma format_r2 : format r2.
+Lemma r2F : format r2.
 Proof.
 rewrite -r2fE.
 apply: generic_format_FLT.
@@ -1479,7 +1472,7 @@ Qed.
 Lemma dE : d = (1 + e') * (1 + e'') * (1 + e''') / (1 + eps) - 1.
 Proof.
 rewrite /d hlE phplE qhqlE erhrlE.
-rewrite pow_Rpower // -!Rmult_assoc -Rpower_plus.
+rewrite pow_Rpower -[IZR beta]/2 // -!Rmult_assoc -Rpower_plus.
 have -> : IZR e + (IZR i2 / pow 6 + IZR i1 / pow 12) = IZR k / pow 12.
   rewrite kE 2!plus_IZR 2!mult_IZR !(IZR_Zpower beta); try lia.
   have -> : pow 12 = pow 6 * pow 6 by rewrite -bpow_plus; congr bpow; lia.
@@ -1729,10 +1722,8 @@ Qed.
 Lemma ehB : r1 <= rh <= r2 -> pow (- 991) <= eh.
 Proof.
 move=> rhB1.
-have <- : RND (pow (- 991)) = pow (- 991).
-  apply: round_generic.
-  by apply: generic_format_bpow.
-by apply/round_le/powehLB.
+apply: round_le_l; first by apply: generic_format_FLT_bpow.
+by apply: powehLB.
 Qed.
 
 Lemma elehB : r1 <= rh <= r2 -> Rabs (el / eh) <= Rpower 2 (- 49.2999).
@@ -1835,8 +1826,8 @@ Local Notation cexp := (cexp beta fexp).
 Local Notation mant := (scaled_mantissa beta fexp).
 Local Notation RND := (round beta fexp rnd).
 Local Notation fastTwoSum := (fastTwoSum rnd).
-Local Notation exactMul := (exactMul rnd).
-Local Notation fastSum := (fastSum rnd).
+Local Notation exactMul := (exactMul beta emin p rnd).
+Local Notation fastSum := (fastSum beta emin p rnd).
 Local Notation q1 := (q1 rnd).
 
 Let alpha := pow (- 1074).

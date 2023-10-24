@@ -147,7 +147,7 @@ Lemma format_T2_h1 i :
   (i <= 63)%N ->
    let h1 := (nth (0,0) T2 i).1 in format h1.
 Proof.
-case: i => [/= _|]; first by apply: format1.
+case: i => [/= _|]; first by apply: format1_FLT.
 by do 63
 (case => [/= _|]; first by 
       rewrite /Q2R /= F2R_conv;

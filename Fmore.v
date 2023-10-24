@@ -535,3 +535,5 @@ Proof.
 by move=> Hv; case: z => x y /= [Hi1 Hi2]; congr (_, _); 
       rewrite /= round_generic.
 Qed.
+
+Coercion F2R : float >-> R.

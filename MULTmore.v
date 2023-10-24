@@ -34,6 +34,24 @@ Local Notation RN := (round beta fexp rnd).
 
 Definition is_imul x y := exists z : Z, x = IZR z * y.
 
+Theorem is_imul_EM :
+  forall x y,is_imul x y \/ ~is_imul x y.
+Proof.
+move=> x y.
+case: (Req_dec y 0)=>[->|y_neq_0].
+  case: (Req_dec x 0)=>[->|x_neq_0].
+    by left; exists 0%Z; lra.
+  right; move=> [z xE]; lra.
+pose z := Zfloor(x/y).
+case:(Req_dec (x/y) (IZR z))=> hz.
+  by left; exists z; rewrite -hz; field.
+right; move => [z0 xE].
+apply/hz.
+rewrite /z.
+have->: x/y = IZR z0 by rewrite xE; field.
+by rewrite Zfloor_IZR.
+Qed.
+
 Lemma is_imul_add x1 x2 y : 
   is_imul x1 y -> is_imul x2 y -> is_imul (x1 + x2) y.
 Proof.
@@ -146,6 +164,60 @@ move: hue; rewrite -(Rabs_pos_eq (pow _)); last by apply/bpow_ge_0.
     apply/generic_format_FLT_bpow; lia.
 Qed.
 
+Lemma imul_fexp_le (f : float) e : (e <= Fexp f)%Z -> is_imul f (pow e).
+Proof.
+case: f => mf ef /= eLef.
+rewrite /F2R /=.
+have ->: (ef = (ef - e) + e)%Z by lia.
+rewrite bpow_plus.
+exists (mf * (beta ^ (ef - e)))%Z.
+rewrite mult_IZR IZR_Zpower; try lia.
+by rewrite Rmult_assoc.
+Qed.
+
+Lemma imul_fexp_lt (f : float) e : 
+  beta = radix2 -> Z.even (Fnum f) -> (e - 1 <= Fexp f)%Z -> is_imul f (pow e).
+Proof.
+move=> betaE.
+case: f => mf ef /= even_f eLef.
+rewrite /F2R /=.
+have ->: (ef = -1 + (ef - (e - 1) + e))%Z by lia.
+rewrite 2!bpow_plus betaE.
+exists ((mf / 2) * (radix2 ^ (ef - (e - 1))))%Z.
+rewrite mult_IZR IZR_Zpower; last by lia.
+rewrite -!Rmult_assoc; congr (_ * _ * _).
+have [hp ->] := Zeven_ex mf.
+rewrite even_f Z.add_0_r Zmult_comm Z.div_mul //.
+by rewrite mult_IZR /= /Z.pow_pos /=; lra.
+Qed.
+
+Lemma is_imul_pow_le_abs x y : is_imul x (pow y) -> x <> 0 -> pow y <= Rabs x.
+Proof.
+case=> [k ->] ke_neq0.
+have powy_gt_0 : 0 < pow y by apply: bpow_gt_0.
+rewrite Rabs_mult [Rabs (pow _)]Rabs_pos_eq; last by lra.
+suff : 1 <= Rabs (IZR k) by nra.
+rewrite -abs_IZR; apply: IZR_le.
+suff : k <> 0%Z by lia.
+by contradict ke_neq0; rewrite ke_neq0 Rsimp01.
+Qed.
+
+Lemma is_imul_bound_pow e1 e2 p1 x1 m1 : 
+   pow e1 <= Rabs x1 -> 
+   x1 = IZR m1 * pow e2 -> Rabs (IZR m1) < pow p1 ->
+   is_imul x1 (pow (e1 - p1 + 1)).
+Proof.
+move=> x1B x1E m1B.
+exists (m1 * (beta ^ (e2 - (e1 - p1 + 1))))%Z.
+  rewrite mult_IZR (IZR_Zpower beta).
+    rewrite Rmult_assoc -bpow_plus x1E.
+    by congr (_ * pow _); lia.   
+suff: (e1 < p1 + e2)%Z by lia.
+apply: (lt_bpow beta).
+rewrite bpow_plus.
+suff : Rabs x1 < pow p1 * pow e2 by lra.
+have pe2_gt0 : 0 < pow e2 by apply: bpow_gt_0.
+by rewrite x1E Rabs_mult [Rabs (pow _)]Rabs_pos_eq //; nra.
+Qed.
+
 End Mult.
-
-

@@ -57,132 +57,17 @@ Local Notation mant := (scaled_mantissa beta fexp).
 Local Notation fastTwoSum := (fastTwoSum rnd).
 Local Notation RND := (round beta fexp rnd).
 Local Notation log1 := (log1 rnd).
-Local Notation exactMul := (exactMul rnd).
+Local Notation exactMul := (exactMul beta emin p rnd).
 Local Notation ulp := (ulp beta fexp).
 
-Lemma ulp_subnormal f : Rabs f < pow (emin + p) -> ulp f = pow emin.
-Proof.
-  move=> fB.
-have [->|f_neq0]:= Req_dec f 0; first by rewrite ulp_FLT_0.
-rewrite ulp_neq_0; last by lra.
-rewrite /cexp /fexp Z.max_r //.
-suff : (mag beta f <= emin + p)%Z by lia.
-apply: mag_le_bpow; first by lra.
-by lra.
-Qed.
-
-Lemma ulp_norm f : pow (emin + p) <= Rabs f -> ulp f = pow (mag beta f - p).
-Proof.
-move=> fB.
-have f_neq_0 : f <> 0.
-  suff : 0 < Rabs f by split_Rabs; lra.
-  suff : 0 < pow (emin + p) by lra.
-  by apply: bpow_gt_0.
-rewrite ulp_neq_0; last by lra.
-rewrite /cexp /fexp Z.max_l //.
-suff : (emin + p <= mag beta f)%Z by lia.
-apply: mag_ge_bpow.
-apply: Rle_trans fB.
-apply: bpow_le; lia.
-Qed.
 
 Let alpha := pow (- 1074).
 Let omega := (1 - pow (-p)) * pow emax.
-
-Lemma error_round_general f : 
-  exists d, exists e,
-  [/\ 
-    RND f = f * (1 + d) + e,
-    e * d = 0,
-    Rabs e <= alpha &
-    Rabs d <= pow (- 52)].
-Proof.
-have [->|f_neq0] := Req_dec f 0.
-  by exists 0; exists 0; rewrite round_0 !Rsimp01; 
-     split => //; apply: bpow_ge_0.
-have [pLf|fLp] := Rle_lt_dec (pow (emin + p)) (Rabs f); last first.
-  exists 0; exists (RND f - f); split; rewrite ?Rsimp01 //.
-  - by lra.
-  - apply: Rle_trans (_ : ulp f <= _); first by apply: error_le_ulp.
-    rewrite /alpha -[(- 1074)%Z]/emin.
-    rewrite ulp_neq_0 // /cexp /fexp Z.max_r; first by lra.
-    suff : (mag beta f <= emin + p)%Z by lia.
-    apply: mag_le_bpow; first by lra.
-    by lra.
-  by apply: bpow_ge_0.
-exists ((RND f - f) / f); exists 0; split.
-- by field.
-- by lra.
-- by rewrite Rabs_R0; apply: bpow_ge_0.
-rewrite Rabs_div //.
-apply/Rle_div_l; first by clear -f_neq0; split_Rabs; lra.
-apply: Rlt_le.
-apply: relative_error_FLT => //.
-apply: Rle_trans pLf.
-by apply: bpow_le; lia.
-Qed.
 
 Definition mul1 x y := 
   let: DWR h l := x in
   let: DWR rh s := exactMul y h in
   let rl := RND (y * l + s) in DWR rh rl.
-
-Lemma format_decomp_prod x1 x2 : 
-  generic_format beta (FLX_exp p) x1 -> 
-  generic_format beta (FLX_exp p) x2 -> 
-  exists m1, exists e1, x1 * x2 = IZR m1 * pow e1 /\
-                        Rabs (IZR m1) < pow (2 * p).
-Proof.
-move=> x1F x2F.
-exists ((Ztrunc (scaled_mantissa beta (FLX_exp p) x1)) * 
-        (Ztrunc (scaled_mantissa beta (FLX_exp p)  x2)))%Z.
-exists (Generic_fmt.cexp beta (FLX_exp p) x1 + 
-        Generic_fmt.cexp beta (FLX_exp p) x2)%Z.
-split.
-  rewrite [in LHS]x1F [in LHS]x2F /F2R /=.
-  rewrite mult_IZR bpow_plus.
-  set xx1 := Ztrunc _.
-  set xx2 := Ztrunc _.
-  set yy1 := Generic_fmt.cexp _ _ _.
-  set yy2 := Generic_fmt.cexp _ _ _.
-  rewrite -[bpow _ yy1]/(pow _).
-  rewrite -[bpow _ yy2]/(pow _).
-  lra.
-rewrite mult_IZR.
-have -> : (2 * p = p + p)%Z by lia.
-rewrite bpow_plus Rabs_mult.
-apply: Rmult_lt_compat; try by apply: Rabs_pos.
-  rewrite -scaled_mantissa_generic //.
-  have [x1_eq0|x1_neq0] := Req_dec x1 0.
-    by rewrite x1_eq0 scaled_mantissa_0 Rabs_R0; apply: bpow_gt_0.
-  suff : bpow beta (p - 1) <= Rabs (scaled_mantissa beta (FLX_exp p) x1) <=
-          bpow beta p - 1 by lra.
-  by apply: mant_bound_le.
-rewrite -scaled_mantissa_generic //.
-have [x2_eq0|x2_neq0] := Req_dec x2 0.
-  by rewrite x2_eq0 scaled_mantissa_0 Rabs_R0; apply: bpow_gt_0.
-suff : bpow beta (p - 1) <= Rabs (scaled_mantissa beta (FLX_exp p) x2) <=
-        bpow beta p - 1 by lra.
-by apply: mant_bound_le.
-Qed.
-
-Lemma is_imul_bound_pow e1 e2 p1 x1 m1 : 
-   pow e1 <= Rabs x1 -> 
-   x1 = IZR m1 * pow e2 -> Rabs (IZR m1) < pow p1 ->
-   is_imul x1 (pow (e1 - p1 + 1)).
-Proof.
-move=> x1B x1E m1B.
-exists (m1 * (2 ^ (e2 - (e1 - p1 + 1))))%Z.
-  rewrite mult_IZR (IZR_Zpower beta).
-    rewrite Rmult_assoc -bpow_plus x1E.
-    by congr (_ * pow _); lia.   
-suff: (e1 < p1 + e2)%Z by lia.
-apply: (lt_bpow beta).
-rewrite bpow_plus.
-suff : Rabs x1 < pow p1 * pow e2 by lra.
-have pe2_gt0 : 0 < pow e2 by apply: bpow_gt_0.
-by rewrite x1E Rabs_mult [Rabs (pow _)]Rabs_pos_eq //; nra.
-Qed.
 
 (* This is lemma 5 *)
 Lemma err_lem5 x y : 
@@ -270,7 +155,7 @@ have hF : format h.
   by rewrite log1E. 
 have hl : is_imul (y * h) alpha.
   have -> : alpha = pow (- 969 - 2 * p + 1) by [].
-  case: (@format_decomp_prod y h) => [||m1 [e1 [yhE m1B]]].
+  case: (@format_decomp_prod beta p Hp2 y h) => [||m1 [e1 [yhE m1B]]].
   - by apply: generic_format_FLX_FLT yF.
   - suff /generic_format_FLX_FLT : format h by [].
     have := @log1_format_h (refl_equal _) _ valid_rnd _ xF.
@@ -320,8 +205,10 @@ have ylsB : Rabs (y * l + s) <= pow (- 13).
   apply: Rmult_le_compat; try by apply: Rabs_pos.
     by lra.
   by clear; split_Rabs; lra.
-have [d2 [e2 [d2e2E d2e2_eq0 e2B d2B]]] := error_round_general (y * l + s).
+have [d2 [e2 [d2e2E d2e2_eq0 e2B d2B]]] :=
+   error_round_delta_eps_FLT beta emin Hp2 valid_rnd (y * l + s).
 rewrite rlE in d2e2E.
+rewrite -/alpha in e2B; rewrite [(_ + _)%Z]/= in d2B.
 have rlE1 : rl = (y * h) * (lambda + d1 ) * (1 + d2 ) + e2.
   by rewrite d2e2E lambdaE d1E; lra.
 have rlB : Rabs rl <= Rpower 2 (- 14.4187).

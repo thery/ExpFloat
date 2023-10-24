@@ -14,7 +14,7 @@ Definition  beta:= radix2.
 Variable emin p : Z.
 Hypothesis precisionNotZero : (1 < p)%Z.
 Context { prec_gt_0_ : Prec_gt_0 p}.
-Hypothesis eminB:(emin < - p - 1)%Z.
+Hypothesis eminB: (emin < - p - 1)%Z.
 
 Notation format := (generic_format beta (FLT_exp emin p)).
 Notation pow e := (bpow beta e).

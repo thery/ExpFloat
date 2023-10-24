@@ -21,42 +21,43 @@ Algorithm FastTwoSum :
 - [Bounds on the error of FastTwoSum](./Fast2Sum_robust_flt.v#L946-L953)
 
 Algorithm P1 : 
-- [Algotiyhm P1](./algoP1.v#L358-L366)
-- [Absolute error of Sollya polynomial](./algoP1.v#L151-L152)
-- [Relative error of Sollya polynomial](./algoP1.v#L340-L342)
-- [Bound of `ph` of algorithm P1](./algoP1.v#L1711-L1716)
-- [Bound of `pl` of algorithm P1](./algoP1.v#L1733-L1738)
-- [Absolute error of algorithm P1](./algoP1.v#L1744-L1749)
-- [Relative error of algorithm P1](./algoP1.v#L1755-L1761)
-- [Refined relative error of algorithm P1](./algoP1.v#L1768-L1774)
+- [Algotiyhm P1](./algoP1.v#L356-L364)
+- [Absolute error of Sollya polynomial](./algoP1.v#L150-L151)
+- [Relative error of Sollya polynomial](./algoP1.v#L338-L340)
+- [Bound of `ph` of algorithm P1](./algoP1.v#L1710-L1715)
+- [Bound of `pl` of algorithm P1](./algoP1.v#L1732-L1737)
+- [Absolute error of algorithm P1](./algoP1.v#L1743-L1748)
+- [Relative error of algorithm P1](./algoP1.v#L1754-L1760)
+- [Refined relative error of algorithm P1](./algoP1.v#L1767-L1773)
 
 Algorithm Log1 :
-- [Definition of the `INVERSE` table](./tableINVERSE.v#L48-L79)
-- [Lemma 3](./tableINVERSE.v#L284-L289)   
-- [Definition of the `LOGINV` table](./tableLOGINV.v#L108-L292)
-- [Definition of Log1](./algoLog1.v#L309-L320)
-- [Lemma 4](./algoLog1.v#L2722-L2728)
+- [Definition of the `INVERSE` table](./tableINVERSE.v#L47-L78)
+- [Lemma 3](./tableINVERSE.v#L192-L197)   
+- [Definition of the `LOGINV` table](./tableLOGINV.v#L107-L291)
+- [Definition of Log1](./algoLog1.v#L227-L238)
+- [Lemma 4](./algoLog1.v#L2508-L2514)
 
 Algorithm Mul1 :
-- [Definition of Mul1](./algoMul1.v#L119-L122)
-- [Lemma 5](./algoMul1.v#L189-L200)
+- [Definition of Mul1](./algoMul1.v#L67-L70)
+- [Lemma 5](./algoMul1.v#L73-L84)
 
 Algorithm Q1 :
 - [Definition of the polynomial Q](./algoQ1.v#L127-L128)
 - [Absolute error of the polynomial Q](./algoQ1.v#L130-L132)
-- [Algorithm Q1](./algoQ1.v#L146-L150)
-- [Lemma 6](./algoQ1.v#L154-L159)
+- [Algorithm Q1](./algoQ1.v#L145-L149)
+- [Lemma 6](./algoQ1.v#L153-L158)
 
 Algorithm Exp1 :
 - [table T1](./tableT1.v#L76-L142)
-- [relative error for T1](./algoExp1.v#L548-L549)
+- [relative error for T1](./tableT1.v#L208-L211)
 - [table T2](./tableT2.v#L76-L142)
-- [relative error for T2](./algoExp1.v#L504-L505)
-- [algorithm Exp1](./algoExp1.v#L1853-L1881)
-- [Lemma 7](./algoExp1.v#L1896-L1901)
+- [relative error for T2](./tableT2.v#L209-L212)
+- [algorithm Exp1](./algoExp1.v#L1848-L1876)
+- [Lemma 7](./algoExp1.v#L1893-L1901)
 
 Algorithm Phase1 :
-- [algorithm Phase 1](./algoPhase1.v#L2008-L2018)
+- [algorithm Phase 1](./algoPhase1.v#L2144-L2154)
+- [Theorem 1](./algoPhase1.v#L2158-L2160)
 
 ## Meta
 
@@ -76,7 +77,15 @@ Algorithm Phase1 :
 
 ## Building and installation instructions
 
-To build and install manually, do:
+The easiest way to install the latest released version of ExpFloat
+is via [OPAM](https://opam.ocaml.org/doc/Install.html):
+
+```shell
+opam repo add coq-released https://coq.inria.fr/opam/released
+opam install coq-expfloat
+```
+
+To instead build and install manually, do:
 
 ``` shell
 git clone https://github.com/thery/expfloat.git
