@@ -803,8 +803,6 @@ have r3_43B : r3 + pow (- 43) <= rh.
     rewrite ulp_neq_0; last by rewrite /r3; interval.
     congr (_ + pow _).
     rewrite /cexp /fexp.
-    have : omega = 0.
-      rewrite /omega /emax.
     rewrite (mag_unique_pos beta _ 10); first lia.
     by split; rewrite /r3; interval.
   apply: succ_le_lt => //; first by apply: format_r3.
