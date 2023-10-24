@@ -44,8 +44,8 @@ Algorithm Mul1 :
 Algorithm Q1 :
 - [Definition of the polynomial Q](./algoQ1.v#L127-L128)
 - [Absolute error of the polynomial Q](./algoQ1.v#L130-L132)
-- [Algorithm Q1](./algoQ1.v#L145-L149)
-- [Lemma 6](./algoQ1.v#L153-L158)
+- [Algorithm Q1](./algoQ1.v#L140-L144)
+- [Lemma 6](./algoQ1.v#L148-L153)
 
 Algorithm Exp1 :
 - [table T1](./tableT1.v#L76-L142)
@@ -77,15 +77,8 @@ Algorithm Phase1 :
 
 ## Building and installation instructions
 
-The easiest way to install the latest released version of ExpFloat
-is via [OPAM](https://opam.ocaml.org/doc/Install.html):
 
-```shell
-opam repo add coq-released https://coq.inria.fr/opam/released
-opam install coq-expfloat
-```
-
-To instead build and install manually, do:
+To build and install manually, do:
 
 ``` shell
 git clone https://github.com/thery/expfloat.git

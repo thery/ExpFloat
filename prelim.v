@@ -20,7 +20,7 @@ Hypothesis Hp2: Z.lt 1 p.
 
 Let p_gt_0 : Prec_gt_0 p.
 now apply Z.lt_trans with (2 := Hp2).
-Qed.
+Defined.
 
 Variable rnd : R -> Z.
 Hypothesis valid_rnd : Valid_rnd rnd.
@@ -465,7 +465,7 @@ by rewrite exactMul_correct.
 Qed.
 
 (* Lemma 0 *)
-Lemma ExactMul_B a b (Fa : format a) (Fb : format b) :
+Lemma error_exactMul a b (Fa : format a) (Fb : format b) :
  let: DWR h l := exactMul a b in Rabs (h + l - (a * b)) < alpha.
 Proof.
 rewrite /=.

@@ -135,11 +135,6 @@ move=> *; rewrite /Q /Q0 /Q1 /Q2 /Q3 /Q4.
 interval with (i_prec 90, i_bisect z, i_taylor z).
 Qed.
 
-Lemma error_exactMul (a b : R) :
-  format a -> format b ->
-  let: DWR h l := exactMul a b in Rabs ((h + l) - (a * b)) < alpha.
-Proof. by apply/ExactMul_B. Qed.
-
 (* L'algo q_1 *)
 
 Definition q1 (z : R) :=
