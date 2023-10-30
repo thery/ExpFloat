@@ -284,7 +284,6 @@ Proof. move=> a b /andP[/RlebP H /RlebP H1]; lra. Qed.
 Lemma Rleb_trans : transitive Rleb.
 Proof. by move=> a b c /RlebP H /RlebP H1;apply/RlebP; lra. Qed.
 
-
 HB.instance Definition _ :=
   Order.isPOrder.Build ring_display R Rlt_def Rleb_refl Rleb_anti Rleb_trans.
 
@@ -294,11 +293,9 @@ move=> a b; have [/RlebP->//|/RlebP->//] : a <= b \/ b <= a by lra.
 by rewrite orbT.
 Qed.
 
-#[verbose]
 HB.instance Definition _ :=
   Order.POrder_isTotal.Build ring_display R Rleb_total.
 
-#[verbose]
 HB.instance Definition _ :=
    Num.IntegralDomain_isLeReal.Build R Rle_0D Rle_0M Rle_0A Rle_0B Rle_0X
               Rabs_Ropp Rle0_Rabs Rlt_def.
@@ -677,7 +674,7 @@ elim: l => /= [HR|c l IH HR].
   apply: etrans.
     apply: RInt_ext => i Hi.
     by rewrite big_nil.
-  by rewrite RInt_const [LHS](@mulr0 [ringType of R]) big_nil.
+  by rewrite RInt_const [LHS](@mulr0 (GRing.Ring.clone _ R)) big_nil.
 rewrite big_cons.
 apply: etrans.
   apply: RInt_ext => x Hx.
@@ -701,8 +698,8 @@ Proof.
 move=> H.
 case: (Req_dec u 0) => [->|/eqP uNz].
   apply: ex_RInt_ext => [x Hx|].
-    rewrite [_ * _](@mul0r [ringType of R]) 
-            [_ + _](@add0r [ringType of R]).
+    rewrite [_ * _](@mul0r (GRing.Ring.clone _ R)) 
+            [_ + _](@add0r (GRing.Ring.clone _ R)).
      by [].
   by apply: ex_RInt_const.
 apply: ex_RInt_ext => [x Hx|].
@@ -743,7 +740,7 @@ Qed.
 Lemma Rchar : [char R]%RR =i pred0.
 Proof.
 case => //= i; rewrite !inE.
-by rewrite (@eqr_nat [numDomainType of R] i.+1 0%nat) andbF.
+by rewrite (@eqr_nat (Num.NumDomain.clone  _ R) i.+1 0%nat) andbF.
 Qed.
 
 (* Big op and R *)
@@ -774,5 +771,5 @@ Qed.
 Lemma mulR_sumr (I : Type) (r : seq I) 
          (P : I -> bool) (F : I -> R) (x : R) : 
   (x * (\sum_(i <- r | P i) F i)%RR) = (\sum_(i <- r | P i) (x * F i)%R)%RR.
-Proof. by apply: (@GRing.mulr_sumr [ringType of R]). Qed.
+Proof. by apply: (@GRing.mulr_sumr (GRing.Ring.clone _ R)). Qed.
 
