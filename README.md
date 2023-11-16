@@ -10,9 +10,6 @@ Follow the instructions on https://github.com/coq-community/templates to regener
 [docker-action-link]: https://github.com/thery/expfloat/actions?query=workflow:"Docker%20CI"
 
 
-
-
-
 Exponential in binary 64 
 
 Progress
