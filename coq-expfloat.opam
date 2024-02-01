@@ -15,8 +15,6 @@ description: """
 
 Exponential in binary 64 
 
-Progress
-
 Algorithm FastTwoSum : 
 - [Algorithm FastTwoSum](./prelim.v#L562-L564)
 - [Bounds on the error of FastTwoSum](./Fast2Sum_robust_flt.v#L946-L953)
