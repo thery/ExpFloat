@@ -6,13 +6,14 @@ Follow the instructions on https://github.com/coq-community/templates to regener
 
 [![Docker CI][docker-action-shield]][docker-action-link]
 
-[docker-action-shield]: https://github.com/thery/expfloat/workflows/Docker%20CI/badge.svg?branch=master
-[docker-action-link]: https://github.com/thery/expfloat/actions?query=workflow:"Docker%20CI"
+[docker-action-shield]: https://github.com/thery/expfloat/actions/workflows/docker-action.yml/badge.svg?branch=master
+[docker-action-link]: https://github.com/thery/expfloat/actions/workflows/docker-action.yml
+
+
+
 
 
 Exponential in binary 64 
-
-Progress
 
 Algorithm FastTwoSum : 
 - [Algorithm FastTwoSum](./prelim.v#L562-L564)
