@@ -1,6 +1,6 @@
 From mathcomp Require Import all_ssreflect.
 From Coquelicot Require Import Coquelicot.
-Require Import Reals  Psatz.
+From Stdlib Require Import Reals Psatz.
 From Flocq Require Import Core.Raux.
 
 Open Scope R_scope.
@@ -31,7 +31,7 @@ Definition Rsimp01 := (Rmult_0_l, Rmult_0_r, Rmult_1_l, Rmult_1_r,
                        Rmult_N1_l, Rmult_N1_r,
                        Rinv_0, Rdiv_0_l, Rdiv_0_r, Rabs_R0,
                        Rinv_1, Rdiv_1_l, Rdiv_1_r, Rabs_R1,
-                       Rminus_eq_0).
+                       Rminus_diag).
 
 Ltac gsplit_Rabs := rewrite /Rabs; split_case_Rabs.
 

@@ -1,4 +1,4 @@
-Require Import ZArith Reals  Psatz.
+From Stdlib Require Import ZArith Reals Psatz.
 From mathcomp Require Import all_ssreflect all_algebra.
 From Flocq Require Import Core Relative Sterbenz Operations Mult_error.
 From Interval Require Import Tactic.
@@ -35,7 +35,7 @@ Lemma uE : u = pow (- p).
 Proof. by rewrite /u /= /Z.pow_pos /=; lra. Qed.
 
 Variable rnd : R -> Z.
-Context ( valid_rnd : Valid_rnd rnd ).
+Context (valid_rnd : Valid_rnd rnd ).
 
 Local Notation float := (float radix2).
 Local Notation fexp := (FLT_exp emin p).
@@ -201,7 +201,7 @@ Lemma T1_e2B i :
    let h2 := (nth (0,0) T1 i).1 in 
    Rabs (h2 - Rpower 2 (INR i / pow 6)) <= pow (- 53).
 Proof.
-case: i => [/= _|]; first by interval.
+case: i => [/= _|]; first by interval with (i_prec 70).
 by do 63 (case=> [/= _|]; first by interval with (i_prec 70)).
 Qed.
 

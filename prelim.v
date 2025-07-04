@@ -1,6 +1,7 @@
-Require Import ZArith Reals  Psatz.
+From Stdlib Require Import ZArith Reals Psatz.
 From mathcomp Require Import all_ssreflect all_algebra.
-From Flocq Require Import Core Relative Sterbenz Operations Mult_error Plus_error.
+From Flocq Require Import Core Relative Sterbenz.
+From Flocq Require Import Operations Mult_error Plus_error.
 From Coquelicot Require Import Coquelicot.
 From Interval Require Import  Tactic.
 Require Import Nmore Rmore Fmore Rstruct MULTmore Fast2Sum_robust_flt.
@@ -581,8 +582,6 @@ Definition twoSum (a : R) (b : dwR) :=
   let: DWR bh bl := b in 
   let: DWR h t := fastTwoSum a bh in 
   let: l := RND (t + bl) in DWR h l.
-
-Check twoSum.
 
 Definition fastSum (a bh bl : R) := 
   let: DWR h t := fastTwoSum a bh in DWR h (RND (t + bl)).

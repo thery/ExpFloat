@@ -19,15 +19,16 @@ liability. See the COPYING file for more details.
 *)
 
 From HB Require Import structures.
-Require Import Rdefinitions Raxioms RIneq Rbasic_fun Zwf.
-Require Import Epsilon FunctionalExtensionality Ranalysis1 Rsqrt_def.
+From Stdlib Require Import Rdefinitions Raxioms RIneq Rbasic_fun Zwf.
+From Stdlib Require Import Epsilon FunctionalExtensionality Ranalysis1 Rsqrt_def.
 From mathcomp Require Import ssreflect ssrfun ssrbool.
 From mathcomp Require Import eqtype ssrnat seq choice bigop.
-From mathcomp Require Import ssrnum ssralg fintype poly mxpoly.
+From mathcomp Require Import ssrnum archimedean ssralg fintype poly mxpoly.
 From mathcomp Require Import div order.
 
-Require Import Rtrigo1 Reals Lra.
-Require Import Reals Coquelicot.Coquelicot Psatz.
+From Stdlib Require Import Rtrigo1 Reals Lra Psatz.
+Require Import Reals Coquelicot.Coquelicot.
+Import ZArith_dec Zabs Zorder.
 
 Delimit Scope ring_scope with RR.
 
@@ -68,7 +69,7 @@ Proof. by rewrite /pickR; case: (boolP (P _)) => // Px [<-]. Qed.
 
 Fact pickR_ex (P : pred R) :
   (exists x : R, P x) -> exists n, pickR P n.
-Proof. by rewrite /pickR; move=> /(epsilon_spec inhR)->; exists 0%N. Qed.
+Proof. by rewrite /pickR; move=> /(epsilon_spec inhR)->; exists 0%nat. Qed.
 
 Fact pickR_ext (P Q : pred R) : P =1 Q -> pickR P =1 pickR Q.
 Proof.
@@ -100,10 +101,10 @@ Fact R1_neq_0 : R1 != R0.
 Proof. by apply/eqP/R1_neq_R0. Qed.
 
 HB.instance Definition _ := 
-  GRing.Zmodule_isRing.Build R RmultA Rmult_1_l Rmult_1_r
+  GRing.Zmodule_isNzRing.Build R RmultA Rmult_1_l Rmult_1_r
   Rmult_plus_distr_r Rmult_plus_distr_l R1_neq_0.
 
-HB.instance Definition _ := GRing.Ring_hasCommutativeMul.Build R Rmult_comm.
+HB.instance Definition _ := GRing.PzRing_hasCommutativeMul.Build R Rmult_comm.
 
 Import Monoid.
 
@@ -137,7 +138,7 @@ Lemma Rinvx_out : {in predC unit_R, Rinvx =1 id}.
 Proof. by move=> x; rewrite inE /= /Rinvx -if_neg => ->. Qed.
 
 HB.instance Definition _ := 
-  GRing.ComRing_hasMulInverse.Build R RmultRinvx intro_unit_R Rinvx_out.
+  GRing.ComNzRing_hasMulInverse.Build R RmultRinvx intro_unit_R Rinvx_out.
 
 Lemma R_idomain_axiom x y : x * y = 0 -> (x == 0) || (y == 0).
 Proof.
@@ -458,7 +459,7 @@ rewrite  S_INR [_.+1%:R](natrD _ 1) IH -[1%:R]/1.
 by rewrite addrC.
 Qed.
 
-Lemma natrS (R :ringType) n : n.+1%:R = 1 + n%:R :> R.
+Lemma natrS (R : pzRingType) n : n.+1%:R = 1 + n%:R :> R.
 Proof. by rewrite -(natrD _ 1 n). Qed.
 
 Lemma Z_of_nat_gt0 n: (0 < n)%nat -> (0 < Z.of_nat n)%Z.
@@ -674,7 +675,7 @@ elim: l => /= [HR|c l IH HR].
   apply: etrans.
     apply: RInt_ext => i Hi.
     by rewrite big_nil.
-  by rewrite RInt_const [LHS](@mulr0 (GRing.Ring.clone _ R)) big_nil.
+  by rewrite RInt_const [LHS](@mulr0 (GRing.PzRing.clone _ R)) big_nil.
 rewrite big_cons.
 apply: etrans.
   apply: RInt_ext => x Hx.
@@ -698,8 +699,8 @@ Proof.
 move=> H.
 case: (Req_dec u 0) => [->|/eqP uNz].
   apply: ex_RInt_ext => [x Hx|].
-    rewrite [_ * _](@mul0r (GRing.Ring.clone _ R)) 
-            [_ + _](@add0r (GRing.Ring.clone _ R)).
+    rewrite [_ * _](@mul0r (GRing.PzRing.clone _ R)) 
+            [_ + _](@add0r (GRing.PzRing.clone _ R)).
      by [].
   by apply: ex_RInt_const.
 apply: ex_RInt_ext => [x Hx|].
@@ -737,7 +738,7 @@ apply: (Nat.div_unique _ _ _ (x %% y)).
 by rewrite [(_ * _)%coq_nat]mulnC -[RHS]divn_eq.
 Qed.
 
-Lemma Rchar : [char R]%RR =i pred0.
+Lemma Rpchar : [pchar R]%RR =i pred0.
 Proof.
 case => //= i; rewrite !inE.
 by rewrite (@eqr_nat (Num.NumDomain.clone  _ R) i.+1 0%nat) andbF.
@@ -771,5 +772,5 @@ Qed.
 Lemma mulR_sumr (I : Type) (r : seq I) 
          (P : I -> bool) (F : I -> R) (x : R) : 
   (x * (\sum_(i <- r | P i) F i)%RR) = (\sum_(i <- r | P i) (x * F i)%R)%RR.
-Proof. by apply: (@GRing.mulr_sumr (GRing.Ring.clone _ R)). Qed.
+Proof. by apply: (@GRing.mulr_sumr (GRing.PzRing.clone _ R)). Qed.
 

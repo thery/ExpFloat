@@ -1,4 +1,4 @@
-Require Import ZArith Reals Psatz.
+From Stdlib Require Import ZArith Reals Psatz.
 From mathcomp Require Import all_ssreflect all_algebra.
 From Flocq Require Import Core Relative Sterbenz Operations Mult_error.
 Require Import Nmore Rmore Fmore Rstruct.
