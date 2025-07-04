@@ -1,4 +1,4 @@
-Require Import ZArith Reals  Psatz.
+From Stdlib Require Import ZArith Reals Psatz.
 From mathcomp Require Import all_ssreflect all_algebra.
 From Flocq Require Import Core Relative Sterbenz Operations Mult_error.
 From Interval Require Import Tactic.
@@ -202,7 +202,7 @@ Lemma T2_e1B i :
    let h1 := (nth (0,0) T2 i).1 in 
    Rabs (h1 - Rpower 2 (INR i / pow 12)) <= pow (- 53).
 Proof.
-case: i => [/= _|]; first by interval.
+case: i => [/= _|]; first by interval with (i_prec 70).
 by do 63 (case=> [/= _|]; first by interval with (i_prec 70)).
 Qed.
 

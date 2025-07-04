@@ -1,6 +1,7 @@
-Require Import ZArith Reals  Psatz.
+From Stdlib Require Import ZArith Reals Psatz.
 From mathcomp Require Import all_ssreflect all_algebra.
-From Flocq Require Import Core Relative Sterbenz Operations Mult_error Plus_error.
+From Flocq Require Import Core Relative Sterbenz.
+From Flocq Require Import Operations Mult_error Plus_error.
 From Coquelicot Require Import Coquelicot.
 From Interval Require Import  Tactic.
 Require Import Nmore Rmore Fmore Rstruct MULTmore Fast2Sum_robust_flt.
@@ -560,12 +561,11 @@ by rewrite ulp_FLT_small; lra.
 Qed.
 
 Definition fastTwoSum (a b : R) :=
-  let s := RND (a + b) in
-  let z := RND (s - a) in DWR s (RND (b - z)).
+  let h := RND (a + b) in
+  let t := RND (h - a) in DWR h (RND (b - t)).
 
 Lemma fastTwoSum_0 : fastTwoSum 0 0 = DWR 0 0.
 Proof. by rewrite /fastTwoSum !(Rsimp01, round_0). Qed. 
-
 
 Lemma fastTwoSum_0l f : format f -> fastTwoSum 0 f = DWR f 0.
 Proof.
@@ -582,8 +582,6 @@ Definition twoSum (a : R) (b : dwR) :=
   let: DWR bh bl := b in 
   let: DWR h t := fastTwoSum a bh in 
   let: l := RND (t + bl) in DWR h l.
-
-Check twoSum.
 
 Definition fastSum (a bh bl : R) := 
   let: DWR h t := fastTwoSum a bh in DWR h (RND (t + bl)).
@@ -706,11 +704,12 @@ Local Notation cexp := (cexp beta FLT).
 Local Notation mant := (scaled_mantissa beta FLT).
 Local Notation fastTwoSum := (fastTwoSum beta emin p rnd).
 Local Notation fastSum := (fastSum beta emin p rnd).
+Local Notation "| a |" := (Rabs a) (at level 200).
 
 Lemma fastTwoSum_correct a b : 
-  format a -> format b -> (a <> 0 -> Rabs b <= Rabs a) ->
+  format a -> format b -> (a <> 0 -> | b | <= | a |) ->
   let: DWR h l := fastTwoSum a b in 
-  Rabs (h + l - (a + b)) <= pow (1 - 2 * p) * Rabs h.
+  |h + l - (a + b)| <= pow (1 - 2 * p) * |h|.
 Proof.
 by move=> Fa Fb b_le_a; apply: FastTwoSum_bound_round.
 Qed.

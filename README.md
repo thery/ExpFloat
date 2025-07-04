@@ -72,14 +72,14 @@ Algorithm Phase1 :
   - Laurent Théry
   - Laurence Rideau
 - License: [MIT License](LICENSE)
-- Compatible Coq versions: 8.18 or later
+- Compatible Rocq/Coq versions: 9.0 or later
 - Additional dependencies:
-  - [MathComp ssreflect 1.17 or later](https://math-comp.github.io)
-  - [Coquelicot 3.4.0 or later](https://gitlab.inria.fr/coquelicot/coquelicot)
-  - [MathComp algebra 1.17 or later](https://math-comp.github.io)
-  - [Flocq 4.1.3 or later](https://gitlab.inria.fr/flocq/flocq)
-  - [Interval 4.8.1 or later](https://gitlab.inria.fr/coqinterval/interval)
-- Coq namespace: `floatexp`
+  - [MathComp ssreflect 2.4.0 or later](https://math-comp.github.io)
+  - [Coquelicot 3.4.3 or later](https://gitlab.inria.fr/coquelicot/coquelicot)
+  - [MathComp algebra 2.4 or later](https://math-comp.github.io)
+  - [Flocq 4.2.1 or later](https://gitlab.inria.fr/flocq/flocq)
+  - [Interval 4.11.2 or later](https://gitlab.inria.fr/coqinterval/interval)
+- Rocq/Coq namespace: `floatexp`
 - Related publication(s): none
 
 ## Building and installation instructions

@@ -1,9 +1,10 @@
 (* Copyright (c)  Inria. All rights reserved. *)
 
-Require Import Reals  Psatz.
+From Stdlib Require Import Reals Psatz.
 From Flocq Require Import Core Relative Sterbenz Operations.
 From mathcomp Require Import all_ssreflect.
 From Coquelicot Require Import Coquelicot.
+Import ZArith_dec.
 Require Import Rmore.
 Set Implicit Arguments.
 

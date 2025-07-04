@@ -1,8 +1,8 @@
-Require Import ZArith Reals  Psatz.
+From Stdlib Require Import ZArith Reals Psatz.
 From mathcomp Require Import all_ssreflect all_algebra.
 From Flocq Require Import Core Relative Sterbenz Operations Mult_error.
 From Coquelicot Require Import Coquelicot.
-From Interval Require Import  Tactic.
+From Interval Require Import Tactic.
 Require Import Nmore Rmore Fmore Rstruct MULTmore prelim.
 
 Delimit Scope R_scope with R.
@@ -17,8 +17,6 @@ Section algoP1.
 Let p := 53%Z.
 Let emax := 1024%Z.
 Let emin := (3 - emax - p)%Z.
-
-Compute emin.
 
 Let beta := radix2.
 
