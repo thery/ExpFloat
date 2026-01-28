@@ -28,14 +28,14 @@ Algorithm FastSum  :
 - [Lemma 1](./prelim.v#L728-L731)
 
 Algorithm P1 : 
-- [Algorithm P1](./algoP1.v#L356-L364)
-- [Absolute error of Sollya polynomial](./algoP1.v#L150-L151)
-- [Relative error of Sollya polynomial](./algoP1.v#L338-L340)
-- [Bound of `ph` of algorithm P1](./algoP1.v#L1710-L1715)
-- [Bound of `pl` of algorithm P1](./algoP1.v#L1732-L1737)
-- [Absolute error of algorithm P1 (first part Lemma 2)](./algoP1.v#L1743-L1748)
-- [Relative error of algorithm P1](./algoP1.v#L1754-L1760)
-- [Refined relative error of algorithm P1 (second part Lemma 2)](./algoP1.v#L1767-L1773)
+- [Algorithm P1](./algoP1.v#L354-L362)
+- [Absolute error of Sollya polynomial](./algoP1.v#L148-L149)
+- [Relative error of Sollya polynomial](./algoP1.v#L336-L338)
+- [Bound of `ph` of algorithm P1](./algoP1.v#L1708-L1713)
+- [Bound of `pl` of algorithm P1](./algoP1.v#L1730-L1735)
+- [Absolute error of algorithm P1 (first part Lemma 2)](./algoP1.v#L1741-L1746)
+- [Relative error of algorithm P1](./algoP1.v#L1752-L1758)
+- [Refined relative error of algorithm P1 (second part Lemma 2)](./algoP1.v#L1765-L1771)
 
 Algorithm Log1 :
 - [Definition of the `INVERSE` table](./tableINVERSE.v#L47-L78)
