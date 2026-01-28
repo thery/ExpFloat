@@ -16,16 +16,16 @@ Follow the instructions on https://github.com/coq-community/templates to regener
 Exponential in binary 64 
 
 Algorithm FastTwoSum : 
-- [Algorithm FastTwoSum](./prelim.v#L562-L564)
-- [Bounds on the error of FastTwoSum](./Fast2Sum_robust_flt.v#L946-L953)
+- [Algorithm FastTwoSum](./prelim.v#L563-L565)
+- [Bounds on the error of FastTwoSum](./Fast2Sum_robust_flt.v#L944-L951)
 
 Algorithm ExactMul  :
-- [Algorithm ExactMult](./prelim.v#L497-L499)
-- [Lemma 0](./prelim.v#L525-L526)
+- [Algorithm ExactMult](./prelim.v#L498-L500)
+- [Lemma 0](./prelim.v#L525-L528)
 
 Algorithm FastSum  :
-- [Algorithm FastSum](./prelim.v#L588-L589)
-- [Lemma 1](./prelim.v#L729-L732)
+- [Algorithm FastSum](./prelim.v#L586-L587)
+- [Lemma 1](./prelim.v#L728-L731)
 
 Algorithm P1 : 
 - [Algorithm P1](./algoP1.v#L356-L364)
