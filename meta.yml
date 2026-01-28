@@ -6,7 +6,8 @@ community: false
 dune: false
 action: true
 
-synopsis: e
+synopsis: Exponential in binary 64 
+
 
 description: |-
 
@@ -79,16 +80,16 @@ license:
   fullname: MIT License
   identifier: MIT
 
-supported_coq_versions:
-  text: '9.0 or later'
-  opam: '{(>= "9.0")}'
+supported_rocq_versions:
+  text: '9.1 or later'
+  opam: '{(>= "9.1")}'
 
 dependencies:
 - opam:
-    name: coq-mathcomp-ssreflect
-    version: '{(>= "2.4.0")}'
+    name: rocq-mathcomp-ssreflect
+    version: '{(>= "2.5.0")}'
   description: |-
-    [MathComp ssreflect 2.4.0 or later](https://math-comp.github.io)
+    [MathComp ssreflect 2.5.0 or later](https://math-comp.github.io)
 
 - opam:
     name: coq-coquelicot
@@ -97,10 +98,10 @@ dependencies:
     [Coquelicot 3.4.3 or later](https://gitlab.inria.fr/coquelicot/coquelicot)
 
 - opam:
-    name: coq-mathcomp-algebra
-    version: '{(>= "2.4.0")}'
+    name: rocq-mathcomp-algebra
+    version: '{(>= "2.5.0")}'
   description: |-
-    [MathComp algebra 2.4 or later](https://math-comp.github.io)
+    [MathComp algebra 2.5 or later](https://math-comp.github.io)
 
 - opam:
     name: coq-flocq
@@ -115,8 +116,8 @@ dependencies:
     [Interval 4.11.2 or later](https://gitlab.inria.fr/coqinterval/interval)
 
 
-tested_coq_opam_versions:
-- version: '2.4.0-rocq-prover-9.0'
+tested_rocq_opam_versions:
+- version: '2.5.0-rocq-prover-9.1'
   repo: 'mathcomp/mathcomp'
 
 namespace: floatexp
@@ -124,7 +125,7 @@ namespace: floatexp
 keywords:
 - name: floating point number
 - name: exponential function
-- name: Coq
+- name: Rocq
 
 
 

@@ -72,11 +72,10 @@ Algorithm Phase1 :
   - Laurent Théry
   - Laurence Rideau
 - License: [MIT License](LICENSE)
-- Compatible Rocq/Coq versions: 9.0 or later
 - Additional dependencies:
-  - [MathComp ssreflect 2.4.0 or later](https://math-comp.github.io)
+  - [MathComp ssreflect 2.5.0 or later](https://math-comp.github.io)
   - [Coquelicot 3.4.3 or later](https://gitlab.inria.fr/coquelicot/coquelicot)
-  - [MathComp algebra 2.4 or later](https://math-comp.github.io)
+  - [MathComp algebra 2.5 or later](https://math-comp.github.io)
   - [Flocq 4.2.1 or later](https://gitlab.inria.fr/flocq/flocq)
   - [Interval 4.11.2 or later](https://gitlab.inria.fr/coqinterval/interval)
 - Rocq/Coq namespace: `floatexp`
@@ -84,7 +83,15 @@ Algorithm Phase1 :
 
 ## Building and installation instructions
 
-To build and install manually, do:
+The easiest way to install the latest released version of ExpFloat
+is via [OPAM](https://opam.ocaml.org/doc/Install.html):
+
+```shell
+opam repo add rocq-released https://rocq-prover.org/opam/released
+opam install coq-expfloat
+```
+
+To instead build and install manually, do:
 
 ``` shell
 git clone https://github.com/thery/expfloat.git

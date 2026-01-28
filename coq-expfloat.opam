@@ -10,7 +10,7 @@ dev-repo: "git+https://github.com/thery/expfloat.git"
 bug-reports: "https://github.com/thery/expfloat/issues"
 license: "MIT"
 
-synopsis: "e"
+synopsis: "Exponential in binary 64"
 description: """
 
 Exponential in binary 64 
@@ -69,10 +69,10 @@ Algorithm Phase1 :
 build: [make "-j%{jobs}%"]
 install: [make "install"]
 depends: [
-  "coq" {(>= "9.0")}
-  "coq-mathcomp-ssreflect" {(>= "2.4.0")}
+  "coq" 
+  "rocq-mathcomp-ssreflect" {(>= "2.5.0")}
   "coq-coquelicot" {(>= "3.4.3")}
-  "coq-mathcomp-algebra" {(>= "2.4.0")}
+  "rocq-mathcomp-algebra" {(>= "2.5.0")}
   "coq-flocq" {(>= "4.2.1")}
   "coq-interval" {(>= "4.11.2")}
 ]
@@ -80,7 +80,7 @@ depends: [
 tags: [
   "keyword:floating point number"
   "keyword:exponential function"
-  "keyword:Coq"
+  "keyword:Rocq"
   "logpath:floatexp"
 ]
 authors: [
