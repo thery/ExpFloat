@@ -1,5 +1,5 @@
-From Stdlib Require Import ZArith Reals Psatz.
-From mathcomp Require Import all_ssreflect all_algebra.
+From Stdlib Require Import ZArith Reals Psatz Field.
+From mathcomp Require Import boot.
 From Flocq Require Import Core Relative Sterbenz Operations Mult_error.
 From Interval Require Import  Tactic.
 Require Import Nmore Rmore Fmore Rstruct MULTmore prelim.
@@ -23,7 +23,7 @@ Compute emin.
 Let beta := radix2.
 
 Hypothesis Hp2: Z.lt 1 p.
-Local Notation pow e := (bpow beta e).
+Local Abbreviation pow e := (bpow beta e).
 
 Local Instance p_gt_0 : Prec_gt_0 p.
 now apply Z.lt_trans with (2 := Hp2).
@@ -31,8 +31,8 @@ Qed.
 
 Open Scope R_scope.
 
-Local Notation u := (u p beta).
-Local Notation u_gt_0 := (u_gt_0 p beta).
+Local Abbreviation u := (u p beta).
+Local Abbreviation u_gt_0 := (u_gt_0 p beta).
 
 Lemma uE : u = pow (- p).
 Proof. by rewrite /u /= /Z.pow_pos /=; lra. Qed.
@@ -40,12 +40,12 @@ Proof. by rewrite /u /= /Z.pow_pos /=; lra. Qed.
 Variable rnd : R -> Z.
 Context { valid_rnd : Valid_rnd rnd }.
 
-Local Notation float := (float radix2).
-Local Notation fexp := (FLT_exp emin p).
-Local Notation format := (generic_format radix2 fexp).
-Local Notation cexp := (cexp beta fexp).
-Local Notation mant := (scaled_mantissa beta fexp).
-Local Notation RND := (round beta fexp rnd).
+Local Abbreviation float := (float radix2).
+Local Abbreviation fexp := (FLT_exp emin p).
+Local Abbreviation format := (generic_format radix2 fexp).
+Local Abbreviation cexp := (cexp beta fexp).
+Local Abbreviation mant := (scaled_mantissa beta fexp).
+Local Abbreviation RND := (round beta fexp rnd).
 
 Definition LOG2H : float := Float _ 3048493539143 (- 42).
 
@@ -750,4 +750,3 @@ by rewrite ltnNge; case: leq.
 Qed.
 
 End TableLoginv.
-

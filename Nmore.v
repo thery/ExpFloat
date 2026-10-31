@@ -1,4 +1,4 @@
-From mathcomp Require Import all_ssreflect all_algebra.
+From mathcomp Require Import boot.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -10,7 +10,7 @@ Definition scalen k n := (n %/ 2 ^ k) * 2 ^ k.+1 + n %% 2 ^ k.
 Lemma shrink_scalen_k k n : shrink k (scalen k n + 2 ^ k) = n.
 Proof.
 rewrite /shrink /scalen -addnA divnMDl ?expn_gt0 //.
-rewrite [_ %/ 2 ^ _.+1]divn_small ?addn0; last first.
+rewrite [_ %/ 2 ^ _.+1]divn_small ?addn0.
   by rewrite expnS mul2n -addnn ltn_add2r ltn_mod expn_gt0.
 by rewrite addnA modnDr expnS mulnA modnMDl modn_mod -divn_eq.
 Qed.
@@ -18,7 +18,7 @@ Qed.
 Lemma shrink_scalen k n : shrink k (scalen k n) = n.
 Proof.
 rewrite /shrink /scalen divnMDl ?expn_gt0 //.
-rewrite [_ %/ 2 ^ _.+1]divn_small ?addn0; last first.
+rewrite [_ %/ 2 ^ _.+1]divn_small ?addn0.
   apply: ltn_trans (_ : 2 ^ k < _); first by rewrite ltn_mod ?expn_gt0.
   by rewrite ltn_exp2l.
 by rewrite expnS mulnA modnMDl modn_mod -divn_eq.

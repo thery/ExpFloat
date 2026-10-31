@@ -1,7 +1,10 @@
-From mathcomp Require Import all_ssreflect.
+From mathcomp Require Import boot.
 From Coquelicot Require Import Coquelicot.
 From Stdlib Require Import Reals Psatz.
 From Flocq Require Import Core.Raux.
+
+Tactic Notation "lra" := Lra.lra.
+Tactic Notation "nra" := Lra.nra.
 
 Open Scope R_scope.
 
@@ -68,7 +71,7 @@ move=> z_pos.
 apply: leq_sqrt.
   apply: Rplus_le_le_0_compat => //.
   by apply: sqrt_ge_0.
-rewrite sqrt_sqrt; last by set v := (x + z); nra.
+rewrite sqrt_sqrt; first by set v := (x + z); nra.
 suff: y * y + (x + z) * (x + z) - (x * x + y * y) - z * z 
       <= 2 * z * sqrt (x * x + y * y).
     have : sqrt (x * x + y * y) * sqrt (x * x + y * y) = x * x + y * y.

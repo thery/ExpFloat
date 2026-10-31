@@ -1,10 +1,12 @@
+From mathcomp Require Import boot.
 From Stdlib Require Import ZArith Reals Psatz.
-From mathcomp Require Import all_ssreflect all_algebra.
 From Flocq Require Import Core Relative Sterbenz Operations Mult_error.
 Require Import Nmore Rmore Fmore Rstruct.
 
 Delimit Scope R_scope with R.
 Delimit Scope Z_scope with Z.
+
+Open Scope R_scope.
 
 Set Implicit Arguments.
 Unset Strict Implicit.
@@ -18,19 +20,19 @@ Variable emin : Z.
 Variable beta : radix.
 
 Hypothesis Hp2: Z.lt 1 p.
-Local Notation pow e := (bpow beta e).
+Local Abbreviation pow e := (bpow beta e).
 
 Open Scope R_scope.
 
 Variable rnd : R -> Z.
 Context { valid_rnd : Valid_rnd rnd }.
 
-Local Notation float := (float beta).
-Local Notation fexp := (FLT_exp emin p).
-Local Notation format := (generic_format beta fexp).
-Local Notation cexp := (cexp beta fexp).
-Local Notation mant := (scaled_mantissa beta fexp).
-Local Notation RN := (round beta fexp rnd).
+Local Abbreviation float := (float beta).
+Local Abbreviation fexp := (FLT_exp emin p).
+Local Abbreviation format := (generic_format beta fexp).
+Local Abbreviation cexp := (cexp beta fexp).
+Local Abbreviation mant := (scaled_mantissa beta fexp).
+Local Abbreviation RN := (round beta fexp rnd).
 
 Definition is_imul x y := exists z : Z, x = IZR z * y.
 
@@ -87,7 +89,7 @@ rewrite kE in x_neq_0 *.
 have k_neq_0 : k <> 0%Z.
   move=> k_eq_0; case: x_neq_0.
   by rewrite k_eq_0; lra.
-rewrite mag_mult_bpow; last by apply: not_0_IZR.
+rewrite mag_mult_bpow; first by apply: not_0_IZR.
 suff : (1 <= (mag beta (IZR k)))%Z by lia.
 apply: mag_ge_bpow.
 rewrite pow0E -abs_IZR.
@@ -103,7 +105,7 @@ rewrite /generic_format /F2R /= in Fx.
 rewrite Fx /cexp.
 set m := Ztrunc _.
 exists (m * (beta ^ (fexp (mag beta x) - y)))%Z.
-rewrite mult_IZR IZR_Zpower; last by lia.
+rewrite mult_IZR IZR_Zpower; first by lia.
 by rewrite Rmult_assoc -bpow_plus; congr (_ * pow _); lia.
 Qed.
 
@@ -112,7 +114,7 @@ Lemma is_imul_pow_le x y1 y2 :
 Proof.
 move=> [z ->] y2Ly1.
 exists (z * beta ^ (y1 - y2))%Z.
-rewrite mult_IZR IZR_Zpower; last by lia.
+rewrite mult_IZR IZR_Zpower; first by lia.
 rewrite Rmult_assoc -bpow_plus; congr (_ * pow _); lia.
 Qed.
 
@@ -125,10 +127,10 @@ have [e1L|yLe1] := Zle_or_lt e1 y.
   exists k.
   rewrite /m1.
   have -> : IZR k * pow y * pow (- e1) = IZR (k * beta ^ (y - e1)).
-    rewrite Rmult_assoc -bpow_plus -IZR_Zpower; last by lia.
+    rewrite Rmult_assoc -bpow_plus -IZR_Zpower; first by lia.
     by rewrite -mult_IZR.
   rewrite Zrnd_IZR.
-  rewrite mult_IZR IZR_Zpower; last by lia.
+  rewrite mult_IZR IZR_Zpower; first by lia.
   by rewrite Rmult_assoc -bpow_plus; congr (_ * pow _); lia.
 exists ((rnd (IZR k * pow (y - e1))%R) * beta ^ (e1 - y))%Z.
 rewrite mult_IZR IZR_Zpower; try lia.
@@ -156,10 +158,10 @@ have [hut | hue] : Rabs (RN (a * b) - a * b) <= pow (emin + p).
   apply/(FLT_spec _ _ _ _ ({| Fnum := rz - z; Fexp := emin |} : float)); 
      rewrite /F2R //=; last lia.
   apply/lt_IZR; move:hut; rewrite {1}eE.
-  rewrite Rabs_mult abs_IZR IZR_Zpower; last lia.
-  rewrite (Rabs_pos_eq (pow _)); last by apply/bpow_ge_0.
+  rewrite Rabs_mult abs_IZR IZR_Zpower; first lia.
+  rewrite (Rabs_pos_eq (pow _)); first by apply/bpow_ge_0.
   by rewrite bpow_plus; move:(bpow_gt_0 beta emin); nra.
-move: hue; rewrite -(Rabs_pos_eq (pow _)); last by apply/bpow_ge_0.
+move: hue; rewrite -(Rabs_pos_eq (pow _)); first by apply/bpow_ge_0.
   by case/Rabs_eq_Rabs => ->; last apply/generic_format_opp;
     apply/generic_format_FLT_bpow; lia.
 Qed.
@@ -184,7 +186,7 @@ rewrite /F2R /=.
 have ->: (ef = -1 + (ef - (e - 1) + e))%Z by lia.
 rewrite 2!bpow_plus betaE.
 exists ((mf / 2) * (radix2 ^ (ef - (e - 1))))%Z.
-rewrite mult_IZR IZR_Zpower; last by lia.
+rewrite mult_IZR IZR_Zpower; first by lia.
 rewrite -!Rmult_assoc; congr (_ * _ * _).
 have [hp ->] := Zeven_ex mf.
 rewrite even_f Z.add_0_r Zmult_comm Z.div_mul //.
@@ -195,7 +197,7 @@ Lemma is_imul_pow_le_abs x y : is_imul x (pow y) -> x <> 0 -> pow y <= Rabs x.
 Proof.
 case=> [k ->] ke_neq0.
 have powy_gt_0 : 0 < pow y by apply: bpow_gt_0.
-rewrite Rabs_mult [Rabs (pow _)]Rabs_pos_eq; last by lra.
+rewrite Rabs_mult [Rabs (pow _)]Rabs_pos_eq; first by lra.
 suff : 1 <= Rabs (IZR k) by nra.
 rewrite -abs_IZR; apply: IZR_le.
 suff : k <> 0%Z by lia.
@@ -209,7 +211,7 @@ Lemma is_imul_bound_pow e1 e2 p1 x1 m1 :
 Proof.
 move=> x1B x1E m1B.
 exists (m1 * (beta ^ (e2 - (e1 - p1 + 1))))%Z.
-  rewrite mult_IZR (IZR_Zpower beta).
+  rewrite mult_IZR (IZR_Zpower beta); last first.
     rewrite Rmult_assoc -bpow_plus x1E.
     by congr (_ * pow _); lia.   
 suff: (e1 < p1 + e2)%Z by lia.

@@ -69,12 +69,11 @@ Algorithm Phase1 :
 build: [make "-j%{jobs}%"]
 install: [make "install"]
 depends: [
-  "coq" {(>= "9.0")}
-  "coq-mathcomp-ssreflect" {(>= "2.4.0")}
-  "coq-coquelicot" {(>= "3.4.3")}
-  "coq-mathcomp-algebra" {(>= "2.4.0")}
-  "coq-flocq" {(>= "4.2.1")}
-  "coq-interval" {(>= "4.11.2")}
+  "coq" {(>= "9.2")}
+  "coq-mathcomp-ssreflect" {(>= "2.6.0")}
+  "coq-coquelicot" {(>= "3.4.5")}
+  "coq-flocq" {(>= "4.2.2")}
+  "coq-interval" {(>= "4.11.5")}
 ]
 
 tags: [

@@ -1,5 +1,5 @@
-From Stdlib Require Import ZArith Reals Psatz.
-From mathcomp Require Import all_ssreflect all_algebra.
+From Stdlib Require Import ZArith Reals Psatz Field.
+From mathcomp Require Import boot.
 From Flocq Require Import Core Relative Sterbenz Operations Mult_error.
 From Interval Require Import Tactic.
 Require Import Nmore Rmore Fmore Rstruct MULTmore prelim algoLog1 algoMul1.
@@ -21,7 +21,7 @@ Let emin := (3 - emax - p)%Z.
 Let beta := radix2.
 
 Hypothesis Hp2: Z.lt 1 p.
-Local Notation pow e := (bpow beta e).
+Local Abbreviation pow e := (bpow beta e).
 
 Local Instance p_gt_0 : Prec_gt_0 p.
 now apply Z.lt_trans with (2 := Hp2).
@@ -29,8 +29,8 @@ Qed.
 
 Open Scope R_scope.
 
-Local Notation u := (u p beta).
-Local Notation u_gt_0 := (u_gt_0 p beta).
+Local Abbreviation u := (u p beta).
+Local Abbreviation u_gt_0 := (u_gt_0 p beta).
 
 Lemma uE : u = pow (- p).
 Proof. by rewrite /u /= /Z.pow_pos /=; lra. Qed.
@@ -38,21 +38,21 @@ Proof. by rewrite /u /= /Z.pow_pos /=; lra. Qed.
 Variable rnd : R -> Z.
 Context ( valid_rnd : Valid_rnd rnd ).
 
-Local Notation float := (float radix2).
-Local Notation fexp := (FLT_exp emin p).
-Local Notation format := (generic_format radix2 fexp).
-Local Notation cexp := (cexp beta fexp).
-Local Notation mant := (scaled_mantissa beta fexp).
-Local Notation RND := (round beta fexp rnd).
-Local Notation fastTwoSum := (fastTwoSum rnd).
-Local Notation exactMul := (exactMul beta emin p rnd).
-Local Notation fastSum := (fastSum beta emin p rnd).
-Local Notation q1 := (q1 rnd).
+Local Abbreviation float := (float radix2).
+Local Abbreviation fexp := (FLT_exp emin p).
+Local Abbreviation format := (generic_format radix2 fexp).
+Local Abbreviation cexp := (cexp beta fexp).
+Local Abbreviation mant := (scaled_mantissa beta fexp).
+Local Abbreviation RND := (round beta fexp rnd).
+Local Abbreviation fastTwoSum := (fastTwoSum rnd).
+Local Abbreviation exactMul := (exactMul beta emin p rnd).
+Local Abbreviation fastSum := (fastSum beta emin p rnd).
+Local Abbreviation q1 := (q1 rnd).
 
 Let alpha := pow (- 1074).
 Let omega := (1 - pow (-p)) * pow emax.
 
-Local Notation ulp := (ulp beta fexp).
+Local Abbreviation ulp := (ulp beta fexp).
 
 Definition INVLN2 := 0x1.71547652b82fep+12.
 
@@ -134,7 +134,7 @@ Proof.
 have F1: Rabs (RND (rh * INVLN2)) <= 4194347.07.
   apply: Rle_trans (_ : Rabs (rh * INVLN2) * (1 + pow (- 52)) <= _).
     apply/Rlt_le/relative_error_FLT_alt => //.
-    rewrite Rabs_mult [Rabs INVLN2]Rabs_pos_eq; last by interval.
+    rewrite Rabs_mult [Rabs INVLN2]Rabs_pos_eq; first by interval.
     apply: Rle_trans (_ : pow (-970) * INVLN2 <= _); first by interval.
     by apply: Rmult_le_compat; try lra; interval.
   apply: Rle_trans (_ : (709.79 * (pow 12/ ln 2 + Rpower 2 (- 43.447))) *
@@ -146,7 +146,7 @@ have F1: Rabs (RND (rh * INVLN2)) <= 4194347.07.
 have [rhi_neg|rhi_pos] := Rle_lt_dec (rh * INVLN2) 0.
   have rrhi_neg : RND (rh * INVLN2) <= 0.
     by apply: round_le_r => //; apply: generic_format_0.
-  rewrite Z.abs_neq; last first.
+  rewrite Z.abs_neq.
     have <- : Znearest choice 0 = 0%Z by rewrite Znearest_IZR.
     by apply: Znearest_le.
   suff: (- 4194347 <= k)%Z by lia.
@@ -156,7 +156,7 @@ have [rhi_neg|rhi_pos] := Rle_lt_dec (rh * INVLN2) 0.
   by clear -F1 rrhi_neg; split_Rabs; lra.
 have rrhi_pos : 0 <= RND (rh * INVLN2).
   by apply: round_le_l; [apply: generic_format_0 | lra].
-rewrite Z.abs_eq; last first.
+rewrite Z.abs_eq.
   have <- : Znearest choice 0 = 0%Z by rewrite Znearest_IZR.
   by apply: Znearest_le.
 have <- : Znearest choice (4194347.07) = 4194347%Z.
@@ -183,13 +183,13 @@ Proof.
 apply: Rle_trans  (_ : ulp (rh * INVLN2) <= _).
   by apply/error_le_ulp.
 have Rrh_pos: 0 < Rabs rh by move: (bpow_gt_0 beta (- 970)); lra.
-rewrite ulp_neq_0; last by rewrite /INVLN2; split_Rabs; nra.
+rewrite ulp_neq_0; first by rewrite /INVLN2; split_Rabs; nra.
 have h : Rabs (rh * INVLN2) <= 709.79 *  INVLN2.
   rewrite Rabs_mult.
   by rewrite (Rabs_pos_eq INVLN2); try rewrite /INVLN2;lra.
 have : 709.79 * INVLN2 < pow (23).
   by rewrite /INVLN2 ; interval.
-rewrite /cexp /fexp Z.max_l => *.
+rewrite /cexp /fexp Z.max_l => *; last first.
   apply/bpow_le.
   suff: (mag beta (rh * INVLN2) <= 23) %Z by lia.
   apply/mag_le_bpow;  try lra.
@@ -249,7 +249,7 @@ Qed.
 
 Lemma  ulp_LN2H_2: ulp (LN2H/2) =  pow (-66).
 Proof.
-rewrite ulp_neq_0; last by interval.
+rewrite ulp_neq_0; first by interval.
 congr bpow; rewrite /cexp mag_LNH2_2 /fexp; lia.
 Qed.
 
@@ -258,8 +258,8 @@ Lemma pred_LN2H_2:
 Proof.
 rewrite pred_eq_pos; try (rewrite /LN2H; lra).
 rewrite /pred_pos Req_bool_false.
-  by rewrite  ulp_LN2H_2   LN2H_2E /F2R/=;lra.
-rewrite  mag_LNH2_2 LN2H_2E /F2R //=;lra.
+  by rewrite  mag_LNH2_2 LN2H_2E /F2R //=; lra.
+by rewrite  ulp_LN2H_2   LN2H_2E /F2R/=; lra.
 Qed.
 
 
@@ -268,7 +268,7 @@ Fact  rhBkln2hB13: Rabs (rh - IZR k * LN2H) <= Rpower 2 (-13.528766).
   have D1_B:= D1_B; have D2_B := D2_B.
   have E1:  ( IZR k  - rh/ LN2H) = D1 + D2 + D3' by rewrite /D1 /D2 /D3'; lra.
   have ->:  Rabs (rh - IZR k * LN2H) = Rabs (D1 + D2 + D3')* LN2H.
-    rewrite -Rabs_Ropp  -{2}(Rabs_pos_eq LN2H); last by rewrite /LN2H;lra.
+    rewrite -Rabs_Ropp  -{2}(Rabs_pos_eq LN2H); first by rewrite /LN2H; lra.
     by rewrite -Rabs_mult /D1 /D2 /D3'; congr Rabs; field; rewrite /LN2H;lra.
   apply/(Rle_trans _ ((Rabs D1 + Rabs D2 + Rabs D3')* LN2H)).
     apply/Rmult_le_compat_r;  first by rewrite /LN2H; lra.
@@ -296,7 +296,7 @@ have rhBkln2hB : Rabs (rh - IZR k * LN2H) <= omega.
    last by interval.
   apply: Rplus_le_compat.
     by rewrite [Rabs 709.79]Rabs_pos_eq; lra.
-  rewrite Rabs_mult [Rabs LN2H]Rabs_pos_eq; last by interval.
+  rewrite Rabs_mult [Rabs LN2H]Rabs_pos_eq; first by interval.
   apply: Rmult_le_compat_r; first by interval.
   by rewrite Rabs_Zabs; apply/IZR_le/kB.
 have rhBkln2h_imul_1022: (is_imul (rh - IZR k * LN2H)(pow (- 1022))).
@@ -323,7 +323,7 @@ case:(Rle_lt_dec (bpow radix2 (-13)) (Rabs rh))=>hrh13.
      by rewrite -bpow_opp.
   + apply/lt_IZR; have ->: IZR (Z.pow_pos 2 53) = bpow beta 53 by [].
     apply/(Rmult_lt_reg_r (pow (-65))); first by apply/bpow_gt_0.
-    rewrite abs_IZR -bpow_plus -(Rabs_pos_eq (pow (-65))); last by apply/bpow_ge_0.
+    rewrite abs_IZR -bpow_plus -(Rabs_pos_eq (pow (-65))); first by apply/bpow_ge_0.
     rewrite -Rabs_mult -rhkln2E; ring_simplify (53 + -65)%Z.
     apply/(Rle_lt_trans _ (Rpower 2 (-13.528766)))=>//.
     by rewrite pow_Rpower; apply/Rpower_lt; lra.
@@ -331,8 +331,8 @@ case:(Rle_lt_dec (bpow radix2 (-13)) (Rabs rh))=>hrh13.
 have  powm1E: pow (-1) = /2  by [].
 have rhINVLN2B: Rabs (rh *  INVLN2) < 0.73 by interval.
 have u73: ulp (0.73) = pow (-p).
-  rewrite ulp_neq_0 /cexp; last lra.
-  rewrite (mag_unique_pos  _ _ 0)/fexp.
+  rewrite ulp_neq_0 /cexp; first by lra.
+  rewrite (mag_unique_pos  _ _ 0)/fexp; last first.
     by rewrite Z.max_l.
   have->: pow (0 -1) = /2 by [].
   by rewrite -powm1E pow0E; lra.
@@ -386,7 +386,7 @@ case:kE=> [k1 |kE].
   split; last interval.
   case: (Rlt_le_dec (RND (rh * INVLN2)) (/2))=>h.
     suff: (k <= 0)%Z by lia.
-    rewrite /k (Znearest_imp _ _ 0); first  lia.
+    rewrite /k (Znearest_imp _ _ 0); last by lia.
     rewrite Rminus_0_r Rabs_pos_eq //.
     have ->: 0 = RND 0 by rewrite round_0.
     by apply/round_le; rewrite /INVLN2; lra.
@@ -394,7 +394,7 @@ case:kE=> [k1 |kE].
     move=>hle.
     have: RND(rh * INVLN2) <= RND(pred beta fexp (/ 2)) 
       by apply/round_le.
-    rewrite (round_generic _ _ _ (pred _ _ _ )).
+    rewrite (round_generic _ _ _ (pred _ _ _ )); last first.
       move: h;
       have->: /2 = pow (-1) by [].
       rewrite pred_bpow; move:(bpow_gt_0 beta (fexp (-1))).
@@ -404,7 +404,7 @@ case:kE=> [k1 |kE].
       rewrite /fexp; lia.
   have h2: 0 </ INVLN2 by interval.
   move/(Rmult_lt_compat_r (/INVLN2) _ _ h2).
-  rewrite Rmult_assoc Rinv_r ?Rmult_1_r; last interval.
+  rewrite Rmult_assoc Rinv_r ?Rmult_1_r; first by interval.
   move=> h3.
   have: round beta fexp Zceil (pred beta fexp (/ 2) * / INVLN2) <=
     round beta fexp Zceil rh.
@@ -439,20 +439,20 @@ have h: RND (rh * INVLN2) <= -/2.
   rewrite /k; apply/Znearest_imp.
   by rewrite -Rabs_Ropp Rabs_pos_eq; lra.
 have succE: - / 2 + pow (-54)= succ beta fexp (-/2).
-    rewrite succ_opp -powm1E pred_bpow  /fexp Z.max_l; last lia.
+    rewrite succ_opp -powm1E pred_bpow  /fexp Z.max_l; first by lia.
     by ring_simplify; congr Rplus; congr bpow; lia.
 have h4 : rh * INVLN2 < -/2 + pow(-54).
 
   case:(Rlt_le_dec (rh * INVLN2)  (- / 2 + pow (-54)))=>//h2.
   have:RND (- /2 + pow (-54)) <= RND(rh * INVLN2) by apply/round_le.
-  rewrite round_generic; first by  move:(bpow_gt_0 beta (-54)); lra.
+  rewrite round_generic; last by move:(bpow_gt_0 beta (-54)); lra.
   rewrite succE; apply/generic_format_succ/generic_format_opp.
   rewrite -powm1E; apply/generic_format_bpow.
   rewrite /fexp; lia.
 
 have {}h2: (/2 - pow (-54)) /INVLN2 < -rh. 
   apply/(Rmult_lt_reg_r INVLN2); first by interval.
-  by rewrite Rmult_assoc Rinv_l ?Rmult_1_r; last interval; lra.
+  by rewrite Rmult_assoc Rinv_l ?Rmult_1_r; first (by interval); lra.
 suff: LN2H/2 <= -rh by lra.
 rewrite -LN2H_2E.
 have->: -rh =  (round beta fexp Zceil (-rh)).
@@ -485,7 +485,7 @@ Fact rlkln2lB : Rabs (rl - IZR k * LN2L) <= Rpower 2 (- 14.418).
   apply: Rle_trans (_ : Rpower 2 (- 14.4187) + 4194347 * LN2L <= _);
      last by interval.
   apply: Rplus_le_compat; first by lra.
-  rewrite Rabs_mult [Rabs LN2L]Rabs_pos_eq; last by interval.
+  rewrite Rabs_mult [Rabs LN2L]Rabs_pos_eq; first by interval.
   apply: Rmult_le_compat_r; first by interval.
   by rewrite Rabs_Zabs; apply/IZR_le/kB.
 Qed.
@@ -517,8 +517,8 @@ have h1: Rabs(zh + zl)  <=  Rpower 2 (- 12.9059).
   by boundDMI;[apply/rlkln2lB|apply/zl_err].
 have ulpz: ulp (zh + zl) <= pow (-65).
   have ->: pow (-65) = ulp( Rpower 2 (- 12.9059)).
-    rewrite ulp_neq_0 /cexp /fexp; last interval.
-    congr bpow; rewrite (mag_unique_pos _ _ (-12)); first lia.
+    rewrite ulp_neq_0 /cexp /fexp; first by interval.
+    congr bpow; rewrite (mag_unique_pos _ _ (-12)); last by lia.
     by rewrite !pow_Rpower; try lia; split;interval.
   apply/ulp_le; rewrite (Rabs_pos_eq (Rpower _ _)) //.
   by apply/Rlt_le/exp_pos.
@@ -592,7 +592,7 @@ Qed.
 
 Lemma i2B : (0 <= i2 <= 63)%Z.
 Proof.
-rewrite /i2 /e -Zmod_eq_full; last by lia.
+rewrite /i2 /e -Zmod_eq_full; first by lia.
 have km12B : (0 <= k mod (2 ^ 12) < 2 ^12)%Z by apply: Z.mod_pos_bound.
 split; first by apply: Z.div_pos; lia.
 have -> : (63 = (2 ^ 12 - 1) / 2 ^ 6)%Z by [].
@@ -610,7 +610,7 @@ Proof. by rewrite INR_IZR_INZ Z2Nat.id //; have := i2B; lia. Qed.
 Lemma i1B : (0 <= i1 <= 63)%Z.
 Proof.
 suff : (0 <= i1 < 2 ^ 6)%Z by lia.
-rewrite /i1 /i2 /e -Zmod_eq_full; last by lia.
+rewrite /i1 /i2 /e -Zmod_eq_full; first by lia.
 by apply: Z.mod_pos_bound.
 Qed.
 
@@ -831,7 +831,7 @@ apply: Rle_trans (_ : pow (- 53) * Rpower 2 0.984376 + pow (- 52) <= _);
     last by interval.
 boundDMI; last by apply: sB.
 boundDMI; first by apply: l1B.
-rewrite Rabs_pos_eq; first by apply: h2B1.
+rewrite Rabs_pos_eq; last by apply: h2B1.
 have := h2B; lra.
 Qed.
 
@@ -866,7 +866,7 @@ apply: Rle_trans (_ : Rpower 2 0.015381  * pow (- 53) + Rpower 2 (- 51.00699)
     last by interval.
 boundDMI; last by apply/Rlt_le/tB.
 boundDMI; last by apply: l2B.
-rewrite Rabs_pos_eq; first by apply: h1B1.
+rewrite Rabs_pos_eq; last by apply: h1B1.
 have := h1B; lra.
 Qed.
 
@@ -887,13 +887,13 @@ suff : 1 <= ph + pl.
   split; first by lra.
   apply: Rle_lt_trans (_ : Rpower 2 0.999757 * (1 + pow (- 52)) +
                            Rpower 2 (- 50.680499) < _); last by interval.
-  rewrite -[ph + pl]Rabs_pos_eq; last by lra.
+  rewrite -[ph + pl]Rabs_pos_eq; first by lra.
   boundDMI; last by apply/Rlt_le/plB.
   apply: Rle_trans (_ : Rabs (h1 * h2) * (1 + pow (- 52)) <= _).
     apply: relative_error_eps_ge => //.
     by apply: is_imul_pow_le imul_h1h2 _.
   apply: Rmult_le_compat_r; first by interval.
-  rewrite Rabs_pos_eq; last by have := h1h2B; lra.
+  rewrite Rabs_pos_eq; first by have := h1h2B; lra.
   by apply: h1h2B1.
 have [i1eq0|i1ne0] := Z.eq_dec i1 0.
   have h1E: h1 = 1 by rewrite /h1 /ni1 i1eq0.
@@ -911,12 +911,11 @@ have [i1eq0|i1ne0] := Z.eq_dec i1 0.
      first by interval.
   apply: Rle_trans (_ : ph - Rabs pl <= _); last by split_Rabs; lra.
   suff : 1.0001 <= ph by have := plB; lra.
-  rewrite phE h1E Rsimp01 -[RND h2]Rabs_pos_eq; last first.
+  rewrite phE h1E Rsimp01 -[RND h2]Rabs_pos_eq.
     apply: round_le_l; first by apply: generic_format_0.
     by interval.
   apply: Rle_trans (_ : Rabs (h2) * (1 - pow (-52)) <= _).
-    rewrite Rabs_pos_eq; first by interval.
-    by apply: Rle_trans h2B; interval.
+    by interval.
   apply: (relative_error_eps_le Hp2) => //.
   by apply: is_imul_pow_le imul_h2 _.
 have h1B1 : Rpower 2 (1 / 2 ^ 12) * (1 - pow (- 53)) <= h1.
@@ -927,7 +926,7 @@ apply: Rle_trans (_ : 1.0001 - Rpower 2 (- 50.680499) <= _);
     first by interval.
 apply: Rle_trans (_ : ph - Rabs pl <= _); last by split_Rabs; lra.
 suff : 1.0001 <= ph by have := plB; lra.
-rewrite phE -[RND _]Rabs_pos_eq; last first.
+rewrite phE -[RND _]Rabs_pos_eq.
   apply: round_le_l; first by apply: generic_format_0.
   have := h1B; have := h2B; nra.
 apply: Rle_trans (_ : Rabs (h1 * h2) * (1 - pow (-52)) <= _).
@@ -946,7 +945,7 @@ have plE1 : pl = h1 * l2 + t + e3 by rewrite /e3; lra.
 pose e2 := t - (l1 * h2 + s).
 have tE : t = l1 * h2 - e1 + e2 by rewrite /e2 /t sE /e1; lra.
 have -> : ph + pl - (h1 + l1) * (h2 + l2) = e2 + e3 - l1 * l2.
-    by rewrite /e2 /e3 sE /t; lra.
+  by rewrite /e2 /e3 sE /t; lra.
 apply: Rle_trans (_ :
     pow (- 104) + pow (- 103) + pow (- 53) * pow (- 53) <= _);
     last by interval.
@@ -975,7 +974,7 @@ have [i1eq0|i1ne0] := Z.eq_dec i1 0.
   have sE : s = 0 by rewrite sE phE h1E; lra.
   have tE : t = 0.
     by rewrite /t l1E sE !Rsimp01; apply: round_0.
-  rewrite /pl phE h1E l1E tE !Rsimp01 round_generic; last by apply: l2F.
+  rewrite /pl phE h1E l1E tE !Rsimp01 round_generic; first by apply: l2F.
   have -> : (h2 + l2) / (h2 + l2) - 1 = 0.
     by field; have [Hx Hy] := (h2B, l2B); interval.
   by interval.
@@ -987,7 +986,7 @@ have [i2eq0|i2ne0] := Z.eq_dec i2 0.
   have sE : s = 0 by rewrite sE phE h2E; lra.
   have tE : t = l1.
     by rewrite /t h2E sE !Rsimp01; apply: round_generic l1F.
-  rewrite /pl phE h2E l2E tE !Rsimp01 round_generic; last by apply: l1F.
+  rewrite /pl phE h2E l2E tE !Rsimp01 round_generic; first by apply: l1F.
   have -> : (h1 + l1) / (h1 + l1) - 1 = 0.
     by field; have [Hx Hy] := (h1B, l1B); interval.
   by interval.
@@ -999,7 +998,7 @@ suff h1l1h2l2B : 1.0110603 < (h1 + l1) * (h2 + l2).
     have [[[Hx Hy] Hz] Ht]:= (h2B, l2B, h1B, l1B).
     by split; interval.
   rewrite Rabs_mult Rabs_inv.
-  rewrite [Rabs (_ * _)]Rabs_pos_eq; last by lra.
+  rewrite [Rabs (_ * _)]Rabs_pos_eq; first by lra.
   apply: Rle_trans (_ : Rpower 2 (-102.299) / 1.0110603 <= _);
     last by interval.
   apply: Rmult_le_compat.
@@ -1155,7 +1154,7 @@ Proof.
 have h1h2_pos : 0 <= h1 * h2 by have := h1h2B; lra.
 apply: Rle_lt_trans (_ : h1 * h2 * (1 + pow (- 52)) * qh < _).
   apply: Rmult_le_compat_r; first by have := qhB; lra.
-  rewrite phE -{2}[h1 * h2]Rabs_pos_eq // -[RND _]Rabs_pos_eq; last first.
+  rewrite phE -{2}[h1 * h2]Rabs_pos_eq // -[RND _]Rabs_pos_eq.
     by apply: round_le_l => //; apply: generic_format_0.
   apply: relative_error_eps_ge => //.
   by apply: is_imul_pow_le imul_h1h2 _.
@@ -1182,7 +1181,7 @@ split.
     apply: Rmult_le_compat; try by lra.
       by have := phB; split_Rabs; lra.
     by have := qhB; split_Rabs; lra.
-  rewrite -[h]Rabs_pos_eq; last first.
+  rewrite -[h]Rabs_pos_eq.
     apply: round_le_l; first by apply: generic_format_0.
     by have := phB; have := qhB; nra.
   apply: (relative_error_eps_le Hp2) => //.
@@ -1198,7 +1197,7 @@ apply: Rle_trans (_ : ulp (ph * qh) <= _).
   rewrite s'E -Rabs_Ropp Ropp_minus_distr.
   by apply: error_le_ulp.
 apply: bound_ulp_FLT => //.
-rewrite Rabs_pos_eq; first by apply: phqhB.
+rewrite Rabs_pos_eq; last by apply: phqhB.
 by have := phB; have := qhB; nra.
 Qed.
 
@@ -1314,7 +1313,7 @@ have abs_error := abs_error_hl.
 set uu := _ * _ in abs_error phplqhqlB *.
 have -> : (h + l) / uu - 1 = (h + l - uu) / uu.
   by field; interval.
-rewrite Rabs_mult Rabs_inv [Rabs uu]Rabs_pos_eq; last by interval.
+rewrite Rabs_mult Rabs_inv [Rabs uu]Rabs_pos_eq; first by interval.
 apply/Rcomplements.Rle_div_l; first by interval.
 apply: Rle_trans abs_error _.
 have -> : -100.9129 = -100.912696 + -0.000204 by lra.
@@ -1361,8 +1360,8 @@ Qed.
 Lemma pr0fE1 : pred beta fexp r0 = pr0.
 Proof.
 have -> : r0 = - (0x1.74910ee4e8a27p9) by rewrite /r0; lra.
-rewrite pred_opp succ_eq_pos; last by lra.
-rewrite ulp_neq_0; last by lra.
+rewrite pred_opp succ_eq_pos; first by lra.
+rewrite ulp_neq_0; first by lra.
 rewrite /cexp.
 have -> : mag beta 0x1.74910ee4e8a27p9%xR = 10%Z :> Z.
   by apply: mag_unique_pos; split; interval.
@@ -1506,7 +1505,7 @@ have rlhB:  Rabs rl <= Rpower 2 (-23.8899) * Rabs rh.
   by rewrite /Rdiv -Rabs_inv -Rabs_mult.
 have [rh_pos|rh_neg] := Rle_lt_dec 0 rh; first by interval.
 suff : (-0x1.72b0feb06bbe9p-15)%xR <= rl by lra.
-rewrite [Rabs rh]Rabs_left in rlhB; last by lra.
+rewrite [Rabs rh]Rabs_left in rlhB; first by lra.
 have F : Rpower 2 (-23.8899) * r1 <= rl.
   have p_pos : 0 < Rpower 2 (-23.8899) by apply: exp_pos.
   by split_Rabs; nra.
@@ -1522,7 +1521,7 @@ have magfE : mag beta f = (- 14)%Z :> Z.
   rewrite /F2R /= /Z.pow_pos /=.
   by split; interval.
 have ufE : ulp f = pow (- 67).
-  rewrite ulp_neq_0; last by rewrite /F2R /= /Z.pow_pos /=; lra.
+  rewrite ulp_neq_0; first by rewrite /F2R /= /Z.pow_pos /=; lra.
   by congr (pow _); rewrite /cexp /fexp magfE; lia.
 have fE : f = -0x1.72b0feb06bbe9p-15 :> R.
   by rewrite /F2R /= /Z.pow_pos /=; lra.
@@ -1531,7 +1530,7 @@ apply: round_UP_eq => //; split; last first.
   by rewrite /F2R /= /Z.pow_pos /=; interval with (i_prec 70).
 have foppE : f = - Float beta (6521271831935977) (- 67) :> R.
   by rewrite /F2R /= /Z.pow_pos /=; lra.
-rewrite foppE pred_opp succ_eq_pos; last first.
+rewrite foppE pred_opp succ_eq_pos.
   by rewrite /F2R /= /Z.pow_pos /=; lra.
 rewrite -ulp_opp -foppE ufE.
 by rewrite /F2R /= /Z.pow_pos /=; interval with (i_prec 100).
@@ -1565,7 +1564,7 @@ apply: Rle_trans (_ : pow e * (h + l) * (1 - Rpower 2 (- 49.541)) <= _);
   have hB := hB.
   have lB : l <= Rpower 2 (-49.541) * h.
     apply/Rcomplements.Rle_div_l; first by lra.
-    rewrite -[l / h]Rabs_pos_eq; first by apply: lhB.
+    rewrite -[l / h]Rabs_pos_eq; last by apply: lhB.
     by apply: Rcomplements.Rdiv_le_0_compat; lra.
   suff : l * (1 - Rpower 2 (-49.541)) <= Rpower 2 (-49.541) * h by lra.
   apply: Rle_trans lB.
@@ -1595,7 +1594,7 @@ have rlhB:  Rabs rl <= Rpower 2 (-23.8899) * Rabs rh.
   by rewrite /Rdiv -Rabs_inv -Rabs_mult.
 have [rh_pos|rh_neg] := Rle_lt_dec 0 rh; last by interval.
 suff :  rl <= 0x1.7f09093c9fe5bp-15 by lra.
-rewrite [Rabs rh]Rabs_pos_eq in rlhB; last by lra.
+rewrite [Rabs rh]Rabs_pos_eq in rlhB; first by lra.
 have F : rl <= Rpower 2 (-23.8899) * r2.
   have p_pos : 0 < Rpower 2 (-23.8899) by apply: exp_pos.
   by split_Rabs; nra.
@@ -1611,14 +1610,14 @@ have magfE : mag beta f = (- 14)%Z :> Z.
   rewrite /F2R /= /Z.pow_pos /=.
   by split; interval.
 have ufE : ulp f = pow (- 67).
-  rewrite ulp_neq_0; last by rewrite /F2R /= /Z.pow_pos /=; lra.
+  rewrite ulp_neq_0; first by rewrite /F2R /= /Z.pow_pos /=; lra.
   by congr (pow _); rewrite /cexp /fexp magfE; lia.
 have fE : f = 0x1.7f09093c9fe5bp-15 :> R.
   by rewrite /F2R /Q2R /= /Z.pow_pos /=; lra.
 rewrite -fE.
 apply: round_DN_eq => //; split.
   by rewrite /F2R /= /Z.pow_pos /=; interval with (i_prec 70).
-rewrite succ_eq_pos; last first.
+rewrite succ_eq_pos.
   by rewrite /F2R /= /Z.pow_pos /=; lra.
 rewrite ufE.
 by rewrite /F2R /= /Z.pow_pos /=; interval with (i_prec 100).
@@ -1655,7 +1654,7 @@ apply: Rle_trans (_ : pow e * (h + l) *
   have lB : - l <= Rpower 2 (-49.541) * h.
     apply/Rcomplements.Rle_div_l; first by lra.
     have -> : - l / h = - (l / h) by lra.
-    rewrite -Rabs_left; first by apply: lhB.
+    rewrite -Rabs_left; last by apply: lhB.
     suff : 0 < (- l) / h by lra.
     by apply: Rcomplements.Rdiv_lt_0_compat; lra.
   rewrite -!Rmult_assoc -[_ */ _]/(_ / _).
@@ -1696,7 +1695,7 @@ suff : (emin + p - e < mag beta h)%Z by lia.
 apply: mag_gt_bpow.
 rewrite bpow_plus bpow_opp.
 apply/Rcomplements.Rle_div_l; first by apply: bpow_gt_0.
-rewrite Rabs_pos_eq; last by have := hB; lra.
+rewrite Rabs_pos_eq; first by have := hB; lra.
 apply: Rle_trans (_ : pow (- 991) <= _); first by apply: bpow_le; lia.
 by have := powehLB rhB1; rewrite Rmult_comm; lra.
 Qed.
@@ -1704,13 +1703,13 @@ Qed.
 Lemma el_abs_error : Rabs (el - pow e * l) <= alpha.
 Proof.
 have [eLl|lLe] := Z_lt_le_dec  (emin + p - e)(mag beta l).
-  rewrite /e'' /el round_generic ?Rsimp01 //; first by interval.
+  rewrite /e'' /el round_generic ?Rsimp01 //; last by interval.
   rewrite Rmult_comm.
   apply: mult_bpow_exact_FLT lF _.
   by rewrite -[radix2]/beta; lia.
 suff <- : ulp (pow e * l) = alpha by apply: error_le_ulp.
 apply: ulp_subnormal => //.
-rewrite Rabs_mult Rabs_pos_eq; last by apply: bpow_ge_0.
+rewrite Rabs_mult Rabs_pos_eq; first by apply: bpow_ge_0.
 have -> : (3 - 1024 - 53 + 53 = e + (3 - 1024 - 53 + 53 - e))%Z by lia.
 rewrite bpow_plus -[bpow _ _]/(pow _); apply: Rmult_lt_compat_l.
   by apply: bpow_gt_0.
@@ -1770,7 +1769,7 @@ have -> : (eh + el) / (pow e * (h + l)) - 1 =
   suff : 0 < pow e by lra.
   by apply: bpow_gt_0.
 have -> : eh + el - pow e * (h + l) = el - pow e * l.
-  rewrite /eh round_generic //; first by lra.
+  rewrite /eh round_generic //; last by lra.
   by apply: pehF.
 rewrite Rabs_mult Rabs_inv.
 apply: Rle_trans (_ : alpha / pow (- 991) <= _); 
@@ -1779,7 +1778,7 @@ apply: Rmult_le_compat; first by apply: Rabs_pos.
 - by apply/Rinv_0_le_compat/Rabs_pos.
 - by apply: el_abs_error.
 apply: Rinv_le; first by interval.
-rewrite Rabs_pos_eq; first by apply: powehlLB.
+rewrite Rabs_pos_eq; last by apply: powehlLB.
 apply: Rle_trans (_ : pow (-991) <= _); first by apply: bpow_ge_0.
 by apply: powehlLB.
 Qed.
@@ -1809,31 +1808,31 @@ Let emin := (3 - emax - p)%Z.
 Let beta := radix2.
 
 Hypothesis Hp2: Z.lt 1 p.
-Local Notation pow e := (bpow beta e).
+Local Abbreviation pow e := (bpow beta e).
 
 Open Scope R_scope.
 
-Local Notation u := (u p beta).
-Local Notation u_gt_0 := (u_gt_0 p beta).
+Local Abbreviation u := (u p beta).
+Local Abbreviation u_gt_0 := (u_gt_0 p beta).
 
 Variable rnd : R -> Z.
 Context ( valid_rnd : Valid_rnd rnd ).
 
-Local Notation float := (float radix2).
-Local Notation fexp := (FLT_exp emin p).
-Local Notation format := (generic_format radix2 fexp).
-Local Notation cexp := (cexp beta fexp).
-Local Notation mant := (scaled_mantissa beta fexp).
-Local Notation RND := (round beta fexp rnd).
-Local Notation fastTwoSum := (fastTwoSum rnd).
-Local Notation exactMul := (exactMul beta emin p rnd).
-Local Notation fastSum := (fastSum beta emin p rnd).
-Local Notation q1 := (q1 rnd).
+Local Abbreviation float := (float radix2).
+Local Abbreviation fexp := (FLT_exp emin p).
+Local Abbreviation format := (generic_format radix2 fexp).
+Local Abbreviation cexp := (cexp beta fexp).
+Local Abbreviation mant := (scaled_mantissa beta fexp).
+Local Abbreviation RND := (round beta fexp rnd).
+Local Abbreviation fastTwoSum := (fastTwoSum rnd).
+Local Abbreviation exactMul := (exactMul beta emin p rnd).
+Local Abbreviation fastSum := (fastSum beta emin p rnd).
+Local Abbreviation q1 := (q1 rnd).
 
 Let alpha := pow (- 1074).
 Let omega := (1 - pow (-p)) * pow emax.
 
-Local Notation ulp := (ulp beta fexp).
+Local Abbreviation ulp := (ulp beta fexp).
 
 Variable choice : Z -> bool.
 

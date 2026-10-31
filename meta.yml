@@ -80,43 +80,37 @@ license:
   identifier: MIT
 
 supported_coq_versions:
-  text: '9.0 or later'
-  opam: '{(>= "9.0")}'
+  text: '9.2 or later'
+  opam: '{(>= "9.2")}'
 
 dependencies:
 - opam:
     name: coq-mathcomp-ssreflect
-    version: '{(>= "2.4.0")}'
+    version: '{(>= "2.6.0")}'
   description: |-
-    [MathComp ssreflect 2.4.0 or later](https://math-comp.github.io)
+    [MathComp ssreflect 2.6.0 or later](https://math-comp.github.io)
 
 - opam:
     name: coq-coquelicot
-    version: '{(>= "3.4.3")}'
+    version: '{(>= "3.4.5")}'
   description: |-
-    [Coquelicot 3.4.3 or later](https://gitlab.inria.fr/coquelicot/coquelicot)
-
-- opam:
-    name: coq-mathcomp-algebra
-    version: '{(>= "2.4.0")}'
-  description: |-
-    [MathComp algebra 2.4 or later](https://math-comp.github.io)
+    [Coquelicot 3.4.5 or later](https://gitlab.inria.fr/coquelicot/coquelicot)
 
 - opam:
     name: coq-flocq
-    version: '{(>= "4.2.1")}'
+    version: '{(>= "4.2.2")}'
   description: |-
-    [Flocq 4.2.1 or later](https://gitlab.inria.fr/flocq/flocq)
+    [Flocq 4.2.2 or later](https://gitlab.inria.fr/flocq/flocq)
 
 - opam:
     name: coq-interval
-    version: '{(>= "4.11.2")}'
+    version: '{(>= "4.11.5")}'
   description: |-
-    [Interval 4.11.2 or later](https://gitlab.inria.fr/coqinterval/interval)
+    [Interval 4.11.5 or later](https://gitlab.inria.fr/coqinterval/interval)
 
 
 tested_coq_opam_versions:
-- version: '2.4.0-rocq-prover-9.0'
+- version: '2.6.0-rocq-prover-9.2'
   repo: 'mathcomp/mathcomp'
 
 namespace: floatexp

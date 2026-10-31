@@ -2,7 +2,7 @@
 
 From Stdlib Require Import Reals Psatz.
 From Flocq Require Import Core Relative Sterbenz Operations.
-From mathcomp Require Import all_ssreflect.
+From mathcomp Require Import boot.
 From Coquelicot Require Import Coquelicot.
 Import ZArith_dec.
 Require Import Rmore.
@@ -15,7 +15,7 @@ Variable beta: radix.
 Hypothesis Hbeta2: (1 < beta)%Z.
 Hypothesis Hp2: (1 < p)%Z.
 
-Local Notation pow e := (bpow beta e).
+Local Abbreviation pow e := (bpow beta e).
 
 Local Instance p_gt_0 : Prec_gt_0 p.
 now apply Z.lt_trans with (2 := Hp2).
@@ -23,12 +23,12 @@ Qed.
 Variable choice : Z -> bool.
 Hypothesis choice_sym: forall x, choice x  = negb (choice (- (x + 1))).
 
-Local Notation fexp := (FLX_exp p).
+Local Abbreviation fexp := (FLX_exp p).
 (* Hypothesis valid_fexp : Valid_exp fexp. *)
-Local Notation format := (generic_format beta fexp).
-Local Notation cexp := (cexp beta fexp).
-Local Notation mant := (scaled_mantissa beta fexp).
-Local Notation ulp := (ulp beta fexp).
+Local Abbreviation format := (generic_format beta fexp).
+Local Abbreviation cexp := (cexp beta fexp).
+Local Abbreviation mant := (scaled_mantissa beta fexp).
+Local Abbreviation ulp := (ulp beta fexp).
 
 Open Scope R_scope.
 
@@ -185,7 +185,7 @@ Lemma ulp_in_binade x z :
 Proof.
 move=> xB.
 have zp_gt0 := bpow_gt_0 beta (z + p - 1).
-rewrite ulp_neq_0 /cexp /fexp; last by split_Rabs; lra.
+rewrite ulp_neq_0 /cexp /fexp; first by split_Rabs; lra.
 suff -> : (mag beta x = z + p :> Z)%Z by congr (pow _); lia.
 by apply: mag_unique.
 Qed. 
@@ -279,7 +279,7 @@ Qed.
 
 (* About round to the nearest                                                 *)
 
-Local Notation RN := (round beta fexp (Znearest choice)).
+Local Abbreviation RN := (round beta fexp (Znearest choice)).
 
 Lemma RN_1 : RN 1 = 1.
 Proof.
@@ -288,9 +288,9 @@ have<- :  F2R ({| Fnum := Z.pow beta (p - 1); Fexp := 1-p |} : float beta) = 1.
   rewrite /F2R IZR_Zpower; try lia.
   by rewrite /Fexp -bpow_plus -[1]/(pow 0); congr (pow _); lia.
 apply: generic_format_canonical.
-rewrite /canonical /Fexp /cexp mag_F2R_Zdigits; last first.
+rewrite /canonical /Fexp /cexp mag_F2R_Zdigits.
   by apply: Z.pow_nonzero; rewrite /=; lia.
-rewrite Zdigits_Zpower; first by rewrite /fexp; lia.
+rewrite Zdigits_Zpower; last by rewrite /fexp; lia.
 by lia.
 Qed.
 
@@ -396,7 +396,7 @@ by have [] := round_DN_or_UP beta fexp (Znearest choice) (IZR z);
     rewrite mult_IZR IZR_Zpower // /cexp /fexp;
     (suff: (p <= mag beta (IZR z))%Z by lia);
     (apply/mag_ge_bpow/(Rle_trans _ (pow p)); first by apply/bpow_le; lia);
-    (rewrite -abs_IZR -IZR_Zpower; [apply/IZR_le |]); lia.
+    (rewrite -abs_IZR -IZR_Zpower; [|apply/IZR_le]); lia.
 Qed.
 
 Lemma RN_E t : exists d, RN t = t * (1 + d) /\ Rabs d <= u.
@@ -433,7 +433,7 @@ Qed.
 Lemma RN_ulp_le x : 0 <= x -> ulp x <= ulp (RN x).
 move => [xpos | <-]; last by rewrite round_0 ulp_FLX_0; lra.
 case: (ulp_round_pos beta fexp  (Znearest choice) x xpos) =>[|->]; first by lra.
-rewrite ulp_bpow ulp_neq_0; last by lra.
+rewrite ulp_bpow ulp_neq_0; first by lra.
 by rewrite /cexp /fexp; apply/bpow_le; lia.
 Qed.
 
@@ -480,7 +480,7 @@ apply: (Rle_lt_trans _ (x + /2 * ulp x)).
   case: (error_bound_ulp_u x); move/Rabs_le_inv; rewrite Rabs_pos_eq; lra.
 apply: (Rle_lt_trans _ (x + /2 *  ulp y)); last lra.
 suff: ulp x <= ulp y by lra.
-apply: ulp_le; rewrite !Rabs_pos_eq;[|lra|lra].
+apply: ulp_le; rewrite !Rabs_pos_eq;[lra|lra|].
 suff: 0 <= ulp y by lra.
 apply: ulp_ge_0.
 Qed.

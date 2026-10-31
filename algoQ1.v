@@ -1,5 +1,5 @@
-From Stdlib Require Import ZArith Reals Psatz.
-From mathcomp Require Import all_ssreflect all_algebra.
+From Stdlib Require Import ZArith Reals Psatz Field.
+From mathcomp Require Import boot.
 From Flocq Require Import Core Relative Sterbenz Operations Mult_error.
 From Interval Require Import Tactic.
 Require Import Nmore Rmore Fmore Rstruct MULTmore prelim algoLog1 algoMul1.
@@ -21,7 +21,7 @@ Let emin := (3 - emax - p)%Z.
 Let beta := radix2.
 
 Hypothesis Hp2: Z.lt 1 p.
-Local Notation pow e := (bpow beta e).
+Local Abbreviation pow e := (bpow beta e).
 
 Local Instance p_gt_0 : Prec_gt_0 p.
 now apply Z.lt_trans with (2 := Hp2).
@@ -29,8 +29,8 @@ Qed.
 
 Open Scope R_scope.
 
-Local Notation u := (u p beta).
-Local Notation u_gt_0 := (u_gt_0 p beta).
+Local Abbreviation u := (u p beta).
+Local Abbreviation u_gt_0 := (u_gt_0 p beta).
 
 Lemma uE : u = pow (- p).
 Proof. by rewrite /u /= /Z.pow_pos /=; lra. Qed.
@@ -38,20 +38,20 @@ Proof. by rewrite /u /= /Z.pow_pos /=; lra. Qed.
 Variable rnd : R -> Z.
 Context { valid_rnd : Valid_rnd rnd }.
 
-Local Notation float := (float radix2).
-Local Notation fexp := (FLT_exp emin p).
-Local Notation format := (generic_format radix2 fexp).
-Local Notation cexp := (cexp beta fexp).
-Local Notation mant := (scaled_mantissa beta fexp).
-Local Notation RND := (round beta fexp rnd).
-Local Notation fastTwoSum := (fastTwoSum beta emin p rnd).
-Local Notation exactMul := (exactMul beta emin p rnd).
-Local Notation fastSum := (fastSum beta emin p rnd).
+Local Abbreviation float := (float radix2).
+Local Abbreviation fexp := (FLT_exp emin p).
+Local Abbreviation format := (generic_format radix2 fexp).
+Local Abbreviation cexp := (cexp beta fexp).
+Local Abbreviation mant := (scaled_mantissa beta fexp).
+Local Abbreviation RND := (round beta fexp rnd).
+Local Abbreviation fastTwoSum := (fastTwoSum beta emin p rnd).
+Local Abbreviation exactMul := (exactMul beta emin p rnd).
+Local Abbreviation fastSum := (fastSum beta emin p rnd).
 
 Let alpha := pow (- 1074).
 Let omega := (1 - pow (-p)) * pow emax.
 
-Local Notation ulp := (ulp beta fexp).
+Local Abbreviation ulp := (ulp beta fexp).
 
 Definition Q0 := 1.
 Definition Q1 := 1.
@@ -185,7 +185,7 @@ have qB : Rabs q <= Rpower 2 (- 2.579).
   by rewrite Rabs_pos_eq; lra.
 pose Q := Q4 * z + Q3.
 have qB1 : pow (emin + p - 1) <= q.
-  rewrite -[q]Rabs_pos_eq; last first.
+  rewrite -[q]Rabs_pos_eq.
     rewrite -[0](round_0 beta fexp) //.
     apply: round_le.
     by apply: Rle_trans (bpow_ge_0 _ _) Q4zQ3B. 
@@ -195,8 +195,8 @@ have qB1 : pow (emin + p - 1) <= q.
 have q_pos : 0 < q by apply: Rlt_le_trans (bpow_gt_0 _ _) qB1.
 have qQB : Rabs (q - Q) <= pow (- 55).
   apply: Rle_trans (_ : ulp q <= _); first by apply: error_le_ulp_round.
-  rewrite ulp_neq_0; last by lra.
-  rewrite /cexp /fexp Z.max_l.
+  rewrite ulp_neq_0; first by lra.
+  rewrite /cexp /fexp Z.max_l; last first.
     apply: bpow_le.
     suff : (mag beta q <= - 2)%Z by lia.
     apply: mag_le_bpow; first by lra.
@@ -229,7 +229,7 @@ have q'B : Rabs q' <= 0.50003.
   by lra.
 pose Q' := Q4 * z ^ 2 + Q3 * z + Q2.
 have q'B1 : pow (emin + p - 1) <= q'.
-  rewrite -[q']Rabs_pos_eq; last first.
+  rewrite -[q']Rabs_pos_eq.
     rewrite -[0](round_0 beta fexp) //.
     apply: round_le.
     by apply: Rle_trans (bpow_ge_0 _ _) qzQ2B. 
@@ -248,8 +248,8 @@ have q'Q'B : Rabs (q' - Q') <= Rpower 2 (- 52.999952).
     by apply: error_le_ulp_round.
   boundDMI; last first.
     by apply: Rmult_le_compat; try (by apply: Rabs_pos; lra); lra.
-  rewrite ulp_neq_0; last by lra.
-  rewrite /cexp /fexp Z.max_l.
+  rewrite ulp_neq_0; first by lra.
+  rewrite /cexp /fexp Z.max_l; last first.
     apply: bpow_le.
     suff : (mag beta q' <= 0)%Z by lia.
     apply: mag_le_bpow; first by lra.
@@ -268,7 +268,7 @@ have q'zQ1B1 : pow (emin + p - 1) <= q' * z + Q1.
     by rewrite -[q']Rabs_pos_eq; lra.
   by clear; interval.
 have h0B1 : pow (emin + p - 1) <= h0.
-  rewrite -[h0]Rabs_pos_eq; last first.
+  rewrite -[h0]Rabs_pos_eq.
     rewrite -[0](round_0 beta fexp) //.
     apply: round_le.
     by apply: Rle_trans (bpow_ge_0 _ _) q'zQ1B1. 
@@ -299,8 +299,8 @@ have h0H0B : Rabs (h0 - H0) <= Rpower 2 (- 51.999905).
     by apply: error_le_ulp_round.
   boundDMI; last first.
     by apply: Rmult_le_compat; try (by apply: Rabs_pos; lra); lra.
-  rewrite ulp_neq_0; last by lra.
-  rewrite /cexp /fexp Z.max_l.
+  rewrite ulp_neq_0; first by lra.
+  rewrite /cexp /fexp Z.max_l; last first.
     apply: bpow_le.
     suff : (mag beta h0 <= 1)%Z by lia.
     apply: mag_le_bpow; first by lra.
@@ -385,7 +385,7 @@ have qh105B : pow (- 105) * Rabs qh <= Rpower 2 (- 104.99).
   by interval.
 have vE : v = RND (h1 - RND (qh - Q0)) by case: Ef2 => <- <-.
 have vB : Rabs v <= pow (- 52).
-  rewrite vE (round_generic _ _ _ (qh - Q0)); last first.
+  rewrite vE (round_generic _ _ _ (qh - Q0)).
     rewrite qhE; apply/sma_exact_abs=>//.
     + by apply: Q0F.
     + by rewrite h1E; apply/generic_format_round.

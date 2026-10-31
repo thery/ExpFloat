@@ -1,7 +1,7 @@
-From Stdlib Require Import ZArith Reals Psatz.
-From mathcomp Require Import all_ssreflect all_algebra.
+From Stdlib Require Import ZArith Reals Psatz Field.
+From mathcomp Require Import boot.
 From Flocq Require Import Core Relative Sterbenz Operations Mult_error.
-From Interval Require Import  Tactic.
+From Interval Require Import Tactic.
 Require Import Nmore Rmore Fmore Rstruct MULTmore prelim.
 
 Delimit Scope R_scope with R.
@@ -22,7 +22,7 @@ Compute emin.
 Let beta := radix2.
 
 Hypothesis Hp2: Z.lt 1 p.
-Local Notation pow e := (bpow beta e).
+Local Abbreviation pow e := (bpow beta e).
 
 Local Instance p_gt_0 : Prec_gt_0 p.
 now apply Z.lt_trans with (2 := Hp2).
@@ -30,18 +30,18 @@ Qed.
 
 Open Scope R_scope.
 
-Local Notation u := (u p beta).
-Local Notation u_gt_0 := (u_gt_0 p beta).
+Local Abbreviation u := (u p beta).
+Local Abbreviation u_gt_0 := (u_gt_0 p beta).
 
 Variable rnd : R -> Z.
 Context { valid_rnd : Valid_rnd rnd }.
 
-Local Notation float := (float radix2).
-Local Notation fexp := (FLT_exp emin p).
-Local Notation format := (generic_format radix2 fexp).
-Local Notation cexp := (cexp beta fexp).
-Local Notation mant := (scaled_mantissa beta fexp).
-Local Notation RND := (round beta fexp rnd).
+Local Abbreviation float := (float radix2).
+Local Abbreviation fexp := (FLT_exp emin p).
+Local Abbreviation format := (generic_format radix2 fexp).
+Local Abbreviation cexp := (cexp beta fexp).
+Local Abbreviation mant := (scaled_mantissa beta fexp).
+Local Abbreviation RND := (round beta fexp rnd).
 
 
 Definition INVERSE : list R := 
@@ -185,7 +185,7 @@ do ! (rewrite in_cons => /orP[/eqP->|];
 by [].
 Qed.
 
-Local Notation ulp := (ulp beta fexp).
+Local Abbreviation ulp := (ulp beta fexp).
 
 (* This is lemma 3 *)
 
@@ -220,7 +220,7 @@ have ti_gt_0 : 0 < ti.
   by case/andP: iB.
 have tiB : ti <= t < ti1.
   rewrite /ti /ti1 !INR_IZR_INZ Nat2Z.inj_succ /Z.succ Z2Nat.id // plus_IZR.
-  rewrite [X in _ <= X < _](_ : t = pow (-8) * (pow 8 * t)); last first.
+  rewrite [X in _ <= X < _](_ : t = pow (-8) * (pow 8 * t)).
     by rewrite -Rmult_assoc -bpow_plus Rsimp01.
   suff :  IZR (Zfloor (pow 8 * t)) <= (pow 8 * t) < 
               IZR (Zfloor (pow 8 * t)) + 1 by nra.
@@ -303,16 +303,15 @@ have [iL255|iG256] := leqP i 255.
       by have := Zfloor_ub ((/ ti1 * pow 8)); lra.
     suff : / ti - / ti1 <= pow 8 / (INR i * INR i.+1) by nra.
     rewrite /ti /ti1 S_INR -[pow (-8)]/(/256) -[pow 8]/256.
-    right.
-    by field; split; lra.
+    by right; field; split; lra.
   have [j tE] : exists j, t = ti + IZR j * ulp ti.
     by apply: format_pos_le_ex_add_ulp => //; last by lra.
   have ulp_ti : ulp ti = pow (-53).
     rewrite ulp_neq_0 /cexp /fexp  ?(mag_unique_pos _ _ (- 53 + p)%Z); try lra.
-      rewrite Z.max_l; last by lia.
-      congr bpow; lia.
-    rewrite /ti !pow_Rpower /p //.
-    by split; interval.
+      rewrite /ti !pow_Rpower /p //.
+      by split; interval.
+    rewrite Z.max_l; first by lia.
+    by congr bpow; lia.
   rewrite ulp_ti in tE.
   pose jmax := (radix2 ^ 45 - 1)%Z.
   have jB : (0 <= j <= jmax)%Z.
@@ -545,10 +544,10 @@ have [j tE] : exists j, t = ti + IZR j * ulp ti.
   by apply: format_pos_le_ex_add_ulp => //; last by lra.
 have ulp_ti : ulp ti = pow (- 52).
   rewrite ulp_neq_0 /cexp /fexp  ?(mag_unique_pos _ _ (- 52 + p)%Z); try lra.
-    rewrite Z.max_l; last by lia.
-    by congr bpow; lia.
-  rewrite /ti /= /Z.pow_pos /=.
-  by lra.
+    rewrite /ti /= /Z.pow_pos /=.
+    by lra.
+  rewrite Z.max_l; first by lia.
+  by congr bpow; lia.
 rewrite ulp_ti in tE.
 pose jmax := (radix2 ^ 44 - 1)%Z.
 have jB : (0 <= j <= jmax)%Z.
@@ -698,7 +697,7 @@ have [->|l1_neqlr] := Req_dec l1  (- ln r).
   by rewrite Rsimp01 ulp_FLT_0 /= /Z.pow_pos /=; lra.
 have F1 : pow (- 52) < Rabs (l1 - (- ln r)) < pow (- 43).
   by case: (l1_bound iLs) => // _ _ _; apply.
-rewrite ulp_neq_0; last by split_Rabs; lra.
+rewrite ulp_neq_0; first by split_Rabs; lra.
 apply: bpow_le.
 have <- : (fexp (- 43) = - 96)%Z by [].
 by apply: cexp_le_bpow; split_Rabs; lra.

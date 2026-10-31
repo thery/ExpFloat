@@ -26,8 +26,8 @@ From mathcomp Require Import eqtype ssrnat seq choice bigop.
 From mathcomp Require Import ssrnum archimedean ssralg fintype poly mxpoly.
 From mathcomp Require Import div order.
 
-From Stdlib Require Import Rtrigo1 Reals Lra Psatz.
-Require Import Reals Coquelicot.Coquelicot.
+From Stdlib Require Import Rtrigo1 Reals Lra Psatz Reals.
+Require Import Coquelicot.Coquelicot.
 Import ZArith_dec Zabs Zorder.
 
 Delimit Scope ring_scope with RR.
@@ -314,7 +314,7 @@ apply/RltbP/Rabs_def1.
   apply: (Rlt_le_trans _ (IZR (up x)))=> //.
   elim/(well_founded_ind (Zwf_well_founded 0)): (up x) => z IHz.
   case: (Z_lt_le_dec 0 z) => [zp | zn].
-    rewrite [z]Hz plus_IZR Zabs_nat_Zplus //; last exact: Zlt_0_le_0_pred.
+    rewrite [z]Hz plus_IZR Zabs_nat_Zplus //; first exact: Zlt_0_le_0_pred.
     rewrite plusE mulrnDr.
     apply/Rplus_le_compat_r/IHz; split; first exact: Zlt_le_weak.
     exact: Zlt_pred.
@@ -326,7 +326,7 @@ apply: (Rlt_le_trans _ (IZR (up x) - 1)).
   elim/(well_founded_ind (Zwf_well_founded 0)): (- up x)%Z => z IHz .
   case: (Z_lt_le_dec 0 z) => [zp | zn].
   rewrite [z]Hz Zabs_nat_Zopp plus_IZR.
-  rewrite Zabs_nat_Zplus //; last exact: Zlt_0_le_0_pred.
+  rewrite Zabs_nat_Zplus //; first exact: Zlt_0_le_0_pred.
     rewrite plusE -Rplus_assoc -addnA [(_ + 2)%nat]addnC addnA mulrnDr.
     apply: Rplus_lt_compat_r; rewrite -Zabs_nat_Zopp.
     apply: IHz; split; first exact: Zlt_le_weak.
@@ -441,7 +441,7 @@ Lemma Rdiv_div x y : y != 0 -> Rdiv x y = x / y.
 Proof.
 move=> Hneq0.
 apply: (@mulIr _ y); first by rewrite unitfE.
-rewrite -!mulrA mulVr; last by rewrite unitfE.
+rewrite -!mulrA mulVr; first by rewrite unitfE.
 rewrite -[X in _*X]Rmult_mul Rinv_l //.
 by apply: (elimN eqP Hneq0).
 Qed.
@@ -593,9 +593,8 @@ have CDfg t : t1 <= t <= t2 ->continuous (Derive (f \o g)) t.
   apply: continuous_ext_loc.
   have K2 a b c : 0 < a -> b < c / a -> a * b < c.
     move=> aP abLc.
-    rewrite (_ : c =  a * (c / a)).
-      by apply: Rmult_lt_compat_l.
-    by field; lra.
+    rewrite (_ : c =  a * (c / a)); first by field; lra.
+    by apply: Rmult_lt_compat_l.
   have gtB : b1 <= g t <= b2 by rewrite /g; nra.
   pose eps := Rmin (Rabs ((c1 - g t)/ y))
                    (Rabs ((c2 - g t)/ y)).
@@ -620,19 +619,19 @@ have CDfg t : t1 <= t <= t2 ->continuous (Derive (f \o g)) t.
     by rewrite -Rabs_div // Rabs_minus_sym.
   rewrite [RHS]Derive_comp //.
   by apply: Df; lra.
-rewrite (_ : _ - _ = (f \o g) t2 - (f \o g) t1); last first.
+rewrite (_ : _ - _ = (f \o g) t2 - (f \o g) t1).
   by rewrite /g; congr (_ - f _); ring.
-rewrite -RInt_Derive; last 2 first.
+rewrite -RInt_Derive.
   move=> t; rewrite Rmin_left // Rmax_right // => tB.
   apply: ex_derive_comp => //.
     by apply: Df; rewrite /g; nra.
   move=> t; rewrite Rmin_left // Rmax_right // => tB //.
   by exact: CDfg.
-rewrite -[RHS](@RInt_scal RC); last first.
+rewrite -[RHS](@RInt_scal RC).
   apply: ex_RInt_continuous => t; rewrite Rmin_left // Rmax_right //.
   by exact: CDfg.
 apply: RInt_ext; rewrite Rmin_left // Rmax_right // => u Hu.
-rewrite [in RHS]Derive_comp => //; last first.
+rewrite [in RHS]Derive_comp => //.
   by apply: Df; rewrite /g; nra.
 rewrite Dg /g /scal /= /mult /=; field; lra.
 Qed.
@@ -683,10 +682,10 @@ apply: etrans.
 case: (boolP (P c)) => [HP|HNP]; last first.
   apply: IH => i iIl Pi.
   by apply: HR; rewrite ?inE ?iIl ?orbT.
-rewrite RInt_plus ?IH => // [i iIl Pi||].
-- by apply: HR; rewrite ?inE ?iIl ?orbT.
+rewrite RInt_plus ?IH => // [||i iIl Pi].
 - by apply: HR; rewrite ?inE ?eqxx.
-apply: ex_RInt_sum=> i iIl Pi.
+- apply: ex_RInt_sum=> i iIl Pi.
+  by apply: HR; rewrite ?inE ?iIl ?orbT.
 by apply: HR; rewrite ?inE ?iIl ?orbT.
 Qed.
 
@@ -704,7 +703,7 @@ case: (Req_dec u 0) => [->|/eqP uNz].
      by [].
   by apply: ex_RInt_const.
 apply: ex_RInt_ext => [x Hx|].
-  rewrite -[RHS](@mulfK _ u); last by [].
+  rewrite -[RHS](@mulfK _ u); first by [].
   by rewrite mulrC [(_ * u)%RR]mulrC.
 apply: ex_RInt_scal.
 by apply: ex_RInt_comp_lin.
