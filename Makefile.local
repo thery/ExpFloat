@@ -1,0 +1,10 @@
+# make links        recompute the line numbers of the links to the .v files
+#                   in meta.yml and README.md (update_links.ml)
+# make check-links  only check them (exit 1 if one is out of date)
+links:
+	ocaml update_links.ml meta.yml README.md
+
+check-links:
+	ocaml update_links.ml -check meta.yml README.md
+
+.PHONY: links check-links

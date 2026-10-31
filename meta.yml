@@ -13,55 +13,55 @@ description: |-
   Exponential in binary 64 
 
   Algorithm FastTwoSum : 
-  - [Algorithm FastTwoSum](./prelim.v#L563-L565)
-  - [Bounds on the error of FastTwoSum](./Fast2Sum_robust_flt.v#L944-L951)
+  - [Algorithm FastTwoSum](./prelim.v#L562-L564 "fastTwoSum")
+  - [Bounds on the error of FastTwoSum](./Fast2Sum_robust_flt.v#L944-L951 "FastTwoSum_bound")
 
   Algorithm ExactMul  :
-  - [Algorithm ExactMult](./prelim.v#L498-L500)
-  - [Lemma 0](./prelim.v#L525-L528)
+  - [Algorithm ExactMult](./prelim.v#L497-L499 "exactMul")
+  - [Lemma 0](./prelim.v#L525-L526 "error_exactMul")
 
   Algorithm FastSum  :
-  - [Algorithm FastSum](./prelim.v#L586-L587)
-  - [Lemma 1](./prelim.v#L728-L731)
+  - [Algorithm FastSum](./prelim.v#L585-L586 "fastSum")
+  - [Lemma 1](./prelim.v#L727-L730 "fastSum_correct")
 
   Algorithm P1 : 
-  - [Algorithm P1](./algoP1.v#L354-L362)
-  - [Absolute error of Sollya polynomial](./algoP1.v#L148-L149)
-  - [Relative error of Sollya polynomial](./algoP1.v#L336-L338)
-  - [Bound of `ph` of algorithm P1](./algoP1.v#L1708-L1713)
-  - [Bound of `pl` of algorithm P1](./algoP1.v#L1730-L1735)
-  - [Absolute error of algorithm P1 (first part Lemma 2)](./algoP1.v#L1741-L1746)
-  - [Relative error of algorithm P1](./algoP1.v#L1752-L1758)
-  - [Refined relative error of algorithm P1 (second part Lemma 2)](./algoP1.v#L1765-L1771)
+  - [Algorithm P1](./algoP1.v#L354-L362 "p1")
+  - [Absolute error of Sollya polynomial](./algoP1.v#L148-L149 "P_abs_error")
+  - [Relative error of Sollya polynomial](./algoP1.v#L336-L338 "P_rel_error")
+  - [Bound of `ph` of algorithm P1](./algoP1.v#L1708-L1713 "ph_bound_p1")
+  - [Bound of `pl` of algorithm P1](./algoP1.v#L1730-L1735 "pl_bound_p1")
+  - [Absolute error of algorithm P1 (first part Lemma 2)](./algoP1.v#L1741-L1746 "absolute_error_p1")
+  - [Relative error of algorithm P1](./algoP1.v#L1752-L1758 "rel_error_p1")
+  - [Refined relative error of algorithm P1 (second part Lemma 2)](./algoP1.v#L1765-L1771 "rel_error_32_p1")
 
   Algorithm Log1 :
-  - [Definition of the `INVERSE` table](./tableINVERSE.v#L47-L78)
-  - [Lemma 3](./tableINVERSE.v#L192-L197)   
-  - [Definition of the `LOGINV` table](./tableLOGINV.v#L107-L291)
-  - [Definition of Log1](./algoLog1.v#L227-L238)
-  - [Lemma 4](./algoLog1.v#L2506-L2512)
+  - [Definition of the `INVERSE` table](./tableINVERSE.v#L47-L78 "INVERSE")
+  - [Lemma 3](./tableINVERSE.v#L192-L197 "rt_float")   
+  - [Definition of the `LOGINV` table](./tableLOGINV.v#L107-L291 "LOGINV")
+  - [Definition of Log1](./algoLog1.v#L227-L238 "log1")
+  - [Lemma 4](./algoLog1.v#L2506-L2512 "err_lem4")
 
   Algorithm Mul1 :
-  - [Definition of Mul1](./algoMul1.v#L67-L70)
-  - [Lemma 5](./algoMul1.v#L73-L84)
+  - [Definition of Mul1](./algoMul1.v#L67-L70 "mul1")
+  - [Lemma 5](./algoMul1.v#L73-L84 "err_lem5")
 
   Algorithm Q1 :
-  - [Definition of the polynomial Q](./algoQ1.v#L127-L128)
-  - [Absolute error of the polynomial Q](./algoQ1.v#L130-L132)
-  - [Algorithm Q1](./algoQ1.v#L140-L144)
-  - [Lemma 6](./algoQ1.v#L148-L153)
+  - [Definition of the polynomial Q](./algoQ1.v#L127-L128 "Q")
+  - [Absolute error of the polynomial Q](./algoQ1.v#L130-L132 "Q_abs_error")
+  - [Algorithm Q1](./algoQ1.v#L140-L144 "q1")
+  - [Lemma 6](./algoQ1.v#L148-L153 "err_lem6")
 
   Algorithm Exp1 :
-  - [table T1](./tableT1.v#L76-L142)
-  - [relative error for T1](./tableT1.v#L208-L211)
-  - [table T2](./tableT2.v#L76-L142)
-  - [relative error for T2](./tableT2.v#L209-L212)
-  - [algorithm Exp1](./algoExp1.v#L1847-L1875)
-  - [Lemma 7](./algoExp1.v#L1892-L1900)
+  - [table T1](./tableT1.v#L76-L142 "T1")
+  - [relative error for T1](./tableT1.v#L208-L211 "T1_rel_error_h2l2")
+  - [table T2](./tableT2.v#L76-L142 "T2")
+  - [relative error for T2](./tableT2.v#L209-L212 "T2_rel_error_h1l1")
+  - [algorithm Exp1](./algoExp1.v#L1846-L1874 "exp1")
+  - [Lemma 7](./algoExp1.v#L1891-L1899 "err_lem7")
 
   Algorithm Phase1 :
-  - [algorithm Phase 1](./algoPhase1.v#L2106-L2116)
-  - [Theorem 1](./algoPhase1.v#L2120-L2122)
+  - [algorithm Phase 1](./algoPhase1.v#L2104-L2114 "phase1")
+  - [Theorem 1](./algoPhase1.v#L2118-L2120 "phase1_thm1")
 
 authors:
 - name: Laurent Théry
